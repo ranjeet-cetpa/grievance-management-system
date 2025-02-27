@@ -36,7 +36,7 @@ const data = {
       icon: BadgeAlert,
     },
     {
-      title: 'User Role Management',
+      title: 'Manage User Roles',
       url: '/role-management',
       icon: Users,
     },

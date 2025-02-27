@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import Select from 'react-select';
+import ReactSelect from 'react-select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   Dialog,
@@ -12,7 +12,16 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select as ShadSelect,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectGroup,
+  SelectLabel,
+  Select,
+} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -85,13 +94,14 @@ const UserRoleManagement = () => {
   const deptDD = extractUniqueDepartments(employeeList);
   console.log('this is dept DD , ', deptDD);
   const formatEmployeeForSelect = (employee) => {
-    return {
+    const option = {
       value: employee.empCode.toString(),
       label: `${employee.empName ?? 'Unnamed'} ${employee.empCode ? `(${employee.empCode})` : ''} ${
         employee.designation ? `- ${employee.designation}` : ''
       } ${employee.department ? `| ${employee.department}` : ''}`,
       original: employee,
     };
+    console.log(option);
   };
 
   const formattedEmployeeList = employeeList?.map(formatEmployeeForSelect);
@@ -229,12 +239,11 @@ const UserRoleManagement = () => {
 
     try {
       setLoading(true);
-      const userIds = selectedUsers.map((user) => parseInt(user.value));
 
       console.log('Mapping users to group:', {
         groupId: selectedGroup.id,
         groupName: selectedGroup.name,
-        userIds,
+
         selectedUsers,
       });
 
@@ -292,7 +301,7 @@ const UserRoleManagement = () => {
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-2xl">User Role Management</CardTitle>
+            <CardTitle className="text-2xl">Manage User Roles</CardTitle>
             <CardDescription>Manage user groups and role assignments</CardDescription>
           </div>
 
@@ -488,15 +497,41 @@ const UserRoleManagement = () => {
           </DialogHeader>
 
           <div className="py-4">
-            <div className="mt-4">
-              <Label className="mb-1 block">Selected Group:</Label>
-              <div className="p-2 bg-gray-100 rounded-md">{selectedGroup?.name || 'No group selected'}</div>
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Unit Dropdown */}
+              <div>
+                <Label className="mb-1 block">Unit:</Label>
+                <Select>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Units</SelectLabel>
+                      {unitsDD.map((unit) => (
+                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
+                          {unit.unitName}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Selected Group Display */}
+              <div>
+                <Label className="mb-1 block">Selected Group:</Label>
+                <div className="p-2 bg-gray-100 rounded-md">
+                  {selectedGroup ? selectedGroup.name : 'No group selected'}
+                </div>
+              </div>
             </div>
+
+            {/* User Selection */}
             <Label htmlFor="users" className="mb-2 mt-4 block">
               Select User
             </Label>
-
-            <Select
+            <ReactSelect
               id="users"
               options={formattedEmployeeList}
               value={selectedUsers}
