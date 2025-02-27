@@ -115,3 +115,45 @@ export const adjustforUTC = (date) => {
   const istDate = new Date(utcDate.getTime() + offset);
   return istDate.toISOString().replace('Z', '+05:30');
 };
+
+// Helper function to extract unique units from employee list
+export const extractUniqueUnits = (employees) => {
+  // Create a Map to track unique units by unitId
+  const uniqueUnitsMap = new Map();
+
+  // Process each employee
+  employees.forEach((employee) => {
+    // Only add if both unitId and unitName exist
+    if (employee.unitId && employee.unitName) {
+      uniqueUnitsMap.set(employee.unitId, {
+        unitId: employee.unitId,
+        unitName: employee.unitName?.trim(),
+      });
+    }
+  });
+
+  // Convert Map values to array
+  return Array.from(uniqueUnitsMap.values());
+};
+
+export const extractUniqueDepartments = (employees) => {
+  // Create a Set to track unique department values
+  const uniqueDepartmentsSet = new Set();
+
+  // Create an array to hold unique department objects
+  const uniqueDepartments = [];
+
+  // Process each employee
+  employees.forEach((employee) => {
+    // Only add if department exists and hasn't been added yet
+    if (employee.department && !uniqueDepartmentsSet.has(employee.department)) {
+      uniqueDepartmentsSet.add(employee.department);
+
+      uniqueDepartments.push({
+        departmentName: employee.department?.trim()?.toUpperCase(),
+      });
+    }
+  });
+
+  return uniqueDepartments;
+};

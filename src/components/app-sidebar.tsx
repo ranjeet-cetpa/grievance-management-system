@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Activity, LayoutGrid, View, Kanban, Hourglass, LogOut, BadgeAlert } from 'lucide-react';
+import { Activity, LayoutGrid, View, Kanban, Hourglass, Users, LogOut, BadgeAlert } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
   Sidebar,
@@ -34,6 +34,11 @@ const data = {
       title: 'My Grievances',
       url: '/my-grievances',
       icon: BadgeAlert,
+    },
+    {
+      title: 'User Role Management',
+      url: '/role-management',
+      icon: Users,
     },
   ],
 };

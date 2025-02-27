@@ -5,6 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import toast from 'react-hot-toast';
 import logger from '@/lib/logger';
+import GrievanceTable from '@/components/grievances/GrievanceTable';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Loader from '@/components/ui/loader';
 import Heading from '@/components/ui/heading';
@@ -16,42 +17,42 @@ import CreateGrievance from './CreateTask';
 const dummyGrievances = [
   {
     id: 'GR-001',
-    createdOn: '2025-02-20T10:30:00',
+    createdDate: '2025-02-20T10:30:00',
     title: 'Faulty Equipment in IT Department',
     assignedTo: 'John Doe',
     status: 'Open',
   },
   {
     id: 'GR-002',
-    createdOn: '2025-02-21T09:15:00',
+    createdDate: '2025-02-21T09:15:00',
     title: 'Network Connectivity Issues',
     assignedTo: 'Jane Smith',
     status: 'In Progress',
   },
   {
     id: 'GR-003',
-    createdOn: '2025-02-22T14:45:00',
+    createdDate: '2025-02-22T14:45:00',
     title: 'Office AC Not Working',
     assignedTo: 'Mike Johnson',
     status: 'Resolved',
   },
   {
     id: 'GR-004',
-    createdOn: '2025-02-23T11:20:00',
+    createdDate: '2025-02-23T11:20:00',
     title: 'Software License Expiry',
     assignedTo: 'Sarah Williams',
     status: 'Open',
   },
   {
     id: 'GR-005',
-    createdOn: '2025-02-24T16:30:00',
+    createdDate: '2025-02-24T16:30:00',
     title: 'Broken Chair in Conference Room',
     assignedTo: 'David Brown',
     status: 'In Progress',
   },
   {
     id: 'GR-006',
-    createdOn: '2025-02-25T13:10:00',
+    createdDate: '2025-02-25T13:10:00',
     title: 'Printer Not Functioning',
     assignedTo: 'John Doe',
     status: 'Open',
@@ -132,7 +133,7 @@ const MyGrievances = () => {
           </Heading>
           <div className="flex gap-2 items-center">
             <div className="mt-4 hidden sm:block">
-              <CreateGrievance refreshGrievances={refreshGrievances} />
+              <CreateGrievance refreshGrievance={refreshGrievances} />
             </div>
           </div>
         </div>

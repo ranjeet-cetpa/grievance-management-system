@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { useNavigate } from 'react-router';
 import StatusBadge from '../common/StatusBadge';
-import { format } from 'date-fns';
+import { format, formatDate } from 'date-fns';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import FilterHeader from '../FilterHeader';
 import toast from 'react-hot-toast';
@@ -94,7 +94,7 @@ const ResponsiveGrievanceList: React.FC = ({
             <SortingButton headerText="Created On" column={column} />
           </div>
         ),
-        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
+        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd-MM-yyyy')}</span>,
       },
       {
         id: 'title',
@@ -105,19 +105,20 @@ const ResponsiveGrievanceList: React.FC = ({
       {
         id: 'assignedTo',
         accessorKey: 'assignedTo',
-        header: ({ column }) => (
-          <div className="flex items-center gap-2">
-            <span>Assigned To</span>
-            {employeeList && (
-              <FilterHeader
-                column={column}
-                grievances={grievances}
-                employeeList={employeeList}
-                mode={'filterOnAssignedTo'}
-              />
-            )}
-          </div>
-        ),
+        // header: ({ column }) => (
+        //   <div className="flex items-center gap-2">
+        //     <span>Assigned To</span>
+        //     {employeeList && (
+        //       <FilterHeader
+        //         column={column}
+        //         grievances={grievances}
+        //         employeeList={employeeList}
+        //         mode={'filterOnAssignedTo'}
+        //       />
+        //     )}
+        //   </div>
+        // ),
+        header: 'Assigned To',
         filterFn: (row, id, filterValue) => {
           if (!filterValue?.length) return true;
           return filterValue.includes(row.original.assignedTo);
