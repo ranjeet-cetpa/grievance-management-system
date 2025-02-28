@@ -26,73 +26,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, ChevronRight, Plus, Users, UserPlus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Users, UserPlus, Edit } from 'lucide-react';
 import { RootState } from '@/app/store';
 import { extractUniqueDepartments, extractUniqueUnits } from '@/lib/helperFunction';
+import axiosInstance from '@/services/axiosInstance';
+import logger from '@/lib/logger';
+import { format } from 'date-fns';
+import toast from 'react-hot-toast';
 
 const UserRoleManagement = () => {
   // Dummy data for groups
-  const [groups, setGroups] = useState([
-    {
-      id: 1,
-      name: 'Administrators',
-      description: 'System administrators with full access',
-      parentId: null,
-      createdAt: '2025-01-15',
-      users: [],
-    },
-    {
-      id: 2,
-      name: 'Developers',
-      description: 'Software development team',
-      parentId: null,
-      createdAt: '2025-01-20',
-      users: [],
-    },
-    { id: 3, name: 'Frontend Team', description: 'UI/UX specialists', parentId: 2, createdAt: '2025-01-25', users: [] },
-    {
-      id: 4,
-      name: 'Backend Team',
-      description: 'API and database specialists',
-      parentId: 2,
-      createdAt: '2025-02-01',
-      users: [],
-    },
-    {
-      id: 5,
-      name: 'Content Managers',
-      description: 'Content creation and management',
-      parentId: null,
-      createdAt: '2025-02-10',
-      users: [],
-    },
-    {
-      id: 6,
-      name: 'Editors',
-      description: 'Content review and publishing',
-      parentId: 5,
-      createdAt: '2025-02-15',
-      users: [],
-    },
-  ]);
+  const [groups, setGroups] = useState([]);
 
-  // This would come from Redux in a real implementation
-  // For this example, we'll simulate the data that would come from useSelector
-
-  // State for dialog and form
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [mapUserOpen, setMapUserOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState(null);
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-  console.log(employeeList);
-  console.log(user);
   const unitsDD = extractUniqueUnits(employeeList);
+  console.log(unitsDD);
   const deptDD = extractUniqueDepartments(employeeList);
-  console.log('this is dept DD , ', deptDD);
   const formatEmployeeForSelect = (employee) => {
     const option = {
       value: employee.empCode.toString(),
@@ -101,11 +59,12 @@ const UserRoleManagement = () => {
       } ${employee.department ? `| ${employee.department}` : ''}`,
       original: employee,
     };
-    console.log(option);
+    return option;
   };
 
   const formattedEmployeeList = employeeList?.map(formatEmployeeForSelect);
   const [formData, setFormData] = useState({
+    id: '0',
     name: '',
     description: '',
     isParent: true,
@@ -117,12 +76,12 @@ const UserRoleManagement = () => {
     try {
       setLoading(true);
       console.log('Fetching groups from API...');
-      // Mock API call
-      // const response = await fetch('/api/groups');
-      // const data = await response.json();
-      // setGroups(data);
 
-      // Using dummy data for now
+      const response = await axiosInstance.get('/Admin/GetGroupMasterList');
+      const data = await response?.data?.data;
+      logger.log('this is data ', data);
+      setGroups(data);
+
       console.log('Groups fetched successfully:', groups);
       setLoading(false);
     } catch (error) {
@@ -156,48 +115,67 @@ const UserRoleManagement = () => {
     console.log('Parent group selected:', { parentId });
   };
 
-  // Handle group creation
-  const handleCreateGroup = async () => {
+  // Handle group creation or update
+  const handleSaveGroup = async () => {
     try {
       setLoading(true);
-      const newGroup = {
-        id: groups.length + 1, // This would be assigned by the API in a real scenario
-        name: formData.name,
+      const groupData = {
+        id: formData.id || '0',
+        groupName: formData.name,
         description: formData.description,
-        parentId: formData.isParent ? null : formData.parentId,
-        createdAt: new Date().toISOString().split('T')[0],
-        users: [],
+        parentGroupId: formData.isParent ? '0' : formData.parentId,
+        userCode: user?.EmpCode,
       };
 
-      console.log('Creating new group with data:', newGroup);
+      const response = await axiosInstance.post('/Admin/AddUpdateGroupMaster', groupData);
 
-      // Mock API call
-      // const response = await fetch('/api/groups', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(newGroup),
-      // });
-      // const createdGroup = await response.json();
-
-      // Using local state for now
-      setGroups((prev) => [...prev, newGroup]);
-      console.log('Group created successfully:', newGroup);
+      if (response.data?.statusCode === 200) {
+        toast.success(isEditing ? 'Group updated successfully' : 'New group created successfully');
+        await fetchGroups();
+      } else {
+        toast.error(isEditing ? 'Error in Editing group ' : 'Error in creating new Group');
+      }
 
       // Reset form
-      setFormData({
-        name: '',
-        description: '',
-        isParent: true,
-        parentId: null,
-      });
+      resetForm();
       setCreateGroupOpen(false);
       setLoading(false);
+      setIsEditing(false);
     } catch (error) {
-      console.error('Error creating group:', error);
+      console.error(isEditing ? 'Error updating group:' : 'Error creating group:', error);
       setLoading(false);
     }
+  };
+
+  // Reset form to initial state
+  const resetForm = () => {
+    setFormData({
+      id: '0',
+      name: '',
+      description: '',
+      isParent: true,
+      parentId: null,
+    });
+    setIsEditing(false);
+  };
+
+  // Open create/edit dialog
+  const openGroupDialog = (group = null) => {
+    if (group) {
+      // Edit mode - populate form with group data
+      setFormData({
+        id: group.id,
+        name: group.groupName,
+        description: group.description,
+        isParent: group.parentGroupId === null,
+        parentId: group.parentGroupId,
+      });
+      setIsEditing(true);
+    } else {
+      // Create mode - reset form
+      resetForm();
+    }
+    setCreateGroupOpen(true);
   };
 
   // Toggle expanded state for a group
@@ -240,27 +218,20 @@ const UserRoleManagement = () => {
     try {
       setLoading(true);
 
-      console.log('Mapping users to group:', {
-        groupId: selectedGroup.id,
-        groupName: selectedGroup.name,
-
-        selectedUsers,
-      });
+      const payload = {
+        groupMasterId: selectedGroup.id,
+        unitId: selectedUnit,
+        unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
+        userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
+      };
 
       // Mock API call
-      // const response = await fetch(`/api/groups/${selectedGroup.id}/users`, {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({ userIds }),
-      // });
-      // const updatedGroup = await response.json();
-
-      // Using local state for now
-      setGroups((prevGroups) =>
-        prevGroups.map((group) => (group.id === selectedGroup.id ? { ...group, users: userIds } : group))
-      );
+      const response = await axiosInstance.post('/Admin/UpdateUserGroupMapping', payload);
+      if (response.data?.statusCode === 200) {
+        toast.success('Users are mapped successfully to the group ');
+      } else {
+        toast.error('Error in mapping users to the group');
+      }
       console.log('Users mapped successfully to group');
 
       setMapUserOpen(false);
@@ -278,6 +249,7 @@ const UserRoleManagement = () => {
     console.log(`Closing ${dialogType} dialog`);
     if (dialogType === 'create') {
       setCreateGroupOpen(false);
+      resetForm();
     } else if (dialogType === 'map') {
       setMapUserOpen(false);
       setSelectedGroup(null);
@@ -286,15 +258,14 @@ const UserRoleManagement = () => {
   };
 
   // Filter parent groups
-  const parentGroups = groups.filter((group) => group.parentId === null);
-
+  const parentGroups = groups.filter((group) => group.parentGroupId === null);
   // Get child groups for a parent
   const getChildGroups = (parentId) => {
-    return groups.filter((group) => group.parentId === parentId);
+    return groups.filter((group) => group.parentGroupId === parentId);
   };
 
   // Get parent group options for select
-  const parentGroupOptions = groups.filter((group) => group.parentId === null);
+  const parentGroupOptions = groups.filter((group) => group.parentGroupId === null);
 
   return (
     <Card className=" mt-2 mx-2">
@@ -308,15 +279,17 @@ const UserRoleManagement = () => {
           {/* Section 1: Create Group Button and Dialog */}
           <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2" onClick={() => console.log('Create group button clicked')}>
+              <Button className="flex items-center gap-2" onClick={() => openGroupDialog()}>
                 <Plus size={16} />
                 Create Group
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Create New Group</DialogTitle>
-                <DialogDescription>Add a new user group to the system</DialogDescription>
+                <DialogTitle>{isEditing ? 'Edit Group' : 'Create New Group'}</DialogTitle>
+                <DialogDescription>
+                  {isEditing ? 'Update existing user group' : 'Add a new user group to the system'}
+                </DialogDescription>
               </DialogHeader>
 
               <div className="grid gap-4 py-4">
@@ -345,10 +318,7 @@ const UserRoleManagement = () => {
 
                 <div className="grid gap-2">
                   <Label>Group Type</Label>
-                  <ShadSelect
-                    onValueChange={handleIsParentChange}
-                    defaultValue={formData.isParent ? 'parent' : 'child'}
-                  >
+                  <ShadSelect onValueChange={handleIsParentChange} value={formData.isParent ? 'parent' : 'child'}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select group type" />
                     </SelectTrigger>
@@ -362,14 +332,17 @@ const UserRoleManagement = () => {
                 {!formData.isParent && (
                   <div className="grid gap-2">
                     <Label htmlFor="parentId">Parent Group</Label>
-                    <ShadSelect onValueChange={handleParentSelection}>
+                    <ShadSelect
+                      onValueChange={handleParentSelection}
+                      value={formData.parentId ? formData.parentId.toString() : undefined}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select parent group" />
                       </SelectTrigger>
                       <SelectContent>
                         {parentGroupOptions.map((group) => (
                           <SelectItem key={group.id} value={group.id.toString()}>
-                            {group.name}
+                            {group.groupName}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -382,8 +355,8 @@ const UserRoleManagement = () => {
                 <Button variant="outline" onClick={() => handleDialogClose('create')}>
                   Cancel
                 </Button>
-                <Button onClick={handleCreateGroup} disabled={!formData.name || loading}>
-                  {loading ? 'Creating...' : 'Create Group'}
+                <Button onClick={handleSaveGroup} disabled={!formData.name || loading}>
+                  {loading ? (isEditing ? 'Updating...' : 'Creating...') : isEditing ? 'Update Group' : 'Create Group'}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -401,8 +374,8 @@ const UserRoleManagement = () => {
                 <TableHead className="text-white">Group Name</TableHead>
                 <TableHead className="text-white">Description</TableHead>
                 <TableHead className="text-white">Created Date</TableHead>
-                <TableHead className="text-white">Users</TableHead>
                 <TableHead className="w-48 text-white">Actions</TableHead>
+                <TableHead className="w-48 text-white">Map User</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -421,32 +394,25 @@ const UserRoleManagement = () => {
                         </Button>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium flex items-center gap-2">
-                      <Users size={16} />
-                      {group.name}
-                    </TableCell>
+                    <TableCell className="font-medium flex items-center gap-2">{group.groupName}</TableCell>
                     <TableCell>{group.description}</TableCell>
-                    <TableCell>{group.createdAt}</TableCell>
-                    <TableCell>{group.users.length}</TableCell>
+                    <TableCell>{format(group.createdDate, 'dd-MM-yyyy')}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => console.log('Edit button clicked for group:', group)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="flex items-center gap-1"
-                          onClick={() => openMapUserDialog(group)}
-                        >
-                          <UserPlus size={14} />
-                          Map User
-                        </Button>
-                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => openGroupDialog(group)}>
+                        <Edit />
+                      </Button>
+                    </TableCell>
+
+                    <TableCell>
+                      {' '}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="flex items-center gap-1"
+                        onClick={() => openMapUserDialog(group)}
+                      >
+                        <UserPlus size={14} />
+                      </Button>
                     </TableCell>
                   </TableRow>
 
@@ -455,29 +421,24 @@ const UserRoleManagement = () => {
                     getChildGroups(group.id).map((childGroup) => (
                       <TableRow key={childGroup.id} className="bg-gray-50">
                         <TableCell></TableCell>
-                        <TableCell className="font-medium pl-10">{childGroup.name}</TableCell>
+                        <TableCell className="font-medium pl-10">{childGroup.groupName}</TableCell>
                         <TableCell>{childGroup.description}</TableCell>
                         <TableCell>{childGroup.createdAt}</TableCell>
-                        <TableCell>{childGroup.users.length}</TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => console.log('Edit button clicked for child group:', childGroup)}
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="flex items-center gap-1"
-                              onClick={() => openMapUserDialog(childGroup)}
-                            >
-                              <UserPlus size={14} />
-                              Map User
-                            </Button>
-                          </div>
+                          <Button variant="ghost" size="sm" onClick={() => openGroupDialog(childGroup)}>
+                            <Edit />
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          {' '}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="flex items-center gap-1"
+                            onClick={() => openMapUserDialog(childGroup)}
+                          >
+                            <UserPlus size={14} />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -501,7 +462,7 @@ const UserRoleManagement = () => {
               {/* Unit Dropdown */}
               <div>
                 <Label className="mb-1 block">Unit:</Label>
-                <Select>
+                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
@@ -522,7 +483,7 @@ const UserRoleManagement = () => {
               <div>
                 <Label className="mb-1 block">Selected Group:</Label>
                 <div className="p-2 bg-gray-100 rounded-md">
-                  {selectedGroup ? selectedGroup.name : 'No group selected'}
+                  {selectedGroup ? selectedGroup.groupName : 'No group selected'}
                 </div>
               </div>
             </div>
