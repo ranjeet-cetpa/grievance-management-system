@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
@@ -126,19 +126,32 @@ const MyGrievances = () => {
 
   return (
     <div className="p-2">
-      <Card className="p-6 rounded-md">
-        <div className="flex justify-between items-center">
-          <Heading className="hidden sm:block" type={4}>
-            Grievances
-          </Heading>
-          <div className="flex gap-2 items-center">
-            <div className="mt-4 hidden sm:block">
+      <Card className="rounded-md mt-2 mx-2">
+        {/* <CardHeader>
+          <div className="flex bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg justify-between items-center">
+            <Heading className="hidden sm:block" type={4}>
+              Grievances
+            </Heading>
+            <div className="flex gap-2 items-center">
+              <div className="hidden sm:block">
+                <CreateGrievance refreshGrievance={refreshGrievances} />
+              </div>
+            </div>
+          </div>
+        </CardHeader> */}
+
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-2xl font-bold text-gray-800">My Grievances</CardTitle>
+            </div>
+
+            <div className="hidden sm:block">
               <CreateGrievance refreshGrievance={refreshGrievances} />
             </div>
           </div>
-        </div>
-
-        <div className="flex">
+        </CardHeader>
+        <div className="flex p-6">
           <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
             <div className="w-full mt-4 px-2 sm:px-0 hidden sm:table">
               <TabsContent value={FILTER_OPTIONS.ALL}>

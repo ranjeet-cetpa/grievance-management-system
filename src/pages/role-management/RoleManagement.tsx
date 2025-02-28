@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, ChevronRight, Plus, Users, UserPlus, Edit } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Users, UserPlus, Edit, UserX } from 'lucide-react';
 import { RootState } from '@/app/store';
 import { extractUniqueDepartments, extractUniqueUnits } from '@/lib/helperFunction';
 import axiosInstance from '@/services/axiosInstance';
@@ -36,6 +36,7 @@ import toast from 'react-hot-toast';
 
 const UserRoleManagement = () => {
   // Dummy data for groups
+
   const [groups, setGroups] = useState([]);
 
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
@@ -46,9 +47,16 @@ const UserRoleManagement = () => {
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  const [viewMappedUsersOpen, setViewMappedUsersOpen] = useState(false);
+  const [mappedUsers, setMappedUsers] = useState([]);
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
+
+  useEffect(() => {
+    console.log(selectedGroup, 'this is selected group');
+  }, [selectedGroup]);
+
   console.log(unitsDD);
   const deptDD = extractUniqueDepartments(employeeList);
   const formatEmployeeForSelect = (employee) => {
@@ -71,6 +79,14 @@ const UserRoleManagement = () => {
     parentId: null,
   });
 
+  const showMappedUsersHandler = async (id) => {
+    const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${id}`);
+    if (response?.data?.statusCode === 200) {
+      console.log(response?.data?.data.groupMapping[0]);
+      setMappedUsers(response?.data?.data?.groupMapping[0]);
+    }
+    setViewMappedUsersOpen(true);
+  };
   // Mock API functions for integration
   const fetchGroups = async () => {
     try {
@@ -268,25 +284,24 @@ const UserRoleManagement = () => {
   const parentGroupOptions = groups.filter((group) => group.parentGroupId === null);
 
   return (
-    <Card className=" mt-2 mx-2">
-      <CardHeader>
+    <Card className="mt-4 mx-4 shadow-md">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-2xl">Manage User Roles</CardTitle>
-            <CardDescription>Manage user groups and role assignments</CardDescription>
+            <CardTitle className="text-2xl font-bold text-gray-800">Manage User Roles</CardTitle>
           </div>
 
           {/* Section 1: Create Group Button and Dialog */}
           <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
             <DialogTrigger asChild>
-              <Button className="flex items-center gap-2" onClick={() => openGroupDialog()}>
+              <Button variant="default" onClick={() => openGroupDialog()}>
                 <Plus size={16} />
                 Create Group
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>{isEditing ? 'Edit Group' : 'Create New Group'}</DialogTitle>
+                <DialogTitle className="text-xl">{isEditing ? 'Edit Group' : 'Create New Group'}</DialogTitle>
                 <DialogDescription>
                   {isEditing ? 'Update existing user group' : 'Add a new user group to the system'}
                 </DialogDescription>
@@ -294,18 +309,23 @@ const UserRoleManagement = () => {
 
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Group Name</Label>
+                  <Label htmlFor="name" className="font-medium">
+                    Group Name
+                  </Label>
                   <Input
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter group name"
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="font-medium">
+                    Description
+                  </Label>
                   <Textarea
                     id="description"
                     name="description"
@@ -313,13 +333,14 @@ const UserRoleManagement = () => {
                     onChange={handleInputChange}
                     placeholder="Enter group description"
                     rows={3}
+                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label>Group Type</Label>
+                  <Label className="font-medium">Group Type</Label>
                   <ShadSelect onValueChange={handleIsParentChange} value={formData.isParent ? 'parent' : 'child'}>
-                    <SelectTrigger>
+                    <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                       <SelectValue placeholder="Select group type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -331,12 +352,14 @@ const UserRoleManagement = () => {
 
                 {!formData.isParent && (
                   <div className="grid gap-2">
-                    <Label htmlFor="parentId">Parent Group</Label>
+                    <Label htmlFor="parentId" className="font-medium">
+                      Parent Group
+                    </Label>
                     <ShadSelect
                       onValueChange={handleParentSelection}
                       value={formData.parentId ? formData.parentId.toString() : undefined}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                         <SelectValue placeholder="Select parent group" />
                       </SelectTrigger>
                       <SelectContent>
@@ -352,10 +375,18 @@ const UserRoleManagement = () => {
               </div>
 
               <DialogFooter>
-                <Button variant="outline" onClick={() => handleDialogClose('create')}>
+                <Button
+                  variant="outline"
+                  onClick={() => handleDialogClose('create')}
+                  className="border-gray-300 hover:bg-gray-100"
+                >
                   Cancel
                 </Button>
-                <Button onClick={handleSaveGroup} disabled={!formData.name || loading}>
+                <Button
+                  onClick={handleSaveGroup}
+                  disabled={!formData.name || loading}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
                   {loading ? (isEditing ? 'Updating...' : 'Creating...') : isEditing ? 'Update Group' : 'Create Group'}
                 </Button>
               </DialogFooter>
@@ -364,54 +395,76 @@ const UserRoleManagement = () => {
         </div>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="p-6">
         {/* Section 2: Group Listing */}
-        <div className="bg-white rounded-md border shadow-sm">
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           <Table>
-            <TableHeader className="text-white">
-              <TableRow className="text-white">
+            <TableHeader>
+              <TableRow className="bg-primary">
                 <TableHead className="w-12 text-white"></TableHead>
-                <TableHead className="text-white">Group Name</TableHead>
-                <TableHead className="text-white">Description</TableHead>
-                <TableHead className="text-white">Created Date</TableHead>
-                <TableHead className="w-48 text-white">Actions</TableHead>
-                <TableHead className="w-48 text-white">Map User</TableHead>
+                <TableHead className="text-white font-medium">Group Name</TableHead>
+                <TableHead className="text-white font-medium">Description</TableHead>
+                <TableHead className="text-white font-medium">Created Date</TableHead>
+                <TableHead className="text-white font-medium w-24 text-center text-nowrap">View Users</TableHead>
+                <TableHead className="text-white font-medium w-24 text-center">Edit</TableHead>
+                <TableHead className="text-white font-medium w-24 text-center text-nowrap">Map Users</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {parentGroups.map((group) => (
                 <React.Fragment key={group.id}>
-                  <TableRow>
+                  <TableRow className=" hover:bg-gray-50 transition-colors">
                     <TableCell>
                       {getChildGroups(group.id).length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0"
+                          className="h-8 w-8 p-0 rounded-full hover:bg-blue-100"
                           onClick={() => toggleGroupExpansion(group.id)}
                         >
                           {expandedGroups[group.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                         </Button>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium flex items-center gap-2">{group.groupName}</TableCell>
-                    <TableCell>{group.description}</TableCell>
-                    <TableCell>{format(group.createdDate, 'dd-MM-yyyy')}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => openGroupDialog(group)}>
-                        <Edit />
-                      </Button>
+                    <TableCell className="font-medium text-gray-800 flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
+                        {group.groupName.charAt(0).toUpperCase()}
+                      </div>
+                      {group.groupName}
                     </TableCell>
-
-                    <TableCell>
-                      {' '}
+                    <TableCell className="text-gray-600 max-w-md truncate">{group.description}</TableCell>
+                    <TableCell className="text-gray-600">{format(group.createdDate, 'dd-MM-yyyy')}</TableCell>
+                    <TableCell className="text-center">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="flex items-center gap-1"
+                        className="rounded-full hover:bg-amber-100 h-8 w-8 p-0 mx-auto"
+                        onClick={() => {
+                          setSelectedGroup(group);
+                          showMappedUsersHandler(group.id);
+                        }}
+                      >
+                        <Users size={16} className="text-amber-600" />
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
+                        onClick={() => openGroupDialog(group)}
+                      >
+                        <Edit size={16} className="text-blue-600" />
+                      </Button>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full hover:bg-green-100 h-8 w-8 p-0 mx-auto"
                         onClick={() => openMapUserDialog(group)}
                       >
-                        <UserPlus size={14} />
+                        <UserPlus size={16} className="text-green-600" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -419,25 +472,44 @@ const UserRoleManagement = () => {
                   {/* Child groups */}
                   {expandedGroups[group.id] &&
                     getChildGroups(group.id).map((childGroup) => (
-                      <TableRow key={childGroup.id} className="bg-gray-50">
+                      <TableRow key={childGroup.id} className="hover:bg-purple-200 bg-purple-100 transition-colors">
                         <TableCell></TableCell>
-                        <TableCell className="font-medium pl-10">{childGroup.groupName}</TableCell>
-                        <TableCell>{childGroup.description}</TableCell>
-                        <TableCell>{childGroup.createdAt}</TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="sm" onClick={() => openGroupDialog(childGroup)}>
-                            <Edit />
-                          </Button>
+                        <TableCell className="font-medium text-gray-700 pl-10 flex items-center gap-2">
+                          <div className="h-5 w-5 rounded-md bg-purple-500 flex items-center justify-center text-white text-xs">
+                            {childGroup.groupName.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="pl-2">{childGroup.groupName}</span>
                         </TableCell>
-                        <TableCell>
-                          {' '}
+                        <TableCell className="text-gray-600 max-w-md truncate">{childGroup.description}</TableCell>
+                        <TableCell className="text-gray-600">{childGroup.createdAt}</TableCell>
+                        <TableCell className="text-center">
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="flex items-center gap-1"
+                            className="rounded-full hover:bg-amber-100 h-8 w-8 p-0 mx-auto"
+                            onClick={() => setViewMappedUsersOpen(true)}
+                          >
+                            <Users size={16} className="text-amber-600" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full hover:bg-purple-100 h-8 w-8 p-0 mx-auto"
+                            onClick={() => openGroupDialog(childGroup)}
+                          >
+                            <Edit size={16} className="text-purple-600" />
+                          </Button>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full hover:bg-green-100 h-8 w-8 p-0 mx-auto"
                             onClick={() => openMapUserDialog(childGroup)}
                           >
-                            <UserPlus size={14} />
+                            <UserPlus size={16} className="text-green-600" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -453,17 +525,19 @@ const UserRoleManagement = () => {
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Map Users to Group</DialogTitle>
-            <DialogDescription>{selectedGroup && `Select user to map to ${selectedGroup.name}`}</DialogDescription>
+            <DialogTitle className="text-xl font-bold">Map Users to Group</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              {selectedGroup && `Select users to map to "${selectedGroup.groupName}"`}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="py-4">
             <div className="grid gap-6 sm:grid-cols-2">
               {/* Unit Dropdown */}
               <div>
-                <Label className="mb-1 block">Unit:</Label>
+                <Label className="mb-2 block font-medium">Unit:</Label>
                 <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -481,16 +555,29 @@ const UserRoleManagement = () => {
 
               {/* Selected Group Display */}
               <div>
-                <Label className="mb-1 block">Selected Group:</Label>
-                <div className="p-2 bg-gray-100 rounded-md">
-                  {selectedGroup ? selectedGroup.groupName : 'No group selected'}
+                <Label className="mb-2 block font-medium">Selected Group:</Label>
+                <div className="p-3 bg-blue-50 rounded-md font-medium text-blue-800 flex items-center gap-2">
+                  {selectedGroup ? (
+                    <>
+                      <div
+                        className={`h-6 w-6 rounded-full ${
+                          selectedGroup.isParent ? 'bg-blue-600' : 'bg-purple-500'
+                        } flex items-center justify-center text-white text-xs`}
+                      >
+                        {selectedGroup.groupName.charAt(0).toUpperCase()}
+                      </div>
+                      {selectedGroup.groupName}
+                    </>
+                  ) : (
+                    'No group selected'
+                  )}
                 </div>
               </div>
             </div>
 
             {/* User Selection */}
-            <Label htmlFor="users" className="mb-2 mt-4 block">
-              Select User
+            <Label htmlFor="users" className="mb-2 mt-6 block font-medium">
+              Select Users
             </Label>
             <ReactSelect
               id="users"
@@ -499,16 +586,108 @@ const UserRoleManagement = () => {
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select user to map to this group"
+              placeholder="Select users to map to this group"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#3b82f6',
+                  },
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '0.375rem',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#1e40af',
+                }),
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: '#3b82f6',
+                  ':hover': {
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                  },
+                }),
+              }}
             />
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => handleDialogClose('map')}>
+            <Button
+              variant="outline"
+              onClick={() => handleDialogClose('map')}
+              className="border-gray-300 hover:bg-gray-100"
+            >
               Cancel
             </Button>
-            <Button onClick={handleMapUsers} disabled={loading}>
+            <Button onClick={handleMapUsers} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
               {loading ? 'Mapping...' : 'Map Users'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Mapped Users Dialog */}
+      <Dialog open={viewMappedUsersOpen} onOpenChange={setViewMappedUsersOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Mapped Users</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              {selectedGroup && `Users mapped to "${selectedGroup.groupName}"`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4 max-h-96 overflow-y-auto">
+            <div className="bg-blue-50 p-3 rounded-md mb-4 flex items-center gap-2">
+              {selectedGroup && (
+                <>
+                  <div
+                    className={`h-6 w-6 rounded-full ${
+                      selectedGroup.isParent ? 'bg-blue-600' : 'bg-purple-500'
+                    } flex items-center justify-center text-white text-xs`}
+                  >
+                    {selectedGroup.groupName.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="font-medium text-blue-800">{selectedGroup.groupName}</span>
+                </>
+              )}
+            </div>
+
+            {mappedUsers && mappedUsers.length > 0 ? (
+              <div className="space-y-2">
+                {mappedUsers.map((user) => (
+                  <div key={user.userCode} className="flex items-center gap-3 p-3 bg-white rounded-md shadow-sm">
+                    <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700">
+                      {user.userDetails?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-medium">{user.userDetails}</p>
+                      <p className="text-sm text-gray-600">{user.email}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <UserX size={32} className="mx-auto mb-2 text-gray-400" />
+                <p>No users mapped to this group</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setViewMappedUsersOpen(false);
+                setSelectedGroup(null);
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

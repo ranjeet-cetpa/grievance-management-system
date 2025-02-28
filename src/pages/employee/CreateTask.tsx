@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UploadIcon, PlusCircle, Trash2 } from 'lucide-react';
+import { UploadIcon, PlusCircle, Trash2, Plus } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import React, { useState } from 'react';
 import 'react-quill/dist/quill.snow.css';
@@ -145,7 +145,7 @@ const CreateGrievance = () => {
               form.reset();
             }}
           >
-            <PlusCircle className="w-5 h-5 mr-2" /> Create New Grievance
+            <Plus className="w-5 h-5 mr-2" /> Create New Grievance
           </Button>
         </DialogTrigger>
         <DialogContent
