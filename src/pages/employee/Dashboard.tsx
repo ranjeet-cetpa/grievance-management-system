@@ -16,68 +16,91 @@ const grievanceChartData = [
 
 const Dashboard = () => {
   return (
-    <div className="p-4 space-y-4">
-      <Heading type={4}>My Grievances Dashboard</Heading>
+    <div className="p-6 space-y-6">
+      <div className="flex flex-row items-center justify-between">
+        <div className="space-y-1">
+          <Heading type={4}>My Grievances Dashboard</Heading>
+          <p className="text-gray-500">Overview of your grievance submissions</p>
+        </div>
+      </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in bg-blue-50">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-50 to-blue-100 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-black">Total Submitted</p>
-              <p className="text-2xl font-bold text-black">9</p>
+              <p className="text-sm font-medium text-gray-600">Total Submitted</p>
+              <div className="flex items-baseline">
+                <p className="text-2xl font-bold text-blue-700">9</p>
+              </div>
             </div>
-            <AlertCircle className="h-6 w-6 text-black" />
+            <div className="p-2 bg-blue-100 rounded-full">
+              <AlertCircle className="h-6 w-6 text-blue-700" />
+            </div>
           </CardHeader>
         </Card>
 
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:300ms] bg-orange-50">
+        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-50 to-orange-100 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-black">In Progress</p>
-              <p className="text-2xl font-bold text-black">2</p>
+              <p className="text-sm font-medium text-gray-600">In Progress</p>
+              <div className="flex items-baseline">
+                <p className="text-2xl font-bold text-orange-700">2</p>
+                <span className="ml-2 text-xs text-orange-600">Active</span>
+              </div>
             </div>
-            <Clock className="h-6 w-6 text-orange-500" />
+            <div className="p-2 bg-orange-100 rounded-full">
+              <Clock className="h-6 w-6 text-orange-700" />
+            </div>
           </CardHeader>
         </Card>
 
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:400ms] bg-green-50">
+        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-50 to-green-100 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-black">Resolved</p>
-              <p className="text-2xl font-bold text-black">6</p>
+              <p className="text-sm font-medium text-gray-600">Resolved</p>
+              <div className="flex items-baseline">
+                <p className="text-2xl font-bold text-green-700">6</p>
+                <span className="ml-2 text-xs text-green-600">Complete</span>
+              </div>
             </div>
-            <CheckCircle2 className="h-6 w-6 text-green-500" />
+            <div className="p-2 bg-green-100 rounded-full">
+              <CheckCircle2 className="h-6 w-6 text-green-700" />
+            </div>
           </CardHeader>
         </Card>
       </div>
 
-      {/* Charts and Additional Info */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <Heading type={5}>My Grievances History</Heading>
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+            <div className="space-y-1">
+              <Heading type={5}>My Grievances History</Heading>
+              <p className="text-sm text-gray-600">Monthly submission overview</p>
+            </div>
           </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={240}>
+          <CardContent className="pt-6">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={grievanceChartData}>
-                <XAxis dataKey="name" />
-                <YAxis />
+                <XAxis dataKey="name" stroke="#64748b" />
+                <YAxis stroke="#64748b" />
                 <Bar
                   dataKey="total"
                   fill="#0D56C5"
-                  radius={[4, 4, 0, 0]}
+                  radius={[6, 6, 0, 0]}
                 />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <Heading type={5}>My Recent Grievances</Heading>
+        <Card className="border-none shadow-md">
+          <CardHeader className="bg-gradient-to-r from-violet-50 to-purple-100">
+            <div className="space-y-1">
+              <Heading type={5}>My Recent Grievances</Heading>
+              <p className="text-sm text-gray-600">Latest updates on your submissions</p>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="space-y-4">
               {[
                 {
