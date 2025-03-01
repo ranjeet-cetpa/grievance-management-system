@@ -1,17 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import toast from 'react-hot-toast';
 import logger from '@/lib/logger';
 import GrievanceTable from '@/components/grievances/GrievanceTable';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Loader from '@/components/ui/loader';
 import Heading from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import CreateGrievance from './CreateTask';
+import { Plus, Search } from 'lucide-react';
+
+import { Button } from "@/components/ui/button";
+import CreateGrievance from "./CreateTask";
 
 // Dummy data for grievances
 const dummyGrievances = [
@@ -67,6 +68,7 @@ const FILTER_OPTIONS = {
 
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
+  const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<string>(FILTER_OPTIONS.ASSIGNED_TO_ME);
   const [grievances, setGrievances] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -127,19 +129,6 @@ const MyGrievances = () => {
   return (
     <div className="p-2">
       <Card className="rounded-md mt-2 mx-2">
-        {/* <CardHeader>
-          <div className="flex bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg justify-between items-center">
-            <Heading className="hidden sm:block" type={4}>
-              Grievances
-            </Heading>
-            <div className="flex gap-2 items-center">
-              <div className="hidden sm:block">
-                <CreateGrievance refreshGrievance={refreshGrievances} />
-              </div>
-            </div>
-          </div>
-        </CardHeader> */}
-
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
             <div>
@@ -147,7 +136,10 @@ const MyGrievances = () => {
             </div>
 
             <div className="hidden sm:block">
-              <CreateGrievance refreshGrievance={refreshGrievances} />
+              <Button onClick={() => setOpen(true)}>
+                <Plus className="w-5 h-5 mr-2" /> Create New Grievance
+              </Button>
+              {open && <CreateGrievance title="Submit a Grievance" open={open} setOpen={setOpen} />}
             </div>
           </div>
         </CardHeader>

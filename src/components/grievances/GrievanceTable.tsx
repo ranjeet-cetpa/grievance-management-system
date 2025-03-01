@@ -152,7 +152,7 @@ const ResponsiveGrievanceList: React.FC = ({
         if (rowData?.assignedTo.toString() === user?.EmpCode?.toString() && rowData?.status === 'new') {
           await updateGrievanceStatus('in_progress', rowData?.id);
         }
-        navigate(`/grievance/${rowData.id.toString().trim()}`);
+        navigate(`/grievances/${rowData.id.toString().trim()}`);
       }}
     />
   );

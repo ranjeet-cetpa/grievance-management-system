@@ -6,13 +6,10 @@ import NotFound from '@/pages/notFound/NotFound';
 import Login from '@/pages/login/Login';
 import HomePage from '@/pages/home/Home';
 import Dashboard from '@/pages/employee/Dashboard';
-import MyTask from '@/pages/employee/MyTask';
-import CreateTask from '@/pages/employee/CreateTask';
-import TaskDetails from '@/pages/employee/TaskDetails';
-import KanbanBoardPage from '@/pages/employee/KanbanBoardPage';
-import PendingApprovalPage from '@/pages/pending-approval/PendingApprovalPage';
+
 import MyGrievances from '@/pages/employee/MyGrievances';
 import RoleManagement from '@/pages/role-management/RoleManagement';
+import GrievanceDetails from "@/pages/employee/GrievanceDetails";
 
 const AppRoutes = () => {
   return (
@@ -21,10 +18,9 @@ const AppRoutes = () => {
       <Route path="/" element={<HomePage />} />
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/role-management" element={<RoleManagement />} />
-
-        <Route path="/my-grievances" element={<MyGrievances />} />
+        <Route path="/grievances" element={<MyGrievances />} />
+        <Route path="/grievances/:id" element={<GrievanceDetails />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />

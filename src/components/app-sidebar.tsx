@@ -32,7 +32,7 @@ const data = {
     },
     {
       title: 'My Grievances',
-      url: '/my-grievances',
+      url: '/grievances',
       icon: BadgeAlert,
     },
     {
