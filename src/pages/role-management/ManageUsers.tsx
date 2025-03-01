@@ -9,7 +9,7 @@ import { Plus } from 'lucide-react';
 const ManageUsers = () => {
   const [activeTab, setActiveTab] = useState('groups');
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
-
+  const [createRoleOpen, setCreateRoleOpen] = useState(false);
   return (
     <Card className="mt-4 mx-4 shadow-md">
       <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
@@ -22,14 +22,24 @@ const ManageUsers = () => {
 
       <Tabs defaultValue="groups" value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex w-full justify-between items-center px-6 pt-4">
-          <TabsList className="">
-            <TabsTrigger value="roles">Manage Roles</TabsTrigger>
-            <TabsTrigger value="groups">Manage Groups</TabsTrigger>
-            <TabsTrigger value="departments">Manage Departments</TabsTrigger>
+          <TabsList className="w-1/2">
+            <TabsTrigger className="w-full" value="roles">
+              Manage Roles
+            </TabsTrigger>
+            <TabsTrigger className="w-full" value="groups">
+              Manage Groups
+            </TabsTrigger>
+            <TabsTrigger className="w-full" value="departments">
+              Manage Departments
+            </TabsTrigger>
           </TabsList>
 
           {activeTab === 'roles' && (
-            <Button onClick={() => {}}>
+            <Button
+              onClick={() => {
+                setCreateRoleOpen(true);
+              }}
+            >
               <Plus /> Create Role
             </Button>
           )}
@@ -48,7 +58,7 @@ const ManageUsers = () => {
         </div>
 
         <TabsContent value="roles">
-          <RoleManagement />
+          <RoleManagement createRoleOpen={createRoleOpen} setCreateRoleOpen={setCreateRoleOpen} />
         </TabsContent>
 
         <TabsContent value="groups">

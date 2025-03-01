@@ -26,7 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronDown, ChevronRight, Plus, Users, UserPlus, Edit, UserX } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Users, UserPlus, Edit, UserX, Info, Shield } from 'lucide-react';
 import { RootState } from '@/app/store';
 import { extractUniqueDepartments, extractUniqueUnits } from '@/lib/helperFunction';
 import axiosInstance from '@/services/axiosInstance';
@@ -43,9 +43,13 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [tableGroup, setTableGroup] = useState(null);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [viewMappedUsersOpen, setViewMappedUsersOpen] = useState(false);
   const [mappedUsers, setMappedUsers] = useState([]);
+  const [selectedGroupForMapping, setSelectedGroupForMapping] = useState(null);
+  const [showMappedUsersTable, setShowMappedUsersTable] = useState(false);
+
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -71,13 +75,14 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     parentId: null,
   });
 
-  const showMappedUsersHandler = async (id) => {
-    const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${id}`);
+  const showMappedUsersHandler = async (group) => {
+    const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.id}`);
     if (response?.data?.statusCode === 200) {
-      console.log(response?.data?.data.groupMapping[0]);
-      setMappedUsers(response?.data?.data?.groupMapping[0]);
+      console.log(response?.data?.data?.groupMapping);
+      setMappedUsers(response?.data?.data?.groupMapping);
     }
-    setViewMappedUsersOpen(true);
+    setSelectedGroupForMapping(group);
+    setShowMappedUsersTable(true);
   };
 
   // Mock API functions for integration
@@ -187,33 +192,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     setCreateGroupOpen(true);
   };
 
-  // Toggle expanded state for a group
-  const toggleGroupExpansion = (groupId) => {
-    console.log('Toggling group expansion for group ID:', groupId);
-    setExpandedGroups((prev) => {
-      const newState = {
-        ...prev,
-        [groupId]: !prev[groupId],
-      };
-      console.log('New expanded groups state:', newState);
-      return newState;
-    });
-  };
-
-  // Open map user dialog
-  const openMapUserDialog = (group) => {
-    console.log('Opening map user dialog for group:', group);
-    setSelectedGroup(group);
-
-    // Pre-select users that are already mapped to this group
-    // const preSelectedUsers = employeeList.filter((employee) => group.users.includes(parseInt(employee.value)));
-    const preSelectedUsers = [];
-    console.log('Pre-selected users:', preSelectedUsers);
-
-    setSelectedUsers(preSelectedUsers);
-    setMapUserOpen(true);
-  };
-
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
     console.log('User selection changed:', selectedOptions);
@@ -222,13 +200,13 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
 
   // Handle mapping users to group
   const handleMapUsers = async () => {
-    if (!selectedGroup) return;
+    if (!selectedGroupForMapping) return;
 
     try {
       setLoading(true);
 
       const payload = {
-        groupMasterId: selectedGroup.id,
+        groupMasterId: selectedGroupForMapping.id,
         unitId: selectedUnit,
         unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
         userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
@@ -238,6 +216,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
       const response = await axiosInstance.post('/Admin/UpdateUserGroupMapping', payload);
       if (response.data?.statusCode === 200) {
         toast.success('Users are mapped successfully to the group ');
+        showMappedUsersHandler(selectedGroupForMapping);
       } else {
         toast.error('Error in mapping users to the group');
       }
@@ -280,15 +259,118 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     <CardContent className="p-6">
       {loading && <Loader />}
 
+      <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">Map Users to Group</DialogTitle>
+            <DialogDescription className="text-gray-600">
+              {selectedGroup && `Select users to map to "${selectedGroup.groupName}"`}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="grid gap-6 sm:grid-cols-2">
+              {/* Unit Dropdown */}
+              <div>
+                <Label className="mb-2 block font-medium">Unit:</Label>
+                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                  <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectValue placeholder="Select a unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Units</SelectLabel>
+                      {unitsDD.map((unit) => (
+                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
+                          {unit.unitName}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Selected Group Display */}
+              <div>
+                <Label className="mb-2 block font-medium">Selected Group:</Label>
+                <div className="p-3 bg-blue-50 rounded-md font-medium text-blue-800 flex items-center gap-2">
+                  {selectedGroup ? (
+                    <>
+                      <div
+                        className={`h-6 w-6 rounded-full ${
+                          selectedGroup.isParent ? 'bg-blue-600' : 'bg-purple-500'
+                        } flex items-center justify-center text-white text-xs`}
+                      >
+                        {selectedGroup.groupName.charAt(0).toUpperCase()}
+                      </div>
+                      {selectedGroup.groupName}
+                    </>
+                  ) : (
+                    'No group selected'
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* User Selection */}
+            <Label htmlFor="users" className="mb-2 mt-6 block font-medium">
+              Select Users
+            </Label>
+            <ReactSelect
+              id="users"
+              options={formattedEmployeeList}
+              value={selectedUsers}
+              onChange={handleUserSelectionChange}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              placeholder="Select users to map to this group"
+              styles={{
+                control: (base) => ({
+                  ...base,
+                  borderColor: '#d1d5db',
+                  '&:hover': {
+                    borderColor: '#3b82f6',
+                  },
+                }),
+                multiValue: (base) => ({
+                  ...base,
+                  backgroundColor: '#eff6ff',
+                  borderRadius: '0.375rem',
+                }),
+                multiValueLabel: (base) => ({
+                  ...base,
+                  color: '#1e40af',
+                }),
+                multiValueRemove: (base) => ({
+                  ...base,
+                  color: '#3b82f6',
+                  ':hover': {
+                    backgroundColor: '#dbeafe',
+                    color: '#1e40af',
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => handleDialogClose('map')}
+              className="border-gray-300 hover:bg-gray-100"
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleMapUsers} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
+              {loading ? 'Mapping...' : 'Map Users'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Create Group Button */}
       <div className="flex justify-end mb-4">
         <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
-          {/* <DialogTrigger asChild>
-            <Button variant="default" onClick={() => openGroupDialog()}>
-              <Plus size={16} className="mr-1" />
-              Create Group
-            </Button>
-          </DialogTrigger> */}
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="text-xl">{isEditing ? 'Edit Group' : 'Create New Group'}</DialogTitle>
@@ -327,7 +409,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                 />
               </div>
 
-              <div className="grid gap-2">
+              {/* <div className="grid gap-2">
                 <Label className="font-medium">Group Type</Label>
                 <ShadSelect onValueChange={handleIsParentChange} value={formData.isParent ? 'parent' : 'child'}>
                   <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
@@ -338,7 +420,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                     <SelectItem value="child">Child Group</SelectItem>
                   </SelectContent>
                 </ShadSelect>
-              </div>
+              </div> */}
 
               {!formData.isParent && (
                 <div className="grid gap-2">
@@ -389,20 +471,16 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         <Table>
           <TableHeader>
             <TableRow className="bg-primary">
-              <TableHead className="w-12 text-white"></TableHead>
               <TableHead className="text-white font-medium">Group Name</TableHead>
               <TableHead className="text-white font-medium">Description</TableHead>
-              <TableHead className="text-white font-medium">Created Date</TableHead>
-              <TableHead className="text-white font-medium w-24 text-center text-nowrap">View Users</TableHead>
-              <TableHead className="text-white font-medium w-24 text-center">Edit</TableHead>
-              <TableHead className="text-white font-medium w-24 text-center text-nowrap">Map Users</TableHead>
+              <TableHead className="text-white font-medium w-24 text-center">Action </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {parentGroups.map((group) => (
               <React.Fragment key={group.id}>
                 <TableRow className="hover:bg-gray-50 transition-colors">
-                  <TableCell>
+                  {/* <TableCell>
                     {getChildGroups(group.id).length > 0 && (
                       <Button
                         variant="ghost"
@@ -413,7 +491,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                         {expandedGroups[group.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                       </Button>
                     )}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell className="font-medium text-gray-800 flex items-center gap-2">
                     <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
                       {group.groupName.charAt(0).toUpperCase()}
@@ -421,21 +499,21 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                     {group.groupName}
                   </TableCell>
                   <TableCell className="text-gray-600 max-w-md truncate">{group.description}</TableCell>
-                  <TableCell className="text-gray-600">{format(group.createdDate, 'dd-MM-yyyy')}</TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full hover:bg-amber-100 h-8 w-8 p-0 mx-auto"
-                      onClick={() => {
-                        setSelectedGroup(group);
-                        showMappedUsersHandler(group.id);
-                      }}
-                    >
-                      <Users size={16} className="text-amber-600" />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-center">
+
+                  <TableCell className="text-center flex gap-0 items-center">
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
+                        onClick={() => {
+                          setSelectedGroupForMapping(group);
+                          showMappedUsersHandler(group);
+                        }}
+                      >
+                        <Info size={16} className="text-blue-600" />
+                      </Button>
+                    </TableCell>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -443,16 +521,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                       onClick={() => openGroupDialog(group)}
                     >
                       <Edit size={16} className="text-blue-600" />
-                    </Button>
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full hover:bg-green-100 h-8 w-8 p-0 mx-auto"
-                      onClick={() => openMapUserDialog(group)}
-                    >
-                      <UserPlus size={16} className="text-green-600" />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -469,17 +537,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                         <span className="pl-2">{childGroup.groupName}</span>
                       </TableCell>
                       <TableCell className="text-gray-600 max-w-md truncate">{childGroup.description}</TableCell>
-                      <TableCell className="text-gray-600">{childGroup.createdAt}</TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full hover:bg-amber-100 h-8 w-8 p-0 mx-auto"
-                          onClick={() => setViewMappedUsersOpen(true)}
-                        >
-                          <Users size={16} className="text-amber-600" />
-                        </Button>
-                      </TableCell>
+
                       <TableCell className="text-center">
                         <Button
                           variant="ghost"
@@ -490,16 +548,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                           <Edit size={16} className="text-purple-600" />
                         </Button>
                       </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full hover:bg-green-100 h-8 w-8 p-0 mx-auto"
-                          onClick={() => openMapUserDialog(childGroup)}
-                        >
-                          <UserPlus size={16} className="text-green-600" />
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   ))}
               </React.Fragment>
@@ -507,7 +555,114 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
           </TableBody>
         </Table>
       </div>
+      {/* 
+      {tableGroup && (
+        <TableRow className="bg-gray-50">
+          <TableCell colSpan={4} className="px-4 py-2">
+            <div className="rounded-md overflow-hidden border border-gray-200">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-100">
+                    <TableHead className="text-xs font-medium">Unit Name</TableHead>
+                    <TableHead className="text-xs font-medium">Employee Codes</TableHead>
+                    <TableHead className="text-xs font-medium">Employee Details</TableHead>
+                    <TableHead className="text-xs font-medium w-16 text-center">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="text-sm">{'Central Unit'}</TableCell>
+                    <TableCell className="text-sm">
+                      {mappedUsers.map((item) => {
+                        return item[0].user.userCode;
+                      })}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {mappedUsers
+                        .filter((user) => user.groupMasterId === tableGroup.id)
+                        .map((user) => user.userDetails)
+                        .join(', ')}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full hover:bg-blue-100 h-7 w-7 p-0"
+                        onClick={() => openMapUserDialog(group)}
+                      >
+                        <Edit size={14} className="text-blue-600" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </TableCell>
+        </TableRow>
+      )} */}
+      {showMappedUsersTable && selectedGroupForMapping && (
+        <div className="mt-6 bg-white rounded-lg shadow-lg py-2 overflow-hidden">
+          <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">
+            <h3 className="text-xl  font-bold  text-black-800 flex items-center gap-2">
+              <div
+                className={`h-6 w-6 rounded-full ${
+                  selectedGroup ? 'bg-blue-600' : 'bg-purple-500'
+                } flex items-center justify-center text-white text-xs`}
+              >
+                {selectedGroupForMapping.groupName.charAt(0).toUpperCase()}{' '}
+              </div>{' '}
+              User Mapping for Role "{selectedGroupForMapping?.groupName}"
+            </h3>
+            <Button onClick={() => setMapUserOpen(true)}>
+              <Plus /> Map Users{' '}
+            </Button>
+          </div>
 
+          {mappedUsers && mappedUsers.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow className=" text-white ">
+                  <TableHead className="font-medium text-white">Unit Name</TableHead>
+                  <TableHead className="font-medium text-white">User Code</TableHead>
+                  <TableHead className="font-medium text-white">User Details</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {/* Flatten the array structure and map each user object */}
+                {mappedUsers.map((userArray, index) => {
+                  // Get the first (and presumably only) item from each inner array
+                  const user = userArray[0];
+                  return (
+                    <TableRow key={`${user.userCode}-${index}`} className="hover:bg-gray-50  transition-colors">
+                      <TableCell>{user.unitName || 'N/A'}</TableCell>
+                      <TableCell>{user.userCode || 'N/A'}</TableCell>
+                      <TableCell>{user.userDetails || 'N/A'}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <Users size={32} className="mx-auto mb-2 text-gray-400" />
+              <p>No users mapped to this role</p>
+            </div>
+          )}
+
+          <div className=" flex w-full justify-end ">
+            <Button
+              onClick={() => {
+                setShowMappedUsersTable(false);
+                setSelectedGroupForMapping(null);
+              }}
+              variant="outline"
+              className="border-black-300 border-2 mt-2 mr-5 hover:bg-gray-100"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
       {/* Map User Dialog */}
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">
@@ -544,16 +699,16 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               <div>
                 <Label className="mb-2 block font-medium">Selected Group:</Label>
                 <div className="p-3 bg-blue-50 rounded-md font-medium text-blue-800 flex items-center gap-2">
-                  {selectedGroup ? (
+                  {selectedGroupForMapping ? (
                     <>
                       <div
                         className={`h-6 w-6 rounded-full ${
-                          selectedGroup.isParent ? 'bg-blue-600' : 'bg-purple-500'
+                          selectedGroupForMapping.isParent ? 'bg-blue-600' : 'bg-purple-500'
                         } flex items-center justify-center text-white text-xs`}
                       >
-                        {selectedGroup.groupName.charAt(0).toUpperCase()}
+                        {selectedGroupForMapping.groupName.charAt(0).toUpperCase()}
                       </div>
-                      {selectedGroup.groupName}
+                      {selectedGroupForMapping.groupName}
                     </>
                   ) : (
                     'No group selected'
