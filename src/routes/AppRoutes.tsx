@@ -10,6 +10,8 @@ import MyGrievances from '@/pages/employee/MyGrievances';
 import ManageUsers from '@/pages/role-management/ManageUsers';
 
 import GrievanceDetails from "@/pages/employee/GrievanceDetails";
+import AdminPrivateRoute from "./AdminPrivateRoute";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -19,8 +21,13 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/role-management" element={<ManageUsers />} />
         <Route path="/grievances" element={<MyGrievances />} />
-        <Route path="/grievance/:id" element={<GrievanceDetails />} />
-
+        <Route path="/grievances/:id" element={<GrievanceDetails />} />
+      </Route>
+      <Route element={<AdminPrivateRoute />}>
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-grievances" element={<MyGrievances />} />
+        <Route path="/admin-grievances/:id" element={<GrievanceDetails />} />
+        <Route path="/admin-manage-user" element={<ManageUsers />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />

@@ -20,34 +20,34 @@ const Dashboard = () => {
       <Heading type={4}>My Grievances Dashboard</Heading>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in bg-blue-50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Total Submitted</p>
-              <p className="text-2xl font-bold">9</p>
+              <p className="text-sm font-medium text-black">Total Submitted</p>
+              <p className="text-2xl font-bold text-black">9</p>
             </div>
-            <AlertCircle className="h-6 w-6 text-muted-foreground" />
+            <AlertCircle className="h-6 w-6 text-black" />
           </CardHeader>
         </Card>
 
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:200ms]">
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:300ms] bg-orange-50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">In-Progress</p>
-              <p className="text-2xl font-bold">2</p>
+              <p className="text-sm font-medium text-black">In Progress</p>
+              <p className="text-2xl font-bold text-black">2</p>
             </div>
-            <Clock className="h-6 w-6 text-muted-foreground" />
+            <Clock className="h-6 w-6 text-orange-500" />
           </CardHeader>
         </Card>
 
-        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:400ms]">
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:400ms] bg-green-50">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-muted-foreground">Resolved</p>
-              <p className="text-2xl font-bold">6</p>
+              <p className="text-sm font-medium text-black">Resolved</p>
+              <p className="text-2xl font-bold text-black">6</p>
             </div>
-            <CheckCircle2 className="h-6 w-6 text-muted-foreground" />
+            <CheckCircle2 className="h-6 w-6 text-green-500" />
           </CardHeader>
         </Card>
       </div>
