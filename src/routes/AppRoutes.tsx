@@ -9,6 +9,7 @@ import Dashboard from '@/pages/employee/Dashboard';
 import MyGrievances from '@/pages/employee/MyGrievances';
 import ManageUsers from '@/pages/role-management/ManageUsers';
 
+import GrievanceDetails from "@/pages/employee/GrievanceDetails";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -16,10 +17,10 @@ const AppRoutes = () => {
       <Route path="/" element={<HomePage />} />
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
-
         <Route path="/role-management" element={<ManageUsers />} />
+        <Route path="/grievances" element={<MyGrievances />} />
+        <Route path="/grievance/:id" element={<GrievanceDetails />} />
 
-        <Route path="/my-grievances" element={<MyGrievances />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />
