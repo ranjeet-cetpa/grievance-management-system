@@ -75,9 +75,11 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const showMappedUsersHandler = async (role) => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/Admin/GetApplicationRole?roleId=${role.id}`);
+      const response = await axiosInstance.get(`/Admin/GetRoleDetail?roleId=${role.id}`);
+
       if (response?.data?.statusCode === 200) {
-        setMappedUsers(response?.data?.data?.roleMapping || []);
+        console.log(response?.data?.data?.mappedUsers, 'see the mapped users here . . .. ');
+        setMappedUsers(response?.data?.data?.mappedUsers || []);
         setSelectedRoleForMapping(role);
         setShowMappedUsersTable(true);
       } else {
@@ -299,15 +301,6 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       {loading && <Loader />}
 
       {/* Top Actions */}
-      <div className="flex justify-between mb-6">
-        <Button
-          onClick={openMapUserToRolesDialog}
-          className="bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-2"
-        >
-          <UserPlus size={16} />
-          Map Users to Roles
-        </Button>
-      </div>
 
       {/* Create Role Dialog */}
       <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
@@ -406,11 +399,18 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       {/* Mapped Users Table */}
       {showMappedUsersTable && selectedRoleForMapping && (
         <div className="mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="bg-blue-50 p-4 border-b border-blue-100">
+          <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">
             <h3 className="text-lg font-medium text-blue-800 flex items-center gap-2">
               <Shield size={18} className="text-blue-600" />
               User Mapping for Role "{selectedRoleForMapping.roleName}"
             </h3>
+
+            <div className="flex justify-between mb-6">
+              <Button onClick={openMapUserToRolesDialog} variant="default">
+                <UserPlus size={16} />
+                Map Users to Role
+              </Button>
+            </div>
           </div>
 
           {mappedUsers && mappedUsers.length > 0 ? (

@@ -11,8 +11,8 @@ import Heading from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
-import CreateGrievance from "./CreateTask";
+import { Button } from '@/components/ui/button';
+import CreateGrievance from './CreateTask';
 
 // Dummy data for grievances
 const dummyGrievances = [
@@ -136,10 +136,7 @@ const MyGrievances = () => {
             </div>
 
             <div className="hidden sm:block">
-              <Button onClick={() => setOpen(true)}>
-                <Plus className="w-5 h-5 mr-2" /> Create New Grievance
-              </Button>
-              {open && <CreateGrievance title="Submit a Grievance" open={open} setOpen={setOpen} />}
+              <CreateGrievance />
             </div>
           </div>
         </CardHeader>

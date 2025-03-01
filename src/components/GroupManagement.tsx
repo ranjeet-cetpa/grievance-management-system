@@ -209,7 +209,11 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         groupMasterId: selectedGroupForMapping.id,
         unitId: selectedUnit,
         unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
-        userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
+
+        //   userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
+        userCodes: selectedUsers?.map((user) => {
+          return { userCode: user?.value, userDetails: user?.label?.trim() };
+        }),
       };
 
       // Mock API call
@@ -246,7 +250,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   };
 
   // Filter parent groups
-  const parentGroups = groups.filter((group) => group.parentGroupId === null);
+  const parentGroups = groups;
   // Get child groups for a parent
   const getChildGroups = (parentId) => {
     return groups.filter((group) => group.parentGroupId === parentId);
@@ -480,32 +484,23 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             {parentGroups.map((group) => (
               <React.Fragment key={group.id}>
                 <TableRow className="hover:bg-gray-50 transition-colors">
-                  {/* <TableCell>
-                    {getChildGroups(group.id).length > 0 && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 rounded-full hover:bg-blue-100"
-                        onClick={() => toggleGroupExpansion(group.id)}
-                      >
-                        {expandedGroups[group.id] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                      </Button>
-                    )}
-                  </TableCell> */}
-                  <TableCell className="font-medium text-gray-800 flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
+                  <TableCell className="font-medium text-gray-800 flex items-center gap-2 w-1/3">
+                    <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs flex-shrink-0">
                       {group.groupName.charAt(0).toUpperCase()}
                     </div>
-                    {group.groupName}
+                    <span className="text-nowrap">{group.groupName}</span>
                   </TableCell>
-                  <TableCell className="text-gray-600 max-w-md truncate">{group.description}</TableCell>
 
-                  <TableCell className="text-center flex gap-0 items-center">
-                    <TableCell className="text-center">
+                  <TableCell className="text-gray-600 w-1/2">
+                    <div className="text-wrap max-w-md">{group.description}</div>
+                  </TableCell>
+
+                  <TableCell className="text-center w-1/6">
+                    <div className="flex justify-center items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
+                        className="rounded-full hover:bg-blue-100 h-8 w-8 p-0"
                         onClick={() => {
                           setSelectedGroupForMapping(group);
                           showMappedUsersHandler(group);
@@ -513,15 +508,15 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                       >
                         <Info size={16} className="text-blue-600" />
                       </Button>
-                    </TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
-                      onClick={() => openGroupDialog(group)}
-                    >
-                      <Edit size={16} className="text-blue-600" />
-                    </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full hover:bg-blue-100 h-8 w-8 p-0"
+                        onClick={() => openGroupDialog(group)}
+                      >
+                        <Edit size={16} className="text-blue-600" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
 
@@ -529,24 +524,28 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                 {expandedGroups[group.id] &&
                   getChildGroups(group.id).map((childGroup) => (
                     <TableRow key={childGroup.id} className="hover:bg-purple-200 bg-purple-100 transition-colors">
-                      <TableCell></TableCell>
-                      <TableCell className="font-medium text-gray-700 pl-10 flex items-center gap-2">
-                        <div className="h-5 w-5 rounded-md bg-purple-500 flex items-center justify-center text-white text-xs">
+                      <TableCell className="font-medium text-gray-700 pl-10 flex items-center gap-2 w-1/3">
+                        <div className="h-5 w-5 rounded-md bg-purple-500 flex items-center justify-center text-white text-xs flex-shrink-0">
                           {childGroup.groupName.charAt(0).toUpperCase()}
                         </div>
-                        <span className="pl-2">{childGroup.groupName}</span>
+                        <span className="truncate pl-2">{childGroup.groupName}</span>
                       </TableCell>
-                      <TableCell className="text-gray-600 max-w-md truncate">{childGroup.description}</TableCell>
 
-                      <TableCell className="text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full hover:bg-purple-100 h-8 w-8 p-0 mx-auto"
-                          onClick={() => openGroupDialog(childGroup)}
-                        >
-                          <Edit size={16} className="text-purple-600" />
-                        </Button>
+                      <TableCell className="text-gray-600 w-1/2">
+                        <div className="truncate max-w-md">{childGroup.description}</div>
+                      </TableCell>
+
+                      <TableCell className="text-center w-1/6">
+                        <div className="flex justify-center items-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-full hover:bg-purple-100 h-8 w-8 p-0"
+                            onClick={() => openGroupDialog(childGroup)}
+                          >
+                            <Edit size={16} className="text-purple-600" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -625,18 +624,28 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   <TableHead className="font-medium text-white">Unit Name</TableHead>
                   <TableHead className="font-medium text-white">User Code</TableHead>
                   <TableHead className="font-medium text-white">User Details</TableHead>
+                  <TableHead className="font-medium text-white">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {/* Flatten the array structure and map each user object */}
                 {mappedUsers.map((userArray, index) => {
                   // Get the first (and presumably only) item from each inner array
-                  const user = userArray[0];
+                  const user = userArray;
+                  const unitName = userArray[0].unitName;
+                  const userCodes = userArray.map((item) => item.userCode)?.join(', ');
+                  const userDetails = userArray.map((item) => item.userDetails)?.join(', ');
+
                   return (
                     <TableRow key={`${user.userCode}-${index}`} className="hover:bg-gray-50  transition-colors">
-                      <TableCell>{user.unitName || 'N/A'}</TableCell>
-                      <TableCell>{user.userCode || 'N/A'}</TableCell>
-                      <TableCell>{user.userDetails || 'N/A'}</TableCell>
+                      <TableCell>{unitName || 'N/A'}</TableCell>
+                      <TableCell>{userCodes || 'N/A'}</TableCell>
+                      <TableCell>{userDetails || 'N/A'}</TableCell>
+                      <TableCell>
+                        <Button variant="ghost" className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto">
+                          <Edit size={16} className="text-blue-600" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -725,6 +734,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               id="users"
               options={formattedEmployeeList}
               value={selectedUsers}
+              isMulti
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
