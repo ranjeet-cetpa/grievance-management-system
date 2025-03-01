@@ -20,8 +20,8 @@ const Dashboard = () => {
       <Heading type={4}>My Grievances Dashboard</Heading>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Total Submitted</p>
@@ -31,7 +31,7 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:200ms]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">In-Progress</p>
@@ -41,7 +41,7 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
 
-        <Card>
+        <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:400ms]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Resolved</p>
@@ -50,8 +50,6 @@ const Dashboard = () => {
             <CheckCircle2 className="h-6 w-6 text-muted-foreground" />
           </CardHeader>
         </Card>
-
-
       </div>
 
       {/* Charts and Additional Info */}

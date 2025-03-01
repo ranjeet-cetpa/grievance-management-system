@@ -6,11 +6,10 @@ import NotFound from '@/pages/notFound/NotFound';
 import Login from '@/pages/login/Login';
 import HomePage from '@/pages/home/Home';
 import Dashboard from '@/pages/employee/Dashboard';
-
 import MyGrievances from '@/pages/employee/MyGrievances';
-import RoleManagement from '@/pages/role-management/RoleManagement';
-import GrievanceDetails from "@/pages/employee/GrievanceDetails";
+import ManageUsers from '@/pages/role-management/ManageUsers';
 
+import GrievanceDetails from "@/pages/employee/GrievanceDetails";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -18,9 +17,10 @@ const AppRoutes = () => {
       <Route path="/" element={<HomePage />} />
       <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/role-management" element={<RoleManagement />} />
+        <Route path="/role-management" element={<ManageUsers />} />
         <Route path="/grievances" element={<MyGrievances />} />
-        <Route path="/grievances/:id" element={<GrievanceDetails />} />
+        <Route path="/grievance/:id" element={<GrievanceDetails />} />
+
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />
