@@ -24,11 +24,14 @@ const grievanceChartData = [
 
 const AdminDashboard = () => {
     return (
-        <div className="p-4 space-y-4">
+        <div className="p-6 space-y-6">
             <div className="flex flex-row items-center justify-between">
-                <Heading type={4}>Dashboard</Heading>
+                <div className="space-y-1">
+                    <Heading type={4}>Dashboard</Heading>
+                    <p className="text-gray-500">Overview of grievance management system</p>
+                </div>
                 <Select defaultValue="all">
-                    <SelectTrigger className="w-[180px]">
+                    <SelectTrigger className="w-[200px] bg-white shadow-sm">
                         <SelectValue placeholder="Select Department" />
                     </SelectTrigger>
                     <SelectContent>
@@ -44,80 +47,91 @@ const AdminDashboard = () => {
                     </SelectContent>
                 </Select>
             </div>
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
-                <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in bg-blue-50">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
+                <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-50 to-blue-100 border-none">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-black">Total Grievances</p>
-                            <p className="text-2xl font-bold text-black">95</p>
-                        </div>
-                        <AlertCircle className="h-6 w-6 text-black" />
-                    </CardHeader>
-                </Card>
-                <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:200ms] bg-yellow-50">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-black">Pending</p>
-                            <p className="text-2xl font-bold text-black">28</p>
-                        </div>
-                        <Clock className="h-6 w-6 text-yellow-500" />
-                    </CardHeader>
-                </Card>
+                            <p className="text-sm font-medium text-gray-600">Total Grievances</p>
+                            <div className="flex items-baseline">
+                                <p className="text-2xl font-bold text-blue-700">95</p>
 
-                <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:300ms] bg-orange-50">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div className="space-y-1">
-                            <p className="text-sm font-medium text-black">In Progress</p>
-                            <p className="text-2xl font-bold text-black">15</p>
+                            </div>
                         </div>
-                        <AlertTriangle className="h-6 w-6 text-orange-500" />
+                        <div className="p-2 bg-blue-100 rounded-full">
+                            <AlertCircle className="h-6 w-6 text-blue-700" />
+                        </div>
                     </CardHeader>
                 </Card>
-
-                <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:400ms] bg-green-50">
+                <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-50 to-yellow-100 border-none">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-black">Resolved</p>
-                            <p className="text-2xl font-bold text-black">67</p>
+                            <p className="text-sm font-medium text-gray-600">Pending</p>
+                            <div className="flex items-baseline">
+                                <p className="text-2xl font-bold text-yellow-700">28</p>
+
+                            </div>
                         </div>
-                        <CheckCircle2 className="h-6 w-6 text-green-500" />
+                        <div className="p-2 bg-yellow-100 rounded-full">
+                            <Clock className="h-6 w-6 text-yellow-700" />
+                        </div>
                     </CardHeader>
                 </Card>
-
-                <Card className="transition-all duration-200 hover:scale-[1.02] hover:shadow-lg animate-fade-in [animation-delay:800ms] bg-purple-50">
+                <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-50 to-orange-100 border-none">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div className="space-y-1">
-                            <p className="text-sm font-medium text-black">Departments</p>
-                            <p className="text-2xl font-bold text-black">8</p>
+                            <p className="text-sm font-medium text-gray-600">In Progress</p>
+                            <div className="flex items-baseline">
+                                <p className="text-2xl font-bold text-orange-700">15</p>
+
+                            </div>
                         </div>
-                        <Building2 className="h-6 w-6 text-purple-500" />
+                        <div className="p-2 bg-orange-100 rounded-full">
+                            <AlertTriangle className="h-6 w-6 text-orange-700" />
+                        </div>
+                    </CardHeader>
+                </Card>
+                <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-50 to-green-100 border-none">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium text-gray-600">Resolved</p>
+                            <div className="flex items-baseline">
+                                <p className="text-2xl font-bold text-green-700">67</p>
+
+                            </div>
+                        </div>
+                        <div className="p-2 bg-green-100 rounded-full">
+                            <CheckCircle2 className="h-6 w-6 text-green-700" />
+                        </div>
                     </CardHeader>
                 </Card>
             </div>
 
             {/* Charts and Additional Info */}
-            <div className="grid gap-4 md:grid-cols-2">
-                <Card>
-                    <CardHeader>
-                        <Heading type={5}>Grievances Overview</Heading>
+            <div className="grid gap-6 md:grid-cols-2">
+                <Card className="border-none shadow-md">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100">
+                        <div className="space-y-1">
+                            <Heading type={5}>Grievances Overview</Heading>
+                            <p className="text-sm text-gray-600">Monthly distribution of cases</p>
+                        </div>
                     </CardHeader>
-                    <CardContent>
-                        <ResponsiveContainer width="100%" height={240}>
+                    <CardContent className="pt-6">
+                        <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={grievanceChartData}>
-                                <XAxis dataKey="name" />
-                                <YAxis />
+                                <XAxis dataKey="name" stroke="#64748b" />
+                                <YAxis stroke="#64748b" />
                                 <Bar
                                     dataKey="total"
                                     fill="#0D56C5"
-                                    radius={[4, 4, 0, 0]}
+                                    radius={[6, 6, 0, 0]}
                                 />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
-                <Card className="overflow-hidden">
-                    <CardHeader className="flex flex-row items-center justify-between pb-4 border-b bg-gradient-to-r from-blue-50 to-violet-50">
+                <Card className="overflow-hidden border-none shadow-md">
+                    <CardHeader className="flex flex-row items-center justify-between pb-4 border-b bg-gradient-to-r from-violet-50 to-purple-100">
                         <div>
                             <Heading type={5}>Unresolved Cases</Heading>
                             <p className="text-sm text-gray-600 mt-1">Overview of pending grievances</p>
@@ -129,36 +143,40 @@ const AdminDashboard = () => {
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="grid grid-cols-2 gap-6">
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-yellow-100 to-yellow-200 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-3 h-3 rounded-full bg-yellow-600 animate-pulse" />
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-red-50 to-red-100 shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                                     <p className="text-sm font-medium text-gray-700">Over 7 Days</p>
                                 </div>
-                                <p className="text-2xl font-bold text-yellow-600">12</p>
+                                <p className="text-2xl font-bold text-red-500">12</p>
+                                <p className="text-sm text-gray-500 mt-1">Cases pending</p>
                             </div>
 
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-orange-100 to-orange-200 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-3 h-3 rounded-full bg-orange-600 animate-pulse" />
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-orange-50 to-orange-100 shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-3 h-3 rounded-full bg-orange-500 animate-pulse" />
                                     <p className="text-sm font-medium text-gray-700">Over 14 Days</p>
                                 </div>
-                                <p className="text-2xl font-bold text-orange-600">8</p>
+                                <p className="text-2xl font-bold text-orange-500">8</p>
+                                <p className="text-sm text-gray-500 mt-1">Cases pending</p>
                             </div>
 
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-red-100 to-red-200 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" />
                                     <p className="text-sm font-medium text-gray-700">This Month</p>
                                 </div>
-                                <p className="text-2xl font-bold text-red-600">25</p>
+                                <p className="text-2xl font-bold text-yellow-500">25</p>
+                                <p className="text-sm text-gray-500 mt-1">Cases pending</p>
                             </div>
 
-                            <div className="p-4 rounded-lg bg-gradient-to-br from-red-100 to-red-200 shadow-sm transition-all duration-200 hover:shadow-md hover:scale-105">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-red-50 to-red-100 shadow-sm transition-all duration-300 hover:shadow-md hover:scale-105">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
                                     <p className="text-sm font-medium text-gray-700">Previous All</p>
                                 </div>
-                                <p className="text-2xl font-bold text-red-600">43</p>
+                                <p className="text-2xl font-bold text-red-500">43</p>
+                                <p className="text-sm text-gray-500 mt-1">Cases pending</p>
                             </div>
                         </div>
                     </CardContent>
