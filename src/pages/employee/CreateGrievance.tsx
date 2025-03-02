@@ -4,87 +4,199 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UploadIcon, PlusCircle, Trash2, Plus } from 'lucide-react';
+import { UploadIcon, Plus } from 'lucide-react';
 import ReactQuill from 'react-quill';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import toast from 'react-hot-toast';
 import Loader from '@/components/ui/loader';
+import axios from 'axios';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+import axiosInstance from '@/services/axiosInstance';
+import { findEmployeeDetails } from '@/lib/helperFunction';
+
+interface GroupMaster {
+  id: number;
+  groupName: string;
+  description: string;
+  remark: string | null;
+  createdBy: number;
+  createdDate: string;
+  modifyBy: number;
+  modifyDate: string;
+  isActive: boolean;
+}
+
+interface ServiceCategory {
+  id: number;
+  serviceName: string;
+  serviceDescription: string;
+  parentServiceId: number | null;
+  parentService: ServiceCategory | null;
+  groupMasterId: number | null;
+  groupMaster: GroupMaster | null;
+  remark: string | null;
+  createdBy: number;
+  createdDate: string;
+  modifyBy: number | null;
+  modifyDate: string | null;
+  isActive: boolean;
+  children?: ServiceCategory[];
+}
+
+interface ServiceResponse {
+  statusCode: number;
+  message: string;
+  data: ServiceCategory[];
+  dataLength: number;
+  totalRecords: number;
+  error: boolean;
+  errorDetail: string | null;
+}
 
 // Schema for form validation
 const formSchema = z.object({
-  category: z.string().min(1, 'Category is required'),
-  subcategory: z.string().min(1, 'Subcategory is required'),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
+  serviceId: z.number().min(1, 'Service is required'),
   attachment: z.array(z.instanceof(File)).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-const CreateGrievance = () => {
+const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void }) => {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [services, setServices] = useState<ServiceCategory[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const user = useSelector((state: RootState) => state.user);
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+  // Fetch services on component mount
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        console.log(employeeList, 'this is user');
+        const response = await axiosInstance.get('/Admin/GetServiceMasterList');
+        console.log('Raw API Response:', response);
+        console.log('API Response Data:', response.data);
+        console.log('API Services:', response.data.data);
 
-  // Categories and subcategories data (you can replace with API data)
-  const categories = [
-    { id: 'workplace', name: 'Workplace' },
-    { id: 'compensation', name: 'Compensation' },
-    { id: 'harassment', name: 'Harassment' },
-    { id: 'discrimination', name: 'Discrimination' },
-    { id: 'other', name: 'Other' },
-  ];
+        if (response.data.error) {
+          throw new Error(response.data.errorDetail || 'Failed to fetch services');
+        }
 
-  const subcategoriesByCategory = {
-    workplace: [
-      { id: 'environment', name: 'Work Environment' },
-      { id: 'safety', name: 'Safety Concerns' },
-      { id: 'equipment', name: 'Equipment Issues' },
-    ],
-    compensation: [
-      { id: 'salary', name: 'Salary Issues' },
-      { id: 'benefits', name: 'Benefits Issues' },
-      { id: 'leaves', name: 'Leave Policy' },
-    ],
-    harassment: [
-      { id: 'verbal', name: 'Verbal Harassment' },
-      { id: 'physical', name: 'Physical Harassment' },
-      { id: 'bullying', name: 'Workplace Bullying' },
-    ],
-    discrimination: [
-      { id: 'gender', name: 'Gender Discrimination' },
-      { id: 'racial', name: 'Racial Discrimination' },
-      { id: 'age', name: 'Age Discrimination' },
-    ],
-    other: [
-      { id: 'communication', name: 'Communication Issues' },
-      { id: 'management', name: 'Management Issues' },
-      { id: 'other', name: 'Other' },
-    ],
+        const organizedServices = organizeServices(response.data.data);
+
+        console.log('Organized Services:', organizedServices);
+        console.log(
+          'Active Root Services:',
+          organizedServices.filter((s) => s.isActive)
+        );
+        setServices(organizedServices);
+      } catch (error) {
+        console.error('Error fetching services:', error);
+        toast.error('Failed to fetch services');
+      }
+    };
+
+    fetchServices();
+  }, [open]); // Only fetch when dialog opens
+
+  // Function to organize services into a hierarchical structure
+  const organizeServices = (flatServices) => {
+    console.log('Organizing services from:', flatServices);
+    const serviceMap = new Map();
+    const rootServices = [];
+
+    // First pass: Create map of all services
+    flatServices.forEach((service) => {
+      // Only include active services
+      if (service.isActive) {
+        console.log('Adding active service to map:', service);
+        serviceMap.set(service.id, { ...service, children: [] });
+      }
+    });
+
+    // Second pass: Organize into hierarchy
+    flatServices.forEach((service) => {
+      if (!service.isActive) {
+        console.log('Skipping inactive service:', service);
+        return;
+      }
+
+      const currentService = serviceMap.get(service.id);
+      if (service.parentServiceId === null) {
+        console.log('Adding root service:', service);
+        rootServices.push(currentService);
+      } else {
+        const parentService = serviceMap.get(service.parentServiceId);
+        if (parentService) {
+          console.log('Adding child service:', service, 'to parent:', parentService);
+          parentService.children = parentService.children || [];
+          parentService.children.push(currentService);
+        } else {
+          console.log('Parent service not found for:', service);
+        }
+      }
+    });
+
+    console.log('Final root services:', rootServices);
+    return rootServices;
   };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      category: '',
-      subcategory: '',
       title: '',
       description: '',
+      serviceId: 0,
       attachment: [],
     },
   });
 
-  // Watch category to update subcategories
-  const selectedCategory = form.watch('category');
+  // Get services for a specific level based on selected parent
+  const getServicesForLevel = (level: number): ServiceCategory[] => {
+    let currentServices = services;
+    console.log('Getting services for level:', level, 'Current services:', currentServices);
+
+    for (let i = 0; i < level; i++) {
+      const selectedId = selectedCategories[i];
+      const selectedService = currentServices.find((s) => s.id === selectedId);
+      if (selectedService?.children?.length) {
+        currentServices = selectedService.children;
+      } else {
+        return [];
+      }
+    }
+
+    return currentServices;
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (value: string, level: number) => {
+    const numericValue = parseInt(value);
+    const newSelectedCategories = selectedCategories.slice(0, level);
+    newSelectedCategories[level] = numericValue;
+    setSelectedCategories(newSelectedCategories);
+
+    // Set the serviceId to the last selected category
+    form.setValue('serviceId', numericValue);
+
+    console.log('Selected category:', {
+      level,
+      value: numericValue,
+      allCategories: newSelectedCategories,
+    });
+  };
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
-
       setSelectedFiles((prevFiles) => {
         const uniqueFiles = [...prevFiles, ...filesArray].reduce((acc, file) => {
           if (!acc.some((f) => f.name === file.name && f.size === file.size)) {
@@ -109,24 +221,41 @@ const CreateGrievance = () => {
   };
 
   // Form submission
-  function onSubmit(data: FormValues) {
+  async function onSubmit(data: FormValues) {
     setIsLoading(true);
     try {
-      // Log the form data to console
-      console.log('Grievance Data:', {
-        ...data,
-        attachments: selectedFiles.map((file) => ({
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        })),
+      const formData = new FormData();
+      // formData.append('StatusId', '0');
+      formData.append('id', '0');
+      formData.append('title', data.title);
+      formData.append('description', data.description);
+      formData.append('serviceId', data.serviceId.toString());
+      formData.append('userCode', user.EmpCode || '');
+      formData.append('userEmail', findEmployeeDetails(employeeList, user?.EmpCode.toString())?.employee?.empEmail);
+      formData.append('AssignedUserCode', 'NA');
+      formData.append('AssignedUserDetails', 'NA');
+      // Append files
+      selectedFiles &&
+        selectedFiles.forEach((file) => {
+          formData.append('attachments', file);
+        });
+
+      // Make API call
+      const response = await axiosInstance.post('/Grievance/AddUpdateGrievance', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
 
+      console.log('Submission response:', response);
       toast.success('Grievance submitted successfully');
-      setIsLoading(false);
       setOpen(false);
       form.reset();
       setSelectedFiles([]);
+      setSelectedCategories([]);
+      if (refreshGrievances) {
+        refreshGrievances();
+      }
     } catch (error) {
       console.error('Error submitting form:', error);
       toast.error('Failed to submit grievance');
@@ -143,13 +272,14 @@ const CreateGrievance = () => {
           <Button
             onClick={() => {
               form.reset();
+              setSelectedCategories([]);
             }}
           >
             <Plus className="w-5 h-5 mr-2" /> Create New Grievance
           </Button>
         </DialogTrigger>
         <DialogContent
-          onPointerDownOutside={(e) => e.preventDefault()} // Prevents closing on outside click
+          onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
           className="sm:w-2/3 p-6 max-w-none overflow-y-auto sm:max-h-[95vh] h-[calc(100vh-40px)]"
         >
@@ -157,31 +287,35 @@ const CreateGrievance = () => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Category */}
+              {/* Dynamic Category Selectors */}
+              <div className="space-y-4">
+                {/* First Level Category */}
                 <FormField
                   control={form.control}
-                  name="category"
+                  name="serviceId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
                       <FormControl>
                         <Select
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            form.setValue('subcategory', ''); // Reset subcategory when category changes
-                          }}
-                          value={field.value}
+                          onValueChange={(value) => handleCategorySelect(value, 0)}
+                          value={selectedCategories[0]?.toString()}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select Category" />
                           </SelectTrigger>
                           <SelectContent>
-                            {categories.map((category) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                {category.name}
-                              </SelectItem>
-                            ))}
+                            {services && services.length > 0 ? (
+                              services.map((service) => (
+                                <SelectItem key={service.id} value={service.id.toString()}>
+                                  {service.serviceName}
+                                </SelectItem>
+                              ))
+                            ) : (
+                              <div className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                                No categories available
+                              </div>
+                            )}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -190,32 +324,32 @@ const CreateGrievance = () => {
                   )}
                 />
 
-                {/* Subcategory */}
-                <FormField
-                  control={form.control}
-                  name="subcategory"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Subcategory</FormLabel>
-                      <FormControl>
-                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Subcategory" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedCategory &&
-                              subcategoriesByCategory[selectedCategory]?.map((subcategory) => (
-                                <SelectItem key={subcategory.id} value={subcategory.id}>
-                                  {subcategory.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
+                {/* Render additional category levels if children exist */}
+                {selectedCategories.map((_, index) => {
+                  const servicesForLevel = getServicesForLevel(index + 1);
+                  if (!servicesForLevel || servicesForLevel.length === 0) return null;
+
+                  return (
+                    <FormItem key={index + 1}>
+                      <FormLabel>Sub Category {index + 1}</FormLabel>
+                      <Select
+                        onValueChange={(value) => handleCategorySelect(value, index + 1)}
+                        value={selectedCategories[index + 1]?.toString()}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={`Select Sub Category ${index + 1}`} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {servicesForLevel.map((service) => (
+                            <SelectItem key={service.id} value={service.id.toString()}>
+                              {service.serviceName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormItem>
-                  )}
-                />
+                  );
+                })}
               </div>
 
               {/* Title */}

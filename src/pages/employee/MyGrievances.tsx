@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import CreateGrievance from './CreateTask';
+import CreateGrievance from './CreateGrievance';
 
 // Dummy data for grievances
 const dummyGrievances = [
