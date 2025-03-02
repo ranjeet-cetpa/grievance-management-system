@@ -11,7 +11,7 @@ const CETPA_UAT = {
   apiUrl: 'https://uat.grivance.services.dfccil.cetpainfotech.com/api',
   orgHierarchy: 'https://uat.dfccilorganization.services.cetpainfotech.com/api',
   loginUrl: 'https://uat.tourservices.cetpainfotech.com/api',
-  logoutUrl: 'https://tms.cetpainfotech.com',
+  logoutUrl: 'https://gms.cetpainfotech.com',
 };
 
 const DFCCIL_UAT = {
