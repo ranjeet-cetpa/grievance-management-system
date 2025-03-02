@@ -22,8 +22,8 @@ import { setUnits } from '@/features/unit/unitSlice';
 import { logo } from '@/assets/image/images';
 import { Button } from './ui/button';
 import { resetUser } from '@/features/user/userSlice';
-import { Separator } from "@radix-ui/react-separator";
-import { useNavigate } from "react-router";
+import { Separator } from '@radix-ui/react-separator';
+import { useNavigate } from 'react-router';
 
 const data = {
   navMain: [
@@ -105,7 +105,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuButton
-            onClick={() => navigate("/admin-dashboard")}
+            onClick={() => navigate('/admin-dashboard')}
             asChild
             tooltip={'Manage Organization'}
             className={`transition-all text-black cursor-pointer duration-300  active:bg-primary [&>svg]:size-7 ease-in-out hover:bg-primary hover:text-white h-full w-full active:text-white`}
