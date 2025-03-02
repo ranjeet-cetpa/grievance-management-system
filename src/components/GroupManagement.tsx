@@ -610,7 +610,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               >
                 {selectedGroupForMapping.groupName.charAt(0).toUpperCase()}{' '}
               </div>{' '}
-              User Mapping for Role "{selectedGroupForMapping?.groupName}"
+              User Mapping for Group "{selectedGroupForMapping?.groupName}"
             </h3>
             <Button onClick={() => setMapUserOpen(true)}>
               <Plus /> Map Users{' '}
@@ -654,7 +654,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
           ) : (
             <div className="text-center py-8 text-gray-500">
               <Users size={32} className="mx-auto mb-2 text-gray-400" />
-              <p>No users mapped to this role</p>
+              <p>No users mapped to this group</p>
             </div>
           )}
 

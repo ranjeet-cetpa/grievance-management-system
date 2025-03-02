@@ -24,7 +24,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown, ChevronRight, Users, UserPlus, Shield, Info } from 'lucide-react';
 import { RootState } from '@/app/store';
 import { extractUniqueUnits } from '@/lib/helperFunction';
@@ -37,15 +36,12 @@ import Loader from './ui/loader';
 const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const [roles, setRoles] = useState([]);
   const [mapUserOpen, setMapUserOpen] = useState(false);
-  const [mapUserToRolesOpen, setMapUserToRolesOpen] = useState(false);
   const [expandedRoles, setExpandedRoles] = useState({});
   const [selectedRole, setSelectedRole] = useState(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
   const [mappedUsers, setMappedUsers] = useState([]);
-  const [selectedRoles, setSelectedRoles] = useState([]);
   const [selectedRoleForMapping, setSelectedRoleForMapping] = useState(null);
   const [showMappedUsersTable, setShowMappedUsersTable] = useState(false);
   const user = useSelector((state) => state.user);
@@ -70,6 +66,24 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   };
 
   const formattedEmployeeList = employeeList?.map(formatEmployeeForSelect);
+
+  // Group mapped users by unit
+  const groupUsersByUnit = (users) => {
+    const groupedUsers = {};
+    users.forEach((user) => {
+      const unitName = user.unitName || 'N/A';
+      if (!groupedUsers[unitName]) {
+        groupedUsers[unitName] = {
+          unitName,
+          userCodes: [],
+          userDetails: [],
+        };
+      }
+      groupedUsers[unitName].userCodes.push(user.userCode || 'N/A');
+      groupedUsers[unitName].userDetails.push(user.userDetails || 'N/A');
+    });
+    return Object.values(groupedUsers);
+  };
 
   // Fetch mapped users for a specific role
   const showMappedUsersHandler = async (role) => {
@@ -172,43 +186,20 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
     }));
   };
 
-  // Open map user dialog
-  const openMapUserDialog = (role) => {
-    console.log('Opening map user dialog for role:', role);
-    setSelectedRole(role);
+  // Open map user dialog for the currently selected role
+  const openMapUserDialog = () => {
+    if (!selectedRoleForMapping) return;
+
+    console.log('Opening map user dialog for role:', selectedRoleForMapping);
+    setSelectedRole(selectedRoleForMapping);
     setSelectedUsers([]);
     setMapUserOpen(true);
-  };
-
-  // Open map user to roles dialog
-  const openMapUserToRolesDialog = () => {
-    setSelectedUser(null);
-    setSelectedRoles([]);
-    setSelectedUnit(null);
-    setMapUserToRolesOpen(true);
   };
 
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
     console.log('User selection changed:', selectedOptions);
     setSelectedUsers(selectedOptions);
-  };
-
-  // Handle single user selection change for mapping to multiple roles
-  const handleSingleUserSelectionChange = (selectedOption) => {
-    console.log('User selection changed:', selectedOption);
-    setSelectedUser(selectedOption);
-  };
-
-  // Handle role checkbox change
-  const handleRoleCheckboxChange = (roleId) => {
-    setSelectedRoles((prev) => {
-      if (prev.includes(roleId)) {
-        return prev.filter((id) => id !== roleId);
-      } else {
-        return [...prev, roleId];
-      }
-    });
   };
 
   // Handle mapping users to role
@@ -219,63 +210,28 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       setLoading(true);
 
       const payload = {
-        roleMasterId: selectedRole.id,
+        roleId: [selectedRole.id],
         unitId: selectedUnit,
         unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
-        userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
+        userDetails: selectedUsers?.label,
+        userCode: selectedUsers.value,
       };
 
       const response = await axiosInstance.post('/Admin/UpdateUserRoleMapping', payload);
       if (response.data?.statusCode === 200) {
         toast.success('Users are mapped successfully to the role');
+        // Refresh the mapped users display
+        await showMappedUsersHandler(selectedRole);
       } else {
         toast.error('Error in mapping users to the role');
       }
 
       setMapUserOpen(false);
-      setSelectedRole(null);
       setSelectedUsers([]);
       setLoading(false);
     } catch (error) {
       console.error('Error mapping users to role:', error);
       toast.error('Failed to map users to role');
-      setLoading(false);
-    }
-  };
-
-  // Handle mapping user to multiple roles
-  const handleMapUserToRoles = async () => {
-    if (!selectedUser || selectedRoles.length === 0 || !selectedUnit) {
-      toast.error('Please select a user, at least one role, and a unit');
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const payload = {
-        userCode: selectedUser.value,
-        userDetails: selectedUser.label?.trim(),
-        unitId: selectedUnit,
-        unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
-        roleId: selectedRoles,
-      };
-
-      const response = await axiosInstance.post('/Admin/UpdateUserRoleMapping', payload);
-      if (response.data?.statusCode === 200) {
-        toast.success('User has been successfully mapped to the selected roles');
-      } else {
-        toast.error('Error in mapping user to roles');
-      }
-
-      setMapUserToRolesOpen(false);
-      setSelectedUser(null);
-      setSelectedRoles([]);
-      setSelectedUnit(null);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error mapping user to roles:', error);
-      toast.error('Failed to map user to roles');
       setLoading(false);
     }
   };
@@ -287,20 +243,16 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       resetForm();
     } else if (dialogType === 'map') {
       setMapUserOpen(false);
-      setSelectedRole(null);
       setSelectedUsers([]);
-    } else if (dialogType === 'mapToRoles') {
-      setMapUserToRolesOpen(false);
-      setSelectedUser(null);
-      setSelectedRoles([]);
     }
   };
+
+  // Process mapped users for display - group by unit
+  const groupedMappedUsers = groupUsersByUnit(mappedUsers);
 
   return (
     <CardContent className="p-6">
       {loading && <Loader />}
-
-      {/* Top Actions */}
 
       {/* Create Role Dialog */}
       <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
@@ -405,29 +357,29 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
               User Mapping for Role "{selectedRoleForMapping.roleName}"
             </h3>
 
-            <div className="flex justify-between mb-6">
-              <Button onClick={openMapUserToRolesDialog} variant="default">
+            <div className="flex justify-between">
+              <Button onClick={openMapUserDialog} variant="default">
                 <UserPlus size={16} />
-                Map Users to Role
+                Map User to Role
               </Button>
             </div>
           </div>
 
-          {mappedUsers && mappedUsers.length > 0 ? (
+          {groupedMappedUsers && groupedMappedUsers.length > 0 ? (
             <Table>
               <TableHeader>
                 <TableRow className="bg-blue-50">
                   <TableHead className="font-medium">Unit Name</TableHead>
-                  <TableHead className="font-medium">User Code</TableHead>
+                  <TableHead className="font-medium">User Codes</TableHead>
                   <TableHead className="font-medium">User Details</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mappedUsers.map((user, index) => (
-                  <TableRow key={`${user.userCode}-${index}`} className="hover:bg-gray-50 transition-colors">
-                    <TableCell>{user.unitName || 'N/A'}</TableCell>
-                    <TableCell>{user.userCode || 'N/A'}</TableCell>
-                    <TableCell>{user.userDetails || 'N/A'}</TableCell>
+                {groupedMappedUsers.map((group, index) => (
+                  <TableRow key={`${group.unitName}-${index}`} className="hover:bg-gray-50 transition-colors">
+                    <TableCell>{group.unitName}</TableCell>
+                    <TableCell>{group.userCodes.join(', ')}</TableCell>
+                    <TableCell>{group.userDetails.join(', ')}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -458,9 +410,9 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl flex  font-bold">Map Users to Role</DialogTitle>
+            <DialogTitle className="text-xl flex font-bold">Map User to Role</DialogTitle>
             <DialogDescription className="text-gray-600">
-              {selectedRole && `Select users to map to "${selectedRole.roleName}"`}
+              {selectedRole && `Select user to map to "${selectedRole.roleName}"`}
             </DialogDescription>
           </DialogHeader>
 
@@ -506,7 +458,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
 
             {/* User Selection */}
             <Label htmlFor="users" className="mb-2 mt-6 block font-medium">
-              Select Users
+              Select User
             </Label>
             <ReactSelect
               id="users"
@@ -515,7 +467,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select users to map to this role"
+              placeholder="Select a user to map to this role"
               styles={{
                 control: (base) => ({
                   ...base,
@@ -553,111 +505,12 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
             >
               Cancel
             </Button>
-            <Button onClick={handleMapUsers} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {loading ? 'Mapping...' : 'Map Users'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Map User to Roles Dialog */}
-      <Dialog open={mapUserToRolesOpen} onOpenChange={setMapUserToRolesOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Map User to Multiple Roles</DialogTitle>
-            <DialogDescription className="text-gray-600">Select a user and assign multiple roles</DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Unit Dropdown */}
-              <div>
-                <Label className="mb-2 block font-medium">Unit:</Label>
-                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                  <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select a unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Units</SelectLabel>
-                      {unitsDD.map((unit) => (
-                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
-                          {unit.unitName}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* User Selection */}
-              <div>
-                <Label htmlFor="singleUser" className="mb-2 block font-medium">
-                  Select User
-                </Label>
-                <ReactSelect
-                  id="singleUser"
-                  options={formattedEmployeeList}
-                  value={selectedUser}
-                  onChange={handleSingleUserSelectionChange}
-                  className="basic-select"
-                  classNamePrefix="select"
-                  placeholder="Select a user"
-                  styles={{
-                    control: (base) => ({
-                      ...base,
-                      borderColor: '#d1d5db',
-                      '&:hover': {
-                        borderColor: '#3b82f6',
-                      },
-                    }),
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Role Selection */}
-            <div className="mt-6">
-              <Label className="mb-2 block font-medium">Select Roles</Label>
-              <div className="bg-gray-50 p-4 rounded-md max-h-60 overflow-y-auto">
-                <div className="space-y-3">
-                  {roles?.map((role) => (
-                    <div key={role.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`role-${role.id}`}
-                        checked={selectedRoles.includes(role.id)}
-                        onCheckedChange={() => handleRoleCheckboxChange(role.id)}
-                      />
-                      <label
-                        htmlFor={`role-${role.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
-                      >
-                        <div className="h-5 w-5 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
-                          <Shield size={12} />
-                        </div>
-                        {role.roleName}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
             <Button
-              variant="outline"
-              onClick={() => handleDialogClose('mapToRoles')}
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleMapUserToRoles}
-              disabled={loading || !selectedUser || selectedRoles.length === 0 || !selectedUnit}
+              onClick={handleMapUsers}
+              disabled={loading || !selectedUsers || !selectedUnit}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {loading ? 'Mapping...' : 'Map to Roles'}
+              {loading ? 'Mapping...' : 'Map User'}
             </Button>
           </DialogFooter>
         </DialogContent>

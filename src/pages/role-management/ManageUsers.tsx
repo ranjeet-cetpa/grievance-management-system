@@ -49,12 +49,6 @@ const ManageUsers = () => {
               <Plus /> Create Group
             </Button>
           )}
-
-          {activeTab === 'departments' && (
-            <Button onClick={() => {}}>
-              <Plus /> Create Department
-            </Button>
-          )}
         </div>
 
         <TabsContent value="roles">
