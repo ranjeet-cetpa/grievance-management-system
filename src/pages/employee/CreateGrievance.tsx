@@ -247,14 +247,16 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
         },
       });
 
-      console.log('Submission response:', response);
-      toast.success('Grievance submitted successfully');
-      setOpen(false);
-      form.reset();
-      setSelectedFiles([]);
-      setSelectedCategories([]);
-      if (refreshGrievances) {
-        refreshGrievances();
+      if (response?.data?.statusCode === 200) {
+        toast.success('Grievance submitted successfully');
+        console.log('Submission response:', response);
+        setOpen(false);
+        form.reset();
+        setSelectedFiles([]);
+        setSelectedCategories([]);
+        if (refreshGrievances) refreshGrievances();
+      } else if (response?.data?.statusCode === 400) {
+        toast.error(response?.data?.message);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -378,7 +380,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                       <FormControl>
                         <div className="rounded-md border">
                           <ReactQuill
-                            placeholder="Enter detailed description of your grievance"
+                            placeholder="Enter Description"
                             {...field}
                             onChange={(value) => field.onChange(value)}
                             theme="snow"

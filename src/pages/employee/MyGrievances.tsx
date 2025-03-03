@@ -10,55 +10,9 @@ import Loader from '@/components/ui/loader';
 import Heading from '@/components/ui/heading';
 import { Input } from '@/components/ui/input';
 import { Plus, Search } from 'lucide-react';
-
+import axiosInstance from '@/services/axiosInstance';
 import { Button } from '@/components/ui/button';
 import CreateGrievance from './CreateGrievance';
-
-// Dummy data for grievances
-const dummyGrievances = [
-  {
-    id: 'GR-001',
-    createdDate: '2025-02-20T10:30:00',
-    title: 'Faulty Equipment in IT Department',
-    assignedTo: 'John Doe',
-    status: 'Open',
-  },
-  {
-    id: 'GR-002',
-    createdDate: '2025-02-21T09:15:00',
-    title: 'Network Connectivity Issues',
-    assignedTo: 'Jane Smith',
-    status: 'In Progress',
-  },
-  {
-    id: 'GR-003',
-    createdDate: '2025-02-22T14:45:00',
-    title: 'Office AC Not Working',
-    assignedTo: 'Mike Johnson',
-    status: 'Resolved',
-  },
-  {
-    id: 'GR-004',
-    createdDate: '2025-02-23T11:20:00',
-    title: 'Software License Expiry',
-    assignedTo: 'Sarah Williams',
-    status: 'Open',
-  },
-  {
-    id: 'GR-005',
-    createdDate: '2025-02-24T16:30:00',
-    title: 'Broken Chair in Conference Room',
-    assignedTo: 'David Brown',
-    status: 'In Progress',
-  },
-  {
-    id: 'GR-006',
-    createdDate: '2025-02-25T13:10:00',
-    title: 'Printer Not Functioning',
-    assignedTo: 'John Doe',
-    status: 'Open',
-  },
-];
 
 const FILTER_OPTIONS = {
   ALL: 'all',
@@ -66,43 +20,91 @@ const FILTER_OPTIONS = {
   CREATED_BY_ME: 'createdByMe',
 };
 
+interface GrievanceResponse {
+  totalRecords: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  data: Array<{
+    id: number;
+    title: string;
+    description: string;
+    serviceId: number;
+    userCode: string;
+    userEmail: string;
+    userDetails: string;
+    unitId: string;
+    unitName: string;
+    round: number;
+    statusId: number;
+    status: string | null;
+    rowStatus: number;
+    remark: string | null;
+    createdBy: number;
+    createdDate: string;
+    modifyBy: number | null;
+    modifyDate: string | null;
+    isActive: boolean | null;
+  }>;
+}
+
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
+  logger.log('Current user:', user);
+
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<string>(FILTER_OPTIONS.ASSIGNED_TO_ME);
-  const [grievances, setGrievances] = useState([]);
+  const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [filteredGrievances, setFilteredGrievances] = useState([]);
+  const [filteredGrievances, setFilteredGrievances] = useState<GrievanceResponse['data']>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({
+    pageNumber: 1,
+    pageSize: 10,
+    totalRecords: 0,
+    totalPages: 1,
+  });
 
-  // Function to Fetch Grievances (simulated with dummy data)
+  // Function to Fetch Grievances from API
   const fetchGrievances = useCallback(async () => {
     setLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      let endpoint = '';
 
-      let responses = [];
-
-      if (filter === FILTER_OPTIONS.ALL) {
-        responses = [...dummyGrievances];
+      if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
+        endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
       } else if (filter === FILTER_OPTIONS.ASSIGNED_TO_ME) {
-        responses = dummyGrievances.filter((g) => g.assignedTo === 'John Doe'); // Assuming current user is John Doe
-      } else if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
-        // For dummy data, let's assume first 3 grievances were created by the current user
-        responses = dummyGrievances.slice(0, 3);
+        endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+      } else {
+        // For ALL, we can use either endpoint or implement a new one if needed
+        endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
       }
 
-      setGrievances(responses);
-      logger.log('Grievances fetched:', responses);
+      const response = await axiosInstance.get(endpoint);
+
+      if (response.data.statusCode === 200) {
+        const responseData = response.data.data;
+        setGrievances(responseData.data);
+        setPagination({
+          pageNumber: responseData.pageNumber,
+          pageSize: responseData.pageSize,
+          totalRecords: responseData.totalRecords,
+          totalPages: responseData.totalPages,
+        });
+        logger.log('Grievances fetched:', responseData);
+      } else {
+        toast.error('Failed to fetch grievances');
+        setGrievances([]);
+      }
     } catch (error) {
       logger.error('Error fetching grievances:', error);
       toast.error('Something went wrong while fetching grievances');
+      setGrievances([]);
     } finally {
       setLoading(false);
     }
-  }, [filter]);
+  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize]);
 
   // Fetch grievances when filter or refresh changes
   useEffect(() => {
@@ -136,7 +138,7 @@ const MyGrievances = () => {
             </div>
 
             <div className="hidden sm:block">
-              <CreateGrievance />
+              <CreateGrievance refreshGrievances={refreshGrievances} />
             </div>
           </div>
         </CardHeader>

@@ -11,7 +11,13 @@ import FilterHeader from '../FilterHeader';
 import toast from 'react-hot-toast';
 import axiosInstance from '@/services/axiosInstance';
 
-const updateGrievanceStatus = async (status, id) => {
+interface GrievanceTableProps {
+  grievances?: any[];
+  rightElement?: React.ReactNode;
+  mode?: string;
+}
+
+const updateGrievanceStatus = async (status: string, id: number) => {
   try {
     const response = await axiosInstance.put(`/GrievanceManager/ChangeGrievanceStatus/${id}?Status=${status}`);
     if (response.data.statusCode === 200) {
@@ -22,54 +28,7 @@ const updateGrievanceStatus = async (status, id) => {
   }
 };
 
-// Sample dummy data with the specified assignedTo IDs
-const dummyGrievances = [
-  {
-    id: 1001,
-    createdDate: '2025-02-01T10:30:00',
-    title: 'Salary Discrepancy in January Payroll',
-    status: 'new',
-    assignedTo: '57',
-  },
-  {
-    id: 1002,
-    createdDate: '2025-02-05T14:15:00',
-    title: 'Workplace Harassment Complaint',
-    status: 'in_progress',
-    assignedTo: '22',
-  },
-  {
-    id: 1003,
-    createdDate: '2025-02-08T09:45:00',
-    title: 'Leave Application Rejection Dispute',
-    status: 'in_progress',
-    assignedTo: '101002',
-  },
-  {
-    id: 1004,
-    createdDate: '2025-02-10T11:20:00',
-    title: 'Office Equipment Inadequacy',
-    status: 'resolved',
-    assignedTo: '100571',
-  },
-  {
-    id: 1005,
-    createdDate: '2025-02-15T16:30:00',
-    title: 'Performance Review Objection',
-    status: 'closed',
-    assignedTo: '102199',
-  },
-];
-
-const ResponsiveGrievanceList: React.FC = ({
-  grievances = dummyGrievances, // Default to dummy data if none provided
-  rightElement,
-  mode,
-}: {
-  grievances?: any;
-  rightElement?: React.ReactNode;
-  mode?: string;
-}) => {
+const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightElement, mode }) => {
   const user = useSelector((state: RootState) => state.user);
   const navigate = useNavigate();
   const employeeList = useSelector((state: RootState) => state.employee.employees);
@@ -103,45 +62,45 @@ const ResponsiveGrievanceList: React.FC = ({
         cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
       },
       {
-        id: 'assignedTo',
-        accessorKey: 'assignedTo',
-        // header: ({ column }) => (
-        //   <div className="flex items-center gap-2">
-        //     <span>Assigned To</span>
-        //     {employeeList && (
-        //       <FilterHeader
-        //         column={column}
-        //         grievances={grievances}
-        //         employeeList={employeeList}
-        //         mode={'filterOnAssignedTo'}
-        //       />
-        //     )}
-        //   </div>
-        // ),
-        header: 'Assigned To',
-        filterFn: (row, id, filterValue) => {
-          if (!filterValue?.length) return true;
-          return filterValue.includes(row.original.assignedTo);
-        },
-        cell: ({ row }) => (
-          <p className="font-semibold">
-            {findEmployeeDetails(employeeList, row?.original?.assignedTo)?.employee?.empName || row.original.assignedTo}
-          </p>
-        ),
+        id: 'userDetails',
+        accessorKey: 'userDetails',
+        header: 'Created By',
+        cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.userDetails}</div>,
       },
       {
-        id: 'status',
-        accessorKey: 'status',
+        id: 'unitName',
+        accessorKey: 'unitName',
+        header: 'Unit',
+        cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
+      },
+      {
+        id: 'statusId',
+        accessorKey: 'statusId',
         header: 'Status',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <StatusBadge status={row.original.status} />
+            <StatusBadge status={getStatusText(row.original.statusId)} />
           </div>
         ),
       },
     ],
-    [employeeList, grievances]
+    [employeeList]
   );
+
+  const getStatusText = (statusId: number): string => {
+    switch (statusId) {
+      case 1:
+        return 'new';
+      case 2:
+        return 'in_progress';
+      case 3:
+        return 'resolved';
+      case 4:
+        return 'closed';
+      default:
+        return 'unknown';
+    }
+  };
 
   return (
     <TableList
@@ -149,7 +108,7 @@ const ResponsiveGrievanceList: React.FC = ({
       columns={columns}
       rightElements={rightElement}
       onRowClick={async (rowData) => {
-        if (rowData?.assignedTo.toString() === user?.EmpCode?.toString() && rowData?.status === 'new') {
+        if (rowData?.userCode === user?.EmpCode?.toString() && rowData?.statusId === 1) {
           await updateGrievanceStatus('in_progress', rowData?.id);
         }
         navigate(`/grievances/${rowData.id.toString().trim()}`);
@@ -158,4 +117,4 @@ const ResponsiveGrievanceList: React.FC = ({
   );
 };
 
-export default ResponsiveGrievanceList;
+export default GrievanceTable;
