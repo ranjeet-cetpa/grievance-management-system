@@ -53,7 +53,20 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
             <SortingButton headerText="Created On" column={column} />
           </div>
         ),
-        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd-MM-yyyy')}</span>,
+        cell: ({ row }) => (
+          <span>
+            {format(
+              new Date(
+                new Date(row.original.createdDate).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              ),
+              'dd-MM-yyyy'
+            )}
+          </span>
+        ),
       },
       {
         id: 'title',

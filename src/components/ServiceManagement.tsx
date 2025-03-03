@@ -199,7 +199,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ createServiceOpen
         id: parseInt(formData.id) || 0,
         serviceName: formData.name,
         serviceDescription: formData.description,
-        parentServiceId: formData.isParentService ? null : formData.parentServiceId,
+        parentServiceId: formData.isParentService ? '0' : formData.parentServiceId,
         groupId: formData.groupId,
         userCode: user?.EmpCode,
       };
