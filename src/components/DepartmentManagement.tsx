@@ -41,6 +41,25 @@ interface DepartmentMapping {
   mappedUser: MappedUser[];
 }
 
+interface GroupMaster {
+  id: number;
+  groupName: string;
+  description: string;
+  isActive: boolean;
+}
+
+interface GroupDetail {
+  group: GroupMaster;
+  groupMapping: Array<{
+    id: number;
+    groupId: number;
+    userCode: string;
+    userDetails: string;
+    unitId: string;
+    unitName: string;
+  }>[];
+}
+
 const DepartmentManagement = () => {
   const [departmentMappings, setDepartmentMappings] = useState<DepartmentMapping[]>([]);
   const [mapUserOpen, setMapUserOpen] = useState(false);
@@ -48,6 +67,9 @@ const DepartmentManagement = () => {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState(null);
+  const [groups, setGroups] = useState<GroupMaster[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [groupDetail, setGroupDetail] = useState<GroupDetail | null>(null);
 
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
@@ -98,6 +120,70 @@ const DepartmentManagement = () => {
   useEffect(() => {
     fetchDepartmentMappings();
   }, []);
+
+  // Fetch groups data
+  const fetchGroups = async () => {
+    try {
+      const response = await axiosInstance.get('/Admin/GetGroupMasterList');
+      if (response?.data?.statusCode === 200) {
+        setGroups(response?.data?.data || []);
+      } else {
+        toast.error('Failed to fetch groups');
+      }
+    } catch (error) {
+      console.error('Error fetching groups:', error);
+      toast.error('Failed to fetch groups');
+    }
+  };
+
+  // Fetch groups when dialog opens
+  useEffect(() => {
+    if (mapUserOpen) {
+      fetchGroups();
+    }
+  }, [mapUserOpen]);
+
+  // Fetch group details when group is selected
+  const fetchGroupDetails = async (groupId: string) => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${groupId}`);
+      if (response?.data?.statusCode === 200) {
+        setGroupDetail(response?.data?.data);
+      } else {
+        toast.error('Failed to fetch group details');
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching group details:', error);
+      toast.error('Failed to fetch group details');
+      setLoading(false);
+    }
+  };
+
+  // Handle group selection change
+  const handleGroupChange = (value: string) => {
+    setSelectedGroup(value);
+    if (value) {
+      fetchGroupDetails(value);
+    } else {
+      setGroupDetail(null);
+    }
+  };
+
+  // Get filtered users based on selected unit and group
+  const getFilteredUsers = () => {
+    if (!groupDetail || !selectedUnit) return [];
+
+    // Flatten the groupMapping array and filter by selected unit
+    const usersInGroup = groupDetail.groupMapping.flat().filter((user) => user.unitId === selectedUnit);
+
+    // Convert to the format expected by ReactSelect
+    return usersInGroup.map((user) => ({
+      value: user.userCode,
+      label: user.userDetails,
+    }));
+  };
 
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
@@ -154,6 +240,7 @@ const DepartmentManagement = () => {
     setSelectedUsers([]);
     setSelectedUnit(null);
     setSelectedDepartment(null);
+    setSelectedGroup(null);
   };
 
   return (
@@ -261,13 +348,13 @@ const DepartmentManagement = () => {
           <DialogHeader>
             <DialogTitle className="text-xl flex font-bold">Map Users to Department</DialogTitle>
             <DialogDescription className="text-gray-600">
-              Select unit, department and users to create mapping
+              Select department, unit and group to create mapping
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-6">
-            {/* Unit and Department Selection */}
-            <div className="grid gap-6 sm:grid-cols-2">
+            {/* Department, Unit and Group Selection */}
+            <div className="grid gap-6 sm:grid-cols-3">
               {/* Unit Dropdown */}
               <div>
                 <Label className="mb-2 block font-medium">Unit:</Label>
@@ -307,50 +394,73 @@ const DepartmentManagement = () => {
                   </SelectContent>
                 </Select>
               </div>
+              {/* Group Dropdown */}
+              <div>
+                <Label className="mb-2 block font-medium">Group:</Label>
+                <Select value={selectedGroup || ''} onValueChange={handleGroupChange}>
+                  <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                    <SelectValue placeholder="Select a group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Groups</SelectLabel>
+                      {groups
+                        .filter((g) => g.isActive)
+                        .map((group) => (
+                          <SelectItem key={group.id} value={group.id.toString()}>
+                            {group.groupName}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* User Selection */}
-            <div>
-              <Label htmlFor="users" className="mb-2 block font-medium">
-                Select Users
-              </Label>
-              <ReactSelect
-                id="users"
-                options={formattedEmployeeList}
-                value={selectedUsers}
-                isMulti
-                onChange={handleUserSelectionChange}
-                className="basic-multi-select"
-                classNamePrefix="select"
-                placeholder="Select users to map to this department"
-                styles={{
-                  control: (base) => ({
-                    ...base,
-                    borderColor: '#d1d5db',
-                    '&:hover': {
-                      borderColor: '#3b82f6',
-                    },
-                  }),
-                  multiValue: (base) => ({
-                    ...base,
-                    backgroundColor: '#eff6ff',
-                    borderRadius: '0.375rem',
-                  }),
-                  multiValueLabel: (base) => ({
-                    ...base,
-                    color: '#1e40af',
-                  }),
-                  multiValueRemove: (base) => ({
-                    ...base,
-                    color: '#3b82f6',
-                    ':hover': {
-                      backgroundColor: '#dbeafe',
+            {/* User Selection - Only show if department, unit and group are selected */}
+            {selectedDepartment && selectedUnit && selectedGroup && (
+              <div>
+                <Label htmlFor="users" className="mb-2 block font-medium">
+                  Select Users
+                </Label>
+                <ReactSelect
+                  id="users"
+                  options={getFilteredUsers()}
+                  value={selectedUsers}
+                  isMulti
+                  onChange={handleUserSelectionChange}
+                  className="basic-multi-select"
+                  classNamePrefix="select"
+                  placeholder="Select users to map to this department"
+                  styles={{
+                    control: (base) => ({
+                      ...base,
+                      borderColor: '#d1d5db',
+                      '&:hover': {
+                        borderColor: '#3b82f6',
+                      },
+                    }),
+                    multiValue: (base) => ({
+                      ...base,
+                      backgroundColor: '#eff6ff',
+                      borderRadius: '0.375rem',
+                    }),
+                    multiValueLabel: (base) => ({
+                      ...base,
                       color: '#1e40af',
-                    },
-                  }),
-                }}
-              />
-            </div>
+                    }),
+                    multiValueRemove: (base) => ({
+                      ...base,
+                      color: '#3b82f6',
+                      ':hover': {
+                        backgroundColor: '#dbeafe',
+                        color: '#1e40af',
+                      },
+                    }),
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -359,7 +469,7 @@ const DepartmentManagement = () => {
             </Button>
             <Button
               onClick={handleMapUsers}
-              disabled={loading || !selectedUsers?.length || !selectedUnit || !selectedDepartment}
+              disabled={loading || !selectedUsers?.length || !selectedUnit || !selectedDepartment || !selectedGroup}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {loading ? 'Mapping...' : 'Map Users'}

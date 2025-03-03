@@ -257,7 +257,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   };
 
   // Get parent group options for select
-  const parentGroupOptions = groups.filter((group) => group.parentGroupId === null);
+  const parentGroupOptions = groups?.filter((group) => group.parentGroupId === null);
 
   return (
     <CardContent className="p-6">
@@ -481,7 +481,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {parentGroups.map((group) => (
+            {parentGroups?.map((group) => (
               <React.Fragment key={group.id}>
                 <TableRow className="hover:bg-gray-50 transition-colors">
                   <TableCell className="font-medium text-gray-800 flex items-center gap-2 w-1/3">

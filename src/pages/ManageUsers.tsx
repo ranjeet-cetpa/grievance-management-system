@@ -19,7 +19,7 @@ const ManageUsers = () => {
       <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="text-2xl font-bold text-gray-800">Manage Users</CardTitle>
+            <CardTitle className="text-2xl font-bold text-gray-800">Manage Services</CardTitle>
           </div>
         </div>
       </CardHeader>
@@ -30,9 +30,7 @@ const ManageUsers = () => {
             <TabsTrigger className="w-full" value="services">
               Manage Services
             </TabsTrigger>
-            <TabsTrigger className="w-full" value="roles">
-              Manage Roles
-            </TabsTrigger>
+
             <TabsTrigger className="w-full" value="groups">
               Manage Groups
             </TabsTrigger>
@@ -40,16 +38,6 @@ const ManageUsers = () => {
               Manage Departments
             </TabsTrigger>
           </TabsList>
-
-          {activeTab === 'roles' && (
-            <Button
-              onClick={() => {
-                setCreateRoleOpen(true);
-              }}
-            >
-              <Plus /> Create Role
-            </Button>
-          )}
 
           {activeTab === 'groups' && (
             <Button onClick={() => setCreateGroupOpen(true)}>
@@ -63,10 +51,6 @@ const ManageUsers = () => {
             </Button>
           )}
         </div>
-
-        <TabsContent value="roles">
-          <RoleManagement createRoleOpen={createRoleOpen} setCreateRoleOpen={setCreateRoleOpen} />
-        </TabsContent>
 
         <TabsContent value="groups">
           <GroupManagement createGroupOpen={createGroupOpen} setCreateGroupOpen={setCreateGroupOpen} />
