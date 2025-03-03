@@ -65,7 +65,9 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
         id: 'userDetails',
         accessorKey: 'userDetails',
         header: 'Created By',
-        cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.userDetails}</div>,
+        cell: ({ row }) => (
+          <div className="max-w-52 text-sm text-nowrap">{row.original.userDetails?.split('-')[0]}</div>
+        ),
       },
       {
         id: 'unitName',

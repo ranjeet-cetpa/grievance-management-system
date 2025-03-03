@@ -8,6 +8,7 @@ const DEV_CONFIG = {
   logoutUrl: 'http://localhost:3001/',
 };
 const CETPA_UAT = {
+  baseUrl: 'https://uat.grivance.services.dfccil.cetpainfotech.com',
   apiUrl: 'https://uat.grivance.services.dfccil.cetpainfotech.com/api',
   orgHierarchy: 'https://uat.dfccilorganization.services.cetpainfotech.com/api',
   loginUrl: 'https://uat.tourservices.cetpainfotech.com/api',
