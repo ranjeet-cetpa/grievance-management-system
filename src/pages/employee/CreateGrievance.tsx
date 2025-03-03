@@ -79,7 +79,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        console.log(employeeList, 'this is user');
+        console.log(user, 'this is user');
         const response = await axiosInstance.get('/Admin/GetServiceMasterList');
         console.log('Raw API Response:', response);
         console.log('API Response Data:', response.data);
@@ -226,14 +226,14 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
     try {
       const formData = new FormData();
       // formData.append('StatusId', '0');
-      formData.append('id', '0');
+      formData.append('grievanceMasterId', '0');
       formData.append('title', data.title);
       formData.append('description', data.description);
       formData.append('serviceId', data.serviceId.toString());
       formData.append('userCode', user.EmpCode || '');
       formData.append('userEmail', findEmployeeDetails(employeeList, user?.EmpCode.toString())?.employee?.empEmail);
-      formData.append('AssignedUserCode', 'NA');
-      formData.append('AssignedUserDetails', 'NA');
+      // formData.append('AssignedUserCode', '');
+      // formData.append('AssignedUserDetails', '');
       // Append files
       selectedFiles &&
         selectedFiles.forEach((file) => {
@@ -281,189 +281,193 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          className="sm:w-2/3 p-6 max-w-none overflow-y-auto sm:max-h-[95vh] h-[calc(100vh-40px)]"
+          className="w-[95vw] sm:w-[600px] h-[calc(100vh-12rem)] p-3 max-w-none overflow-y-auto"
         >
-          <h2 className="text-xl font-semibold mb-4">Submit a Grievance</h2>
-
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-4 space-y-4">
-              {/* Dynamic Category Selectors */}
-              <div className="space-y-4">
-                {/* First Level Category */}
-                <FormField
-                  control={form.control}
-                  name="serviceId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Category</FormLabel>
-                      <FormControl>
+            <form id="grievanceForm" onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+              <div className="space-y-2 pb-14">
+                {/* Dynamic Category Selectors */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {/* First Level Category */}
+                  <FormField
+                    control={form.control}
+                    name="serviceId"
+                    render={({ field }) => (
+                      <FormItem className="col-span-2">
+                        <FormLabel className="text-sm font-medium mb-0">Primary Category</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={(value) => handleCategorySelect(value, 0)}
+                            value={selectedCategories[0]?.toString()}
+                          >
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select Primary Category" />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[200px]">
+                              {services && services.length > 0 ? (
+                                services.map((service) => (
+                                  <SelectItem key={service.id} value={service.id.toString()}>
+                                    {service.serviceName}
+                                  </SelectItem>
+                                ))
+                              ) : (
+                                <div className="px-2 py-1 text-sm text-muted-foreground">No categories available</div>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage className="text-xs" />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Render additional category levels if children exist */}
+                  {selectedCategories.map((_, index) => {
+                    const servicesForLevel = getServicesForLevel(index + 1);
+                    if (!servicesForLevel || servicesForLevel.length === 0) return null;
+
+                    return (
+                      <FormItem key={index + 1} className="col-span-2 md:col-span-1">
+                        <FormLabel className="text-sm font-medium mb-0">
+                          {index === 0 ? 'Sub Category' : `Sub Category ${index + 1}`}
+                        </FormLabel>
                         <Select
-                          onValueChange={(value) => handleCategorySelect(value, 0)}
-                          value={selectedCategories[0]?.toString()}
+                          onValueChange={(value) => handleCategorySelect(value, index + 1)}
+                          value={selectedCategories[index + 1]?.toString()}
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select Category" />
+                          <SelectTrigger className="h-8">
+                            <SelectValue
+                              placeholder={`Select ${index === 0 ? 'Sub Category' : `Sub Category ${index + 1}`}`}
+                            />
                           </SelectTrigger>
-                          <SelectContent>
-                            {services && services.length > 0 ? (
-                              services.map((service) => (
-                                <SelectItem key={service.id} value={service.id.toString()}>
-                                  {service.serviceName}
-                                </SelectItem>
-                              ))
-                            ) : (
-                              <div className="relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
-                                No categories available
-                              </div>
-                            )}
+                          <SelectContent className="max-h-[200px]">
+                            {servicesForLevel.map((service) => (
+                              <SelectItem key={service.id} value={service.id.toString()}>
+                                {service.serviceName}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
+                      </FormItem>
+                    );
+                  })}
+                </div>
+
+                {/* Title */}
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium mb-0">Title</FormLabel>
+                      <FormControl>
+                        <Input className="h-8" placeholder="Enter grievance title" {...field} />
                       </FormControl>
-                      <FormMessage />
+                      <FormMessage className="text-xs" />
                     </FormItem>
                   )}
                 />
 
-                {/* Render additional category levels if children exist */}
-                {selectedCategories.map((_, index) => {
-                  const servicesForLevel = getServicesForLevel(index + 1);
-                  if (!servicesForLevel || servicesForLevel.length === 0) return null;
-
-                  return (
-                    <FormItem key={index + 1}>
-                      <FormLabel>Sub Category {index + 1}</FormLabel>
-                      <Select
-                        onValueChange={(value) => handleCategorySelect(value, index + 1)}
-                        value={selectedCategories[index + 1]?.toString()}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={`Select Sub Category ${index + 1}`} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {servicesForLevel.map((service) => (
-                            <SelectItem key={service.id} value={service.id.toString()}>
-                              {service.serviceName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                {/* Description */}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm font-medium mb-0">Description</FormLabel>
+                      <FormControl>
+                        <div className="rounded-md border">
+                          <ReactQuill
+                            placeholder="Enter detailed description of your grievance"
+                            {...field}
+                            onChange={(value) => field.onChange(value)}
+                            theme="snow"
+                            modules={{
+                              toolbar: [
+                                ['bold', 'italic', 'underline'],
+                                [{ list: 'ordered' }, { list: 'bullet' }],
+                              ],
+                            }}
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage className="text-xs" />
                     </FormItem>
-                  );
-                })}
-              </div>
+                  )}
+                />
 
-              {/* Title */}
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter grievance title" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem className="rounded-md">
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <div className="sm:h-60 rounded-lg">
-                        <ReactQuill
-                          placeholder="Enter detailed description of your grievance"
-                          {...field}
-                          onChange={(value) => field.onChange(value)}
-                          className="quill-editor sm:h-52 border-none rounded-md"
-                        />
+                {/* Attachment */}
+                <FormField
+                  control={form.control}
+                  name="attachment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between mb-1 ">
+                        <FormLabel className="text-sm font-medium mb-0">Attachments</FormLabel>
+                        <p className="text-xs text-gray-500">PNG, JPG, PDF (max. 10MB)</p>
                       </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Attachment */}
-              <FormField
-                control={form.control}
-                name="attachment"
-                render={({ field }) => (
-                  <FormItem className="space-y-2">
-                    <FormLabel className="text-base font-semibold text-gray-700 dark:text-gray-300">
-                      Attachment
-                    </FormLabel>
-                    <FormControl>
-                      <div className="relative group">
-                        <div className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors cursor-pointer bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <div className="flex flex-col items-center gap-2">
-                            <UploadIcon className="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors" />
-                            <div className="text-center">
-                              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Drag & drop files or{' '}
+                      <FormControl>
+                        <div className="relative group">
+                          <div className="flex items-center justify-center h-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors cursor-pointer bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <div className="flex items-center gap-2">
+                              <UploadIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors" />
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
+                                Drag & drop or{' '}
                                 <label htmlFor="fileInput" className="text-primary cursor-pointer">
                                   browse
                                 </label>
                               </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                Supported formats: PNG, JPG, PDF (max. 10MB)
-                              </p>
                             </div>
                           </div>
+                          <input
+                            id="fileInput"
+                            type="file"
+                            onChange={handleFileChange}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            multiple
+                          />
                         </div>
-                        <input
-                          id="fileInput"
-                          type="file"
-                          onChange={handleFileChange}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          multiple
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage className="text-xs font-medium text-red-500" />
-                  </FormItem>
-                )}
-              />
+                      </FormControl>
+                      <FormMessage className="text-xs" />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Display Selected Files */}
-              <div className="mt-4">
-                {selectedFiles.map((file, index) => {
-                  const fileUrl = URL.createObjectURL(file);
-                  return (
-                    <div key={index} className="inline-block mr-4 mb-4">
-                      <div className="relative">
+                {/* Display Selected Files */}
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {selectedFiles.map((file, index) => {
+                    const fileUrl = URL.createObjectURL(file);
+                    return (
+                      <div key={index} className="relative group">
                         <img
                           src={fileUrl}
                           alt={`preview-${index}`}
-                          className="w-20 h-20 object-cover rounded-md border border-dotted border-black"
+                          className="w-12 h-12 object-cover rounded-md border border-gray-200"
                         />
                         <button
                           type="button"
                           onClick={() => removeFile(file)}
-                          className="absolute top-0 right-0 text-white bg-red-500 rounded-md w-5 h-5 flex items-center justify-center"
+                          className="absolute -top-1 -right-1 text-white bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
                         >
-                          &times;
+                          ×
                         </button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex justify-end gap-2 mt-6">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit">Submit Grievance</Button>
+                    );
+                  })}
+                </div>
               </div>
             </form>
           </Form>
+
+          {/* Action Buttons */}
+          <div className="flex justify-end gap-2 pt-2 border-t bg-background sticky bottom-0 left-0 right-0 mt-2">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="h-8 px-3">
+              Cancel
+            </Button>
+            <Button type="submit" form="grievanceForm" className="h-8 px-3">
+              Submit Grievance
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
