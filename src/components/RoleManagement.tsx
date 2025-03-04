@@ -44,6 +44,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const [mappedUsers, setMappedUsers] = useState([]);
   const [selectedRoleForMapping, setSelectedRoleForMapping] = useState(null);
   const [showMappedUsersTable, setShowMappedUsersTable] = useState(false);
+  const [addressalList, setAddressalList] = useState([]);
   const user = useSelector((state) => state.user);
   const employeeList = useSelector((state) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -89,10 +90,23 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const showMappedUsersHandler = async (role) => {
     try {
       setLoading(true);
+      // If role ID is 4, we'll handle it differently
+      if (role.id === 4) {
+        setSelectedRoleForMapping(role);
+        setShowMappedUsersTable(true);
+        // Set logged-in user's unit ID as default
+        if (user?.unitId) {
+          setSelectedUnit(user.unitId.toString());
+          // Fetch addressal list for the default unit
+          await fetchAddressalList(user.unitId.toString());
+        }
+        setLoading(false);
+        return;
+      }
+
       const response = await axiosInstance.get(`/Admin/GetRoleDetail?roleId=${role.id}`);
 
       if (response?.data?.statusCode === 200) {
-        //console.log(response?.data?.data?.mappedUsers, 'see the mapped users here . . .. ');
         setMappedUsers(response?.data?.data?.mappedUsers || []);
         setSelectedRoleForMapping(role);
         setShowMappedUsersTable(true);
@@ -107,12 +121,9 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
     }
   };
 
-  // Fetch roles from API
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      //console.log('Fetching roles from API...');
-
       const response = await axiosInstance.get('/Admin/GetApplicationRole');
       const data = await response?.data?.data;
       logger.log('Roles data:', data);
@@ -250,6 +261,33 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   // Process mapped users for display - group by unit
   const groupedMappedUsers = groupUsersByUnit(mappedUsers);
 
+  // Fetch addressal list for selected unit
+  const fetchAddressalList = async (unitId) => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/Admin/GetAddressalList?unitId=${unitId}`);
+
+      if (response?.data?.statusCode === 200) {
+        setAddressalList(response.data.data);
+      } else {
+        toast.error('Failed to fetch addressal list');
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching addressal list:', error);
+      toast.error('Failed to fetch addressal list');
+      setLoading(false);
+    }
+  };
+
+  // Handle unit selection for addressal list
+  const handleAddressalUnitChange = (unitId) => {
+    setSelectedUnit(unitId);
+    if (unitId) {
+      fetchAddressalList(unitId);
+    }
+  };
+
   return (
     <CardContent className="p-6">
       {loading && <Loader />}
@@ -348,61 +386,134 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
         </Table>
       </div>
 
-      {/* Mapped Users Table */}
+      {/* Mapped Users Table or Special Content for Role ID 4 */}
       {showMappedUsersTable && selectedRoleForMapping && (
         <div className="mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">
-            <h3 className="text-lg font-medium text-blue-800 flex items-center gap-2">
-              <Shield size={18} className="text-blue-600" />
-              User Mapping for Role "{selectedRoleForMapping.roleName}"
-            </h3>
+          {selectedRoleForMapping.id === 4 ? (
+            // Special content for role ID 4 - Addressal List
+            <div className="p-6">
+              <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">
+                <h3 className="text-lg font-medium text-blue-800 flex items-center gap-2">
+                  <Shield size={18} className="text-blue-600" />
+                  Addressal List for Role "{selectedRoleForMapping.roleName}"
+                </h3>
+                <Button onClick={() => setShowMappedUsersTable(false)} variant="outline">
+                  Close
+                </Button>
+              </div>
 
-            <div className="flex justify-between">
-              <Button onClick={openMapUserDialog} variant="default">
-                <UserPlus size={16} />
-                Map User to Role
-              </Button>
+              <div className="p-4">
+                {/* Unit Selection */}
+                <div className="mb-6">
+                  <Label className="mb-2 block font-medium">Select Unit:</Label>
+                  <Select value={selectedUnit} onValueChange={handleAddressalUnitChange}>
+                    <SelectTrigger className="w-1/4 border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                      <SelectValue placeholder="Select a unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Units</SelectLabel>
+                        {unitsDD.map((unit) => (
+                          <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
+                            {unit.unitName}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Addressal List Table */}
+                {addressalList.length > 0 ? (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-blue-50">
+                        <TableHead className="font-medium">Unit Name</TableHead>
+                        <TableHead className="font-medium">User Details</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {addressalList.map((item, index) => (
+                        <TableRow key={`${item.unitId}-${index}`} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-medium">{item.unitName}</TableCell>
+                          <TableCell>
+                            <ul className="list-disc list-inside">
+                              {item.mappedUserCode.map((user, userIndex) => (
+                                <li key={userIndex} className="text-gray-600">
+                                  {user.userDetails}
+                                </li>
+                              ))}
+                            </ul>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users size={32} className="mx-auto mb-2 text-gray-400" />
+                    <p>No addressal list available for the selected unit</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-
-          {groupedMappedUsers && groupedMappedUsers.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-blue-50">
-                  <TableHead className="font-medium">Unit Name</TableHead>
-                  <TableHead className="font-medium">User Codes</TableHead>
-                  <TableHead className="font-medium">User Details</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {groupedMappedUsers.map((group, index) => (
-                  <TableRow key={`${group.unitName}-${index}`} className="hover:bg-gray-50 transition-colors">
-                    <TableCell>{group.unitName}</TableCell>
-                    <TableCell>{group.userCodes.join(', ')}</TableCell>
-                    <TableCell>{group.userDetails.join(', ')}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
           ) : (
-            <div className="text-center py-8 text-gray-500">
-              <Users size={32} className="mx-auto mb-2 text-gray-400" />
-              <p>No users mapped to this role</p>
-            </div>
-          )}
+            // Original mapping table content
+            <>
+              <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">
+                <h3 className="text-lg font-medium text-blue-800 flex items-center gap-2">
+                  <Shield size={18} className="text-blue-600" />
+                  User Mapping for Role "{selectedRoleForMapping.roleName}"
+                </h3>
 
-          <div className="p-4 border-t border-gray-200">
-            <Button
-              onClick={() => {
-                setShowMappedUsersTable(false);
-                setSelectedRoleForMapping(null);
-              }}
-              variant="outline"
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              Close
-            </Button>
-          </div>
+                <div className="flex justify-between">
+                  <Button onClick={openMapUserDialog} variant="default">
+                    <UserPlus size={16} />
+                    Map User to Role
+                  </Button>
+                </div>
+              </div>
+
+              {groupedMappedUsers && groupedMappedUsers.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-blue-50">
+                      <TableHead className="font-medium">Unit Name</TableHead>
+                      <TableHead className="font-medium">User Codes</TableHead>
+                      <TableHead className="font-medium">User Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {groupedMappedUsers.map((group, index) => (
+                      <TableRow key={`${group.unitName}-${index}`} className="hover:bg-gray-50 transition-colors">
+                        <TableCell>{group.unitName}</TableCell>
+                        <TableCell>{group.userCodes.join(', ')}</TableCell>
+                        <TableCell>{group.userDetails.join(', ')}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Users size={32} className="mx-auto mb-2 text-gray-400" />
+                  <p>No users mapped to this role</p>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4 pr-3 border-t border-gray-200">
+                <Button
+                  onClick={() => {
+                    setShowMappedUsersTable(false);
+                    setSelectedRoleForMapping(null);
+                  }}
+                  variant="outline"
+                  className="border-gray-300 hover:bg-gray-100"
+                >
+                  Close
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

@@ -71,17 +71,47 @@ const MyGrievances = () => {
     setLoading(true);
     try {
       let endpoint = '';
+      let response;
 
       if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
         endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+        response = await axiosInstance.get(endpoint);
       } else if (filter === FILTER_OPTIONS.ASSIGNED_TO_ME) {
         endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+        response = await axiosInstance.get(endpoint);
       } else {
-        // For ALL, we can use either endpoint or implement a new one if needed
-        endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
-      }
+        // For ALL filter, fetch both types of grievances
+        const [myGrievancesResponse, assignedGrievancesResponse] = await Promise.all([
+          axiosInstance.get(
+            `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
+          ),
+          axiosInstance.get(
+            `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
+          ),
+        ]);
 
-      const response = await axiosInstance.get(endpoint);
+        // Combine the data from both responses
+        const myGrievances = myGrievancesResponse.data.statusCode === 200 ? myGrievancesResponse.data.data.data : [];
+        const assignedGrievances =
+          assignedGrievancesResponse.data.statusCode === 200 ? assignedGrievancesResponse.data.data.data : [];
+
+        // Combine and remove duplicates based on id
+        const combinedGrievances = [...myGrievances, ...assignedGrievances];
+        const uniqueGrievances = combinedGrievances.filter(
+          (grievance, index, self) => index === self.findIndex((g) => g.id === grievance.id)
+        );
+
+        // Update the state with combined data
+        setGrievances(uniqueGrievances);
+        setPagination({
+          pageNumber: pagination.pageNumber,
+          pageSize: pagination.pageSize,
+          totalRecords: uniqueGrievances.length,
+          totalPages: Math.ceil(uniqueGrievances.length / pagination.pageSize),
+        });
+        setLoading(false);
+        return;
+      }
 
       if (response.data.statusCode === 200) {
         const responseData = response.data.data;
@@ -93,6 +123,9 @@ const MyGrievances = () => {
           totalPages: responseData.totalPages,
         });
         logger.log('Grievances fetched:', responseData);
+      } else if (response?.data?.statusCode === 404) {
+        toast.error('No grievances found');
+        setGrievances([]);
       } else {
         toast.error('Failed to fetch grievances');
         setGrievances([]);
