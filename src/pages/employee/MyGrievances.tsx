@@ -13,6 +13,7 @@ import { Plus, Search } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import { Button } from '@/components/ui/button';
 import CreateGrievance from './CreateGrievance';
+import useUserRoles from '@/hooks/useUserRoles';
 
 const FILTER_OPTIONS = {
   ALL: 'all',
@@ -50,10 +51,17 @@ interface GrievanceResponse {
 
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
+
+  // Check if user has any of the special roles
+  const hasSpecialRole = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+
   logger.log('Current user:', user);
 
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<string>(FILTER_OPTIONS.ASSIGNED_TO_ME);
+  const [filter, setFilter] = useState<string>(
+    hasSpecialRole ? FILTER_OPTIONS.ASSIGNED_TO_ME : FILTER_OPTIONS.CREATED_BY_ME
+  );
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
@@ -73,44 +81,51 @@ const MyGrievances = () => {
       let endpoint = '';
       let response;
 
-      if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
+      // If user has special role, fetch based on selected filter
+      if (hasSpecialRole) {
+        if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
+          endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+          response = await axiosInstance.get(endpoint);
+        } else if (filter === FILTER_OPTIONS.ASSIGNED_TO_ME) {
+          endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+          response = await axiosInstance.get(endpoint);
+        } else {
+          // For ALL filter, fetch both types of grievances
+          const [myGrievancesResponse, assignedGrievancesResponse] = await Promise.all([
+            axiosInstance.get(
+              `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
+            ),
+            axiosInstance.get(
+              `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
+            ),
+          ]);
+
+          // Combine the data from both responses
+          const myGrievances = myGrievancesResponse.data.statusCode === 200 ? myGrievancesResponse.data.data.data : [];
+          const assignedGrievances =
+            assignedGrievancesResponse.data.statusCode === 200 ? assignedGrievancesResponse.data.data.data : [];
+
+          // Combine and remove duplicates based on id
+          const combinedGrievances = [...myGrievances, ...assignedGrievances];
+          const uniqueGrievances = combinedGrievances.filter(
+            (grievance, index, self) => index === self.findIndex((g) => g.id === grievance.id)
+          );
+
+          // Update the state with combined data
+          setGrievances(uniqueGrievances);
+          setPagination({
+            pageNumber: pagination.pageNumber,
+            pageSize: pagination.pageSize,
+            totalRecords: uniqueGrievances.length,
+            totalPages: Math.ceil(uniqueGrievances.length / pagination.pageSize),
+          });
+          setLoading(false);
+          return;
+        }
+      } else {
+        // For regular users, only fetch created grievances
         endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
         response = await axiosInstance.get(endpoint);
-      } else if (filter === FILTER_OPTIONS.ASSIGNED_TO_ME) {
-        endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
-        response = await axiosInstance.get(endpoint);
-      } else {
-        // For ALL filter, fetch both types of grievances
-        const [myGrievancesResponse, assignedGrievancesResponse] = await Promise.all([
-          axiosInstance.get(
-            `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
-          ),
-          axiosInstance.get(
-            `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
-          ),
-        ]);
-
-        // Combine the data from both responses
-        const myGrievances = myGrievancesResponse.data.statusCode === 200 ? myGrievancesResponse.data.data.data : [];
-        const assignedGrievances =
-          assignedGrievancesResponse.data.statusCode === 200 ? assignedGrievancesResponse.data.data.data : [];
-
-        // Combine and remove duplicates based on id
-        const combinedGrievances = [...myGrievances, ...assignedGrievances];
-        const uniqueGrievances = combinedGrievances.filter(
-          (grievance, index, self) => index === self.findIndex((g) => g.id === grievance.id)
-        );
-
-        // Update the state with combined data
-        setGrievances(uniqueGrievances);
-        setPagination({
-          pageNumber: pagination.pageNumber,
-          pageSize: pagination.pageSize,
-          totalRecords: uniqueGrievances.length,
-          totalPages: Math.ceil(uniqueGrievances.length / pagination.pageSize),
-        });
-        setLoading(false);
-        return;
       }
 
       if (response.data.statusCode === 200) {
@@ -137,7 +152,7 @@ const MyGrievances = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize]);
+  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize, hasSpecialRole]);
 
   // Fetch grievances when filter or refresh changes
   useEffect(() => {
@@ -178,12 +193,13 @@ const MyGrievances = () => {
         <div className="flex p-6">
           <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
             <div className="w-full mt-4 px-2 sm:px-0 hidden sm:table">
-              <TabsContent value={FILTER_OPTIONS.ALL}>
-                <GrievanceTable
-                  mode={'all'}
-                  rightElement={
-                    <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
-                      <div className="w-full hidden sm:table">
+              {hasSpecialRole ? (
+                // Show all tabs for special roles
+                <>
+                  <TabsContent value={FILTER_OPTIONS.ALL}>
+                    <GrievanceTable
+                      mode={'all'}
+                      rightElement={
                         <TabsList className="">
                           <TabsTrigger
                             className="w-full sm:w-[200px] md:w-[220px] transition"
@@ -204,18 +220,14 @@ const MyGrievances = () => {
                             Created by Me
                           </TabsTrigger>
                         </TabsList>
-                      </div>
-                    </Tabs>
-                  }
-                  grievances={grievances}
-                />
-              </TabsContent>
-              <TabsContent value={FILTER_OPTIONS.ASSIGNED_TO_ME}>
-                <GrievanceTable
-                  mode={'assignedToMe'}
-                  rightElement={
-                    <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
-                      <div className="w-full px-2 hidden sm:table sm:px-0">
+                      }
+                      grievances={grievances}
+                    />
+                  </TabsContent>
+                  <TabsContent value={FILTER_OPTIONS.ASSIGNED_TO_ME}>
+                    <GrievanceTable
+                      mode={'assignedToMe'}
+                      rightElement={
                         <TabsList className="">
                           <TabsTrigger
                             className="w-full sm:w-[200px] md:w-[220px] transition"
@@ -236,18 +248,14 @@ const MyGrievances = () => {
                             Created by Me
                           </TabsTrigger>
                         </TabsList>
-                      </div>
-                    </Tabs>
-                  }
-                  grievances={grievances}
-                />
-              </TabsContent>
-              <TabsContent value={FILTER_OPTIONS.CREATED_BY_ME}>
-                <GrievanceTable
-                  mode={'createdByMe'}
-                  rightElement={
-                    <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
-                      <div className="w-full px-2 hidden sm:table sm:px-0">
+                      }
+                      grievances={grievances}
+                    />
+                  </TabsContent>
+                  <TabsContent value={FILTER_OPTIONS.CREATED_BY_ME}>
+                    <GrievanceTable
+                      mode={'createdByMe'}
+                      rightElement={
                         <TabsList className="">
                           <TabsTrigger
                             className="w-full sm:w-[200px] md:w-[220px] transition"
@@ -268,12 +276,30 @@ const MyGrievances = () => {
                             Created by Me
                           </TabsTrigger>
                         </TabsList>
-                      </div>
-                    </Tabs>
-                  }
-                  grievances={grievances}
-                />
-              </TabsContent>
+                      }
+                      grievances={grievances}
+                    />
+                  </TabsContent>
+                </>
+              ) : (
+                // Only show Created by Me tab for regular users
+                <TabsContent value={FILTER_OPTIONS.CREATED_BY_ME}>
+                  <GrievanceTable
+                    mode={'createdByMe'}
+                    rightElement={
+                      <TabsList className="">
+                        <TabsTrigger
+                          className="w-full sm:w-[200px] md:w-[220px] transition"
+                          value={FILTER_OPTIONS.CREATED_BY_ME}
+                        >
+                          Created by Me
+                        </TabsTrigger>
+                      </TabsList>
+                    }
+                    grievances={grievances}
+                  />
+                </TabsContent>
+              )}
             </div>
 
             <div className="flex flex-row gap-4 items-center justify-between mb-4">
@@ -298,38 +324,40 @@ const MyGrievances = () => {
                     className="pl-10 w-full"
                   />
                 </div>
-                <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
-                  <div className="w-full mt-4 sm:hidden block">
-                    <TabsList className="">
-                      <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
-                        All Grievances
-                      </TabsTrigger>
-                      <TabsTrigger
-                        className="w-full sm:w-[200px] md:w-[220px] transition"
-                        value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                      >
-                        Assigned to Me
-                      </TabsTrigger>
+                {/* Mobile view tabs */}
+                <div className="w-full mt-4 sm:hidden block">
+                  <TabsList className="">
+                    {hasSpecialRole ? (
+                      <>
+                        <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
+                          All Grievances
+                        </TabsTrigger>
+                        <TabsTrigger
+                          className="w-full sm:w-[200px] md:w-[220px] transition"
+                          value={FILTER_OPTIONS.ASSIGNED_TO_ME}
+                        >
+                          Assigned to Me
+                        </TabsTrigger>
+                        <TabsTrigger
+                          className="w-full sm:w-[200px] md:w-[220px] transition"
+                          value={FILTER_OPTIONS.CREATED_BY_ME}
+                        >
+                          Created by Me
+                        </TabsTrigger>
+                      </>
+                    ) : (
                       <TabsTrigger
                         className="w-full sm:w-[200px] md:w-[220px] transition"
                         value={FILTER_OPTIONS.CREATED_BY_ME}
                       >
                         Created by Me
                       </TabsTrigger>
-                    </TabsList>
-                  </div>
-                </Tabs>
+                    )}
+                  </TabsList>
+                </div>
               </div>
             </div>
             {loading && <Loader />}
-
-            {/* <div className="sm:hidden">
-              {filteredGrievances.length > 0 ? (
-                filteredGrievances.map((grievance) => <GrievanceCard key={grievance.id} grievance={grievance} />)
-              ) : (
-                <div className="text-center py-4 text-gray-500">No grievances matching your search criteria</div>
-              )}
-            </div> */}
           </Tabs>
         </div>
       </Card>

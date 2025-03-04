@@ -30,7 +30,8 @@ const AppRoutes = () => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin-grievances" element={<MyGrievances />} />
         <Route path="/admin-grievances/:grievanceId" element={<GrievanceDetails />} />
-        <Route path="/admin-manage-user" element={<ManageUsers />} />
+        <Route path="/admin-manage-services" element={<ManageUsers />} />
+        <Route path="/admin-manage-role" element={<ManageRoles />} />
       </Route>
       <Route path="/grievance/:token" element={<RequestPage />} /> <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />
