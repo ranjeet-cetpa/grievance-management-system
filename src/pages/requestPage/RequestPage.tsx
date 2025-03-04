@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useParams } from 'react-router';
+import axiosInstance from '@/services/axiosInstance';
+import { environment } from '@/config';
+import toast from 'react-hot-toast';
 
 interface ResolutionResponse {
   isAccepted: boolean;
@@ -29,14 +32,23 @@ const RequestPage = () => {
         isAccepted: true,
       };
 
-      // TODO: Add API call here
-      // await submitResolution(response);
+      const verificationResponse = await axiosInstance.get(
+        `/Grievance/VerifyResolutionLink?resolutionLink=${
+          environment.baseUrl + '/grievance/' + token.token
+        }&comment=${''}`
+      );
 
-      setSubmitStatus({
-        type: 'success',
-        message: 'Resolution accepted successfully!',
-      });
+      if (verificationResponse.data.statusCode === 200) {
+        toast.success('Resolution verified and accepted successfully!');
+        setSubmitStatus({
+          type: 'success',
+          message: 'Resolution verified and accepted successfully!',
+        });
+      } else {
+        throw new Error('Verification failed');
+      }
     } catch (error) {
+      toast.error('Failed to submit response. Please try again.');
       setSubmitStatus({
         type: 'error',
         message: 'Failed to submit response. Please try again.',
@@ -53,6 +65,7 @@ const RequestPage = () => {
     }
 
     if (!rejectionReason.trim()) {
+      toast.error('Please provide a reason for rejection.');
       setSubmitStatus({
         type: 'error',
         message: 'Please provide a reason for rejection.',
@@ -67,14 +80,23 @@ const RequestPage = () => {
         rejectionReason: rejectionReason.trim(),
       };
 
-      // TODO: Add API call here
-      // await submitResolution(response);
+      const verificationResponse = await axiosInstance.get(
+        `/Grievance/VerifyResolutionLink?resolutionLink=${
+          environment.baseUrl + '/grievance/' + token.token
+        }&comment=${encodeURIComponent(rejectionReason)}`
+      );
 
-      setSubmitStatus({
-        type: 'success',
-        message: 'Resolution rejected successfully!',
-      });
+      if (verificationResponse.data.statusCode === 200) {
+        toast.success('Resolution rejected successfully!');
+        setSubmitStatus({
+          type: 'success',
+          message: 'Resolution rejected successfully!',
+        });
+      } else {
+        throw new Error('Verification failed');
+      }
     } catch (error) {
+      toast.error('Failed to submit response. Please try again.');
       setSubmitStatus({
         type: 'error',
         message: 'Failed to submit response. Please try again.',
