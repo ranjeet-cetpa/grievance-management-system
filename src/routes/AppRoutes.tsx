@@ -13,6 +13,7 @@ import GrievanceDetails from '@/pages/employee/GrievanceDetails';
 import AdminPrivateRoute from './AdminPrivateRoute';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import ManageRoles from '@/pages/ManageRoles';
+import RequestPage from '@/pages/requestPage/RequestPage';
 const AppRoutes = () => {
   return (
     <Routes>
@@ -22,7 +23,6 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/manage-services" element={<ManageUsers />} />
         <Route path="/manage-roles" element={<ManageRoles />} />
-
         <Route path="/grievances" element={<MyGrievances />} />
         <Route path="/grievances/:grievanceId" element={<GrievanceDetails />} />
       </Route>
@@ -32,7 +32,7 @@ const AppRoutes = () => {
         <Route path="/admin-grievances/:grievanceId" element={<GrievanceDetails />} />
         <Route path="/admin-manage-user" element={<ManageUsers />} />
       </Route>
-      <Route path="/login" element={<Login />} />
+      <Route path="/grievance/:token" element={<RequestPage />} /> <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

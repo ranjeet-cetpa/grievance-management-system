@@ -355,8 +355,14 @@ const GrievanceDetails = () => {
 
       // Update comment and status
       formData.set('CommentText', comment);
+
       formData.set('StatusId', status);
       formData.set('userCode', user?.EmpCode.toString());
+
+      // Add baseUrl if status is 4
+      if (status === '4') {
+        formData.set('baseUrl', environment.baseUrl + '/grievance');
+      }
 
       // Append attachments
       attachments.forEach((file) => {

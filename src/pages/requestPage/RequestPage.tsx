@@ -1,7 +1,138 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useParams } from 'react-router';
+
+interface ResolutionResponse {
+  isAccepted: boolean;
+  rejectionReason?: string;
+}
 
 const RequestPage = () => {
-  return <div>this is the requestpage</div>;
+  const [showRejectionReason, setShowRejectionReason] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  const token = useParams();
+  console.log(token, 'this is token . .. ');
+
+  const handleAccept = async () => {
+    try {
+      setIsSubmitting(true);
+      const response: ResolutionResponse = {
+        isAccepted: true,
+      };
+
+      // TODO: Add API call here
+      // await submitResolution(response);
+
+      setSubmitStatus({
+        type: 'success',
+        message: 'Resolution accepted successfully!',
+      });
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to submit response. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!showRejectionReason) {
+      setShowRejectionReason(true);
+      return;
+    }
+
+    if (!rejectionReason.trim()) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Please provide a reason for rejection.',
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response: ResolutionResponse = {
+        isAccepted: false,
+        rejectionReason: rejectionReason.trim(),
+      };
+
+      // TODO: Add API call here
+      // await submitResolution(response);
+
+      setSubmitStatus({
+        type: 'success',
+        message: 'Resolution rejected successfully!',
+      });
+    } catch (error) {
+      setSubmitStatus({
+        type: 'error',
+        message: 'Failed to submit response. Please try again.',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="container mx-auto py-10">
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Grievance Resolution Response</CardTitle>
+          <CardDescription>
+            Please review the resolution for your grievance and provide your response below.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {submitStatus.type && (
+            <Alert variant={submitStatus.type === 'error' ? 'destructive' : 'default'} className="mb-6">
+              {submitStatus.type === 'error' ? (
+                <AlertCircle className="h-4 w-4" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              <AlertDescription>{submitStatus.message}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-6">
+            {showRejectionReason && (
+              <div className="space-y-2">
+                <Textarea
+                  placeholder="Please provide the reason for rejection"
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  className={`h-32 ${!rejectionReason.trim() && 'border-red-500'}`}
+                />
+                {/* {!rejectionReason.trim() && (
+                  <p className="text-sm text-red-500">Please provide a reason for rejection</p>
+                )} */}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-4">
+              <Button variant="default" onClick={handleAccept} disabled={isSubmitting || showRejectionReason}>
+                Accept Resolution
+              </Button>
+              <Button variant="destructive" onClick={handleReject} disabled={isSubmitting}>
+                {showRejectionReason ? 'Submit Rejection' : 'Reject Resolution'}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default RequestPage;
