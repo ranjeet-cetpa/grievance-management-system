@@ -27,7 +27,7 @@ import {
 import { environment } from '@/config';
 import { setEmployeesData } from '@/features/employee/employeeSlice';
 import toast from 'react-hot-toast';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { getSessionItem, removeSessionItem } from '@/lib/helperFunction';
 import { setUnits } from '@/features/unit/unitSlice';
 import { logo } from '@/assets/image/images';
@@ -35,6 +35,8 @@ import { Button } from './ui/button';
 import { resetUser } from '@/features/user/userSlice';
 import { Separator } from '@radix-ui/react-separator';
 import { useNavigate } from 'react-router';
+import { RootState } from '@/app/store';
+import useUserRoles from '@/hooks/useUserRoles';
 
 const data = {
   navMain: [
@@ -48,22 +50,15 @@ const data = {
       url: '/grievances',
       icon: BadgeAlert,
     },
-    {
-      title: 'Manage Services',
-      url: '/manage-services',
-      icon: Users,
-    },
-    {
-      title: 'Manage Roles',
-      url: '/manage-roles',
-      icon: UserRoundCog,
-    },
   ],
 };
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
+  const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+
   const dispatch = useDispatch();
   const isAuthenticated = getSessionItem('token');
   const fetchData = async () => {
@@ -120,18 +115,19 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuButton
-            onClick={() => navigate('/admin-dashboard')}
-            asChild
-            tooltip={'Manage Organization'}
-            className={`transition-all text-black cursor-pointer duration-300  active:bg-primary [&>svg]:size-7 ease-in-out hover:bg-primary hover:text-white h-full w-full active:text-white`}
-          >
-            <div className={`flex items-center gap-2`}>
-              <Hotel size={24} />
-              <span>Manage Organization</span>
-            </div>
-          </SidebarMenuButton>
-
+          {hasAccess && (
+            <SidebarMenuButton
+              onClick={() => navigate('/admin-dashboard')}
+              asChild
+              tooltip={'Manage Organization'}
+              className={`transition-all text-black cursor-pointer duration-300  active:bg-primary [&>svg]:size-7 ease-in-out hover:bg-primary hover:text-white h-full w-full active:text-white`}
+            >
+              <div className={`flex items-center gap-2`}>
+                <Hotel size={24} />
+                <span>Manage Organization</span>
+              </div>
+            </SidebarMenuButton>
+          )}
           <Separator />
 
           <SidebarMenuButton
