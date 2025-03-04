@@ -23,7 +23,9 @@ const RequestPage = () => {
     message: string;
   }>({ type: null, message: '' });
   const token = useParams();
-  console.log(token, 'this is token . .. ');
+  console.log(token.token[token.token.length - 1], 'this is token . .. ');
+
+  const isAcceptedLink = token.token[token.token.length - 1] === '$';
 
   const handleAccept = async () => {
     try {
@@ -143,12 +145,16 @@ const RequestPage = () => {
             )}
 
             <div className="flex justify-end gap-4">
-              <Button variant="default" onClick={handleAccept} disabled={isSubmitting || showRejectionReason}>
-                Accept Resolution
-              </Button>
-              <Button variant="destructive" onClick={handleReject} disabled={isSubmitting}>
-                {showRejectionReason ? 'Submit Rejection' : 'Reject Resolution'}
-              </Button>
+              {isAcceptedLink && (
+                <Button variant="default" onClick={handleAccept} disabled={isSubmitting || showRejectionReason}>
+                  Accept Resolution
+                </Button>
+              )}
+              {!isAcceptedLink && (
+                <Button variant="destructive" onClick={handleReject} disabled={isSubmitting}>
+                  {showRejectionReason ? 'Submit Rejection' : 'Reject Resolution'}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
