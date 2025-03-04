@@ -195,47 +195,41 @@ const GrievanceDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <Card className="w-full shadow-md p-4">
-        {loading ? (
+        {loading && (
           <div className="flex justify-center items-center min-h-[600px]">
             <Loader />
           </div>
-        ) : (
-          <>
-            <GrievanceHeader
-              title={grievance?.title || ''}
-              status={grievance?.status || 0}
-              getStatusText={getStatusText}
-            />
-            <Tabs defaultValue="info">
-              <TabsList className="mb-4 w-[200px] mx-auto mt-4">
-                <TabsTrigger value="info" className="w-full">
-                  Info
-                </TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-              </TabsList>
-              <TabsContent value="info">
-                <GrievanceInfo
-                  userDetails={grievance?.userDetails || ''}
-                  createdDate={grievance?.createdDate || ''}
-                  assignedUserDetails={grievance?.assignedUserDetails || ''}
-                  modifiedDate={grievance?.modifiedDate || ''}
-                />
-                <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
-              </TabsContent>
-              <TabsContent value="comments">
-                <Comments comments={comments} />
-              </TabsContent>
-            </Tabs>
-            <GrievanceActions
-              isCreator={false}
-              canAcceptReject={false}
-              onAcceptReject={handleAcceptReject}
-              onResolutionSubmit={handleResolutionSubmit}
-              onTransfer={handleTransfer}
-              onCommentSubmit={handleCommentSubmit}
-            />
-          </>
         )}
+
+        <GrievanceHeader title={grievance?.title || ''} status={grievance?.status || 0} getStatusText={getStatusText} />
+        <Tabs defaultValue="info">
+          <TabsList className="mb-4 w-[200px] mx-auto mt-4">
+            <TabsTrigger value="info" className="w-full">
+              Info
+            </TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
+          </TabsList>
+          <TabsContent value="info">
+            <GrievanceInfo
+              userDetails={grievance?.userDetails || ''}
+              createdDate={grievance?.createdDate || ''}
+              assignedUserDetails={grievance?.assignedUserDetails || ''}
+              modifiedDate={grievance?.modifiedDate || ''}
+            />
+            <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
+          </TabsContent>
+          <TabsContent value="comments">
+            <Comments comments={comments} />
+          </TabsContent>
+        </Tabs>
+        <GrievanceActions
+          isCreator={false}
+          canAcceptReject={false}
+          onAcceptReject={handleAcceptReject}
+          onResolutionSubmit={handleResolutionSubmit}
+          onTransfer={handleTransfer}
+          onCommentSubmit={handleCommentSubmit}
+        />
       </Card>
     </div>
   );
