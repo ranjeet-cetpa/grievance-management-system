@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import Heading from '@/components/ui/heading';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from 'react';
+import ReactQuill from 'react-quill';
 import {
   Dialog,
   DialogContent,
@@ -10,8 +12,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
-import ReactQuill from 'react-quill';
+import Heading from '@/components/ui/heading';
 
 interface GrievanceActionsProps {
   isCreator: boolean;
@@ -20,34 +21,37 @@ interface GrievanceActionsProps {
   onResolutionSubmit: (resolution: string) => void;
   onTransfer: () => void;
   onCommentSubmit: (comment: string) => void;
+  onStatusChange?: (status: number) => void;
+  status: string;
+  setStatus: (status: string) => void;
 }
 
 export const GrievanceActions = ({
+  status,
+  setStatus,
   isCreator,
   canAcceptReject,
   onAcceptReject,
   onResolutionSubmit,
   onTransfer,
   onCommentSubmit,
+  onStatusChange,
 }: GrievanceActionsProps) => {
-  const [showResolutionInput, setShowResolutionInput] = useState(false);
-  const [resolutionText, setResolutionText] = useState('');
-  const [showCommentInput, setShowCommentInput] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
 
-  const handleResolutionSubmit = () => {
-    onResolutionSubmit(resolutionText);
-    setShowResolutionInput(false);
-    setResolutionText('');
+  const handleStatusChange = (value: string) => {
+    setStatus(value);
   };
 
   const handleCommentSubmit = () => {
-    onCommentSubmit(commentText);
-    setShowCommentInput(false);
-    setCommentText('');
+    if (commentText.trim()) {
+      onCommentSubmit(commentText);
+      onStatusChange?.(Number(status));
+      setCommentText('');
+    }
   };
 
   return (
@@ -87,7 +91,6 @@ export const GrievanceActions = ({
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-              {/* Reject Confirmation Dialog */}
               <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
                 <DialogContent>
                   <DialogHeader>
@@ -130,67 +133,39 @@ export const GrievanceActions = ({
           )
         ) : (
           <div className="space-y-6">
-            <div className="flex gap-4">
-              <Button
-                onClick={() => {
-                  setShowResolutionInput(true);
-                  setShowCommentInput(false);
-                }}
-                className=" bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                Submit Resolution
-              </Button>
-              <Button onClick={onTransfer} className="bg-purple-600 hover:bg-purple-700 text-white">
-                Transfer to Nodal Officer
-              </Button>
-              <Button
-                onClick={() => {
-                  setShowResolutionInput(false);
-                  setShowCommentInput(true);
-                }}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                Add Comment
-              </Button>
+            <div className="space-y-4">
+              <div className="flex gap-4 justify-end items-center">
+                <Heading type={6} className="text-gray-700 font-semibold">
+                  Change Status
+                </Heading>
+                <Select value={status} onValueChange={handleStatusChange}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2">In Progress</SelectItem>
+                    <SelectItem value="3">Awaiting Info</SelectItem>
+                    <SelectItem value="4">Resolved</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Heading type={6}>Comment</Heading>
+              <div className="h-[200px]">
+                <ReactQuill theme="snow" style={{ height: '150px' }} value={commentText} onChange={setCommentText} />
+              </div>
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleCommentSubmit}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!commentText.trim()}
+                >
+                  Submit
+                </Button>
+                <Button onClick={onTransfer} className="bg-purple-600 hover:bg-purple-700 text-white">
+                  Transfer to Nodal Officer
+                </Button>
+              </div>
             </div>
-
-            {showResolutionInput && (
-              <div className="space-y-4">
-                <Heading type={6}>Submit Resolution</Heading>
-                <div className="h-[200px]">
-                  <ReactQuill
-                    theme="snow"
-                    style={{ height: '150px' }}
-                    value={resolutionText}
-                    onChange={setResolutionText}
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <Button onClick={handleResolutionSubmit} className="bg-green-600 hover:bg-green-700 text-white">
-                    Submit
-                  </Button>
-                  <Button onClick={() => setShowResolutionInput(false)} variant="outline">
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
-            {showCommentInput && (
-              <div className="space-y-4">
-                <Heading type={6}>Comment</Heading>
-                <div className="h-[200px]">
-                  <ReactQuill theme="snow" style={{ height: '150px' }} value={commentText} onChange={setCommentText} />
-                </div>
-                <div className="flex gap-4 mt-4">
-                  <Button onClick={handleCommentSubmit} className="bg-green-600 hover:bg-green-700 text-white">
-                    Comment
-                  </Button>
-                  <Button onClick={() => setShowCommentInput(false)} variant="outline">
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </CardContent>
