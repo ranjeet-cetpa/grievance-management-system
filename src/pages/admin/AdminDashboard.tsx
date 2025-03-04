@@ -2,7 +2,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import Heading from '@/components/ui/heading';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { AlertCircle, Clock, CheckCircle2, Users, Building2, AlertTriangle } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Select,
   SelectContent,
@@ -12,38 +12,106 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-// Mock data - replace with actual data from your API
-const grievanceChartData = [
-  { name: 'Jan', total: 15 },
-  { name: 'Feb', total: 8 },
-  { name: 'Mar', total: 12 },
-  { name: 'Apr', total: 19 },
-  { name: 'May', total: 25 },
-  { name: 'Jun', total: 16 },
-];
+import { environment } from '@/config';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+import axiosInstance from '@/services/axiosInstance';
+import Loader from '@/components/ui/loader';
 
 const AdminDashboard = () => {
+  const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+  const user = useSelector((state: RootState) => state.user);
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+  const selectedUnit = useSelector((state: RootState) => state.workspace.selectedWorkspace);
+  console.log('selectedUnit', selectedUnit);
+
+  const departmentsList = useMemo(() => {
+    const uniqueDepts = new Set(employeeList?.map((emp) => emp.department?.trim()).filter(Boolean));
+    return Array.from(uniqueDepts)
+      .sort()
+      .map((dept) => ({
+        departmentName: dept,
+      }));
+  }, [employeeList]);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        userCode: user?.EmpCode,
+        year: Number(selectedYear).toString(),
+      });
+      if (selectedUnit?.unitId && selectedUnit.unitId !== 0) {
+        params.append('unitId', selectedUnit.unitId.toString());
+      }
+      if (selectedDepartment && selectedDepartment !== 'all') {
+        params.append('department', selectedDepartment);
+      }
+      const response = await axiosInstance.get(`/Grievance/GetDashboardData?${params.toString()}`);
+      const data = response?.data?.data;
+      console.log('data', data);
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [selectedYear, selectedUnit, selectedDepartment]);
+
+  const grievanceChartData = useMemo(() => {
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = new Date().getMonth() + 1;
+
+    if (selectedYear === currentYear) {
+      return (
+        dashboardData?.monthlyGrievances
+          ?.filter((month) => {
+            const monthNumber = new Date(`2023-${month.monthName}-01`).getMonth() + 1;
+            return monthNumber <= currentMonth;
+          })
+          .map((month) => ({
+            name: month.monthName.substring(0, 3),
+            total: month.totalCount,
+          })) || []
+      );
+    }
+
+    return (
+      dashboardData?.monthlyGrievances?.map((month) => ({
+        name: month.monthName.substring(0, 3),
+        total: month.totalCount,
+      })) || []
+    );
+  }, [dashboardData, selectedYear]);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-row items-center justify-between">
         <div className="space-y-1">
+          {loading && <Loader />}
           <Heading type={4}>Dashboard</Heading>
           <p className="text-gray-500">Overview of grievance management system</p>
         </div>
-        <Select defaultValue="all">
-          <SelectTrigger className="w-[200px] bg-white shadow-sm">
-            <SelectValue placeholder="Select Department" />
+        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+          <SelectTrigger className="border-gray-300 w-[300px] focus:border-blue-500 focus:ring-blue-500">
+            <SelectValue placeholder="Select a department" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectLabel>Departments</SelectLabel>
               <SelectItem value="all">All Departments</SelectItem>
-              <SelectItem value="it">IT Department</SelectItem>
-              <SelectItem value="hr">HR Department</SelectItem>
-              <SelectItem value="finance">Finance Department</SelectItem>
-              <SelectItem value="operations">Operations Department</SelectItem>
-              <SelectItem value="marketing">Marketing Department</SelectItem>
+              {departmentsList.map((dept) => (
+                <SelectItem key={dept.departmentName} value={dept.departmentName}>
+                  {dept.departmentName}
+                </SelectItem>
+              ))}
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -54,7 +122,7 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Total Grievances</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-blue-800">95</p>
+                <p className="text-2xl font-bold text-blue-800">{dashboardData?.totalGrievance || 0}</p>
               </div>
             </div>
             <div className="p-2 bg-blue-200 rounded-full">
@@ -67,7 +135,7 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Pending</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-yellow-800">28</p>
+                <p className="text-2xl font-bold text-yellow-800">{dashboardData?.pending || 0}</p>
               </div>
             </div>
             <div className="p-2 bg-yellow-200 rounded-full">
@@ -80,7 +148,7 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">In Progress</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-orange-800">15</p>
+                <p className="text-2xl font-bold text-orange-800">{dashboardData?.inProgress || 0}</p>
               </div>
             </div>
             <div className="p-2 bg-orange-200 rounded-full">
@@ -93,7 +161,7 @@ const AdminDashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Resolved</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-green-800">67</p>
+                <p className="text-2xl font-bold text-green-800">{dashboardData?.resolved || 0}</p>
               </div>
             </div>
             <div className="p-2 bg-green-200 rounded-full">
@@ -113,6 +181,24 @@ const AdminDashboard = () => {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
+            <div className="flex justify-end">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: new Date().getFullYear() - 2024 }, (_, i) => {
+                    const year = 2025 + i;
+                    return (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={grievanceChartData}>
                 <XAxis dataKey="name" stroke="#1e40af" />
@@ -130,7 +216,9 @@ const AdminDashboard = () => {
               <p className="text-sm text-gray-700 mt-1">Overview of pending grievances</p>
             </div>
             <div className="flex flex-col items-end">
-              <div className="font-bold text-3xl text-red-700">122</div>
+              <div className="font-bold text-3xl text-red-700">
+                {(dashboardData?.over30Days || 0) + (dashboardData?.thisMonth || 0)}
+              </div>
               <p className="text-sm text-gray-700">Total Cases</p>
             </div>
           </CardHeader>
@@ -141,7 +229,7 @@ const AdminDashboard = () => {
                   <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
                   <p className="text-sm font-medium text-gray-700">Over 7 Days</p>
                 </div>
-                <p className="text-2xl font-bold text-red-700">12</p>
+                <p className="text-2xl font-bold text-red-700">{dashboardData?.over7Days || 0}</p>
                 <p className="text-sm text-gray-700 mt-1">Cases pending</p>
               </div>
 
@@ -150,7 +238,7 @@ const AdminDashboard = () => {
                   <div className="w-3 h-3 rounded-full bg-orange-600 animate-pulse" />
                   <p className="text-sm font-medium text-gray-700">Over 14 Days</p>
                 </div>
-                <p className="text-2xl font-bold text-orange-700">8</p>
+                <p className="text-2xl font-bold text-orange-700">{dashboardData?.over14Days || 0}</p>
                 <p className="text-sm text-gray-700 mt-1">Cases pending</p>
               </div>
 
@@ -159,7 +247,7 @@ const AdminDashboard = () => {
                   <div className="w-3 h-3 rounded-full bg-yellow-600 animate-pulse" />
                   <p className="text-sm font-medium text-gray-700">This Month</p>
                 </div>
-                <p className="text-2xl font-bold text-yellow-700">25</p>
+                <p className="text-2xl font-bold text-yellow-700">{dashboardData?.thisMonth || 0}</p>
                 <p className="text-sm text-gray-700 mt-1">Cases pending</p>
               </div>
 
@@ -168,7 +256,7 @@ const AdminDashboard = () => {
                   <div className="w-3 h-3 rounded-full bg-red-600 animate-pulse" />
                   <p className="text-sm font-medium text-gray-700">Previous All</p>
                 </div>
-                <p className="text-2xl font-bold text-red-700">43</p>
+                <p className="text-2xl font-bold text-red-700">{dashboardData?.over30Days || 0}</p>
                 <p className="text-sm text-gray-700 mt-1">Cases pending</p>
               </div>
             </div>

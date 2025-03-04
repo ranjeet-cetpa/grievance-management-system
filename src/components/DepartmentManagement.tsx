@@ -85,8 +85,6 @@ const DepartmentManagement = () => {
       }));
   }, [employeeList]);
 
-  console.log(departmentsList);
-
   const formatEmployeeForSelect = (employee) => {
     const option = {
       value: employee.empCode.toString(),
