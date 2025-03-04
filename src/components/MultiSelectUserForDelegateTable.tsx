@@ -4,7 +4,7 @@ import { Controller } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
 const MultiSelectField = ({ form, employeeList, user, onChange, showLabel = true, selectedEmployees }) => {
-  console.log(selectedEmployees);
+  //console.log(selectedEmployees);
   // Transform employeeList to match react-select's expected format
   const options = employeeList
     ?.filter((ele) => Number(ele.unitId) === Number(user.unitId))

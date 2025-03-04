@@ -37,7 +37,7 @@ const initialState: EmployeeState = {
 //     throw new Error('Failed to fetch employees')
 //   }
 //   const data = await response.json()
-//   ////console.log(data)
+//   //////console.log(data)
 
 //   return data.data
 // })

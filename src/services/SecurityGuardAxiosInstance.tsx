@@ -22,7 +22,7 @@ securityGuardAxiosInstance.interceptors.request.use(
   (config) => {
     const securityToken = getCookie('security-auth-token'); // Get token from cookies
     if (securityToken) {
-      //console.log(securityToken, 'see here . ');
+      ////console.log(securityToken, 'see here . ');
       config.headers['Authorization'] = `Bearer ${securityToken.toString()}`; // Set token in Authorization header
     }
     config.headers['DeviceType'] = `web`; // You can change this as needed

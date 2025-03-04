@@ -57,7 +57,7 @@ const personalDetailsSlice = createSlice({
   initialState,
   reducers: {
     setPersonalDetails(state, action: PayloadAction<PersonalDetailsState>) {
-      ////console.log(action.payload);
+      //////console.log(action.payload);
       Object.assign(state, action.payload);
     },
 

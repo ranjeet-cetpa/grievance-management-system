@@ -82,7 +82,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const showMappedUsersHandler = async (group) => {
     const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.id}`);
     if (response?.data?.statusCode === 200) {
-      console.log(response?.data?.data?.groupMapping);
+      //console.log(response?.data?.data?.groupMapping);
       setMappedUsers(response?.data?.data?.groupMapping);
     }
     setSelectedGroupForMapping(group);
@@ -93,13 +93,13 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const fetchGroups = async () => {
     try {
       setLoading(true);
-      console.log('Fetching groups from API...');
+      //console.log('Fetching groups from API...');
       const response = await axiosInstance.get('/Admin/GetGroupMasterList');
       const data = await response?.data?.data;
       logger.log('this is data ', data);
       setGroups(data);
 
-      console.log('Groups fetched successfully:', groups);
+      //console.log('Groups fetched successfully:', groups);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -116,26 +116,26 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log('Form field updated:', { field: name, value });
+    //console.log('Form field updated:', { field: name, value });
   };
 
   // Handle parent/child selection
   const handleIsParentChange = (value) => {
     setFormData((prev) => ({ ...prev, isParent: value === 'parent' }));
-    console.log('Group type changed:', { isParent: value === 'parent' });
+    //console.log('Group type changed:', { isParent: value === 'parent' });
   };
 
   // Handle parent group selection
   const handleParentSelection = (value) => {
     const parentId = parseInt(value);
     setFormData((prev) => ({ ...prev, parentId }));
-    console.log('Parent group selected:', { parentId });
+    //console.log('Parent group selected:', { parentId });
   };
 
   // Handle group creation or update
   const handleSaveGroup = async () => {
     try {
-      console.log('formData', formData);
+      //console.log('formData', formData);
       setLoading(true);
       const groupData = {
         id: formData.id || '0',
@@ -201,7 +201,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
 
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
-    console.log('User selection changed:', selectedOptions);
+    //console.log('User selection changed:', selectedOptions);
     setSelectedUsers(selectedOptions);
   };
 
@@ -231,7 +231,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
       } else {
         toast.error('Error in mapping users to the group');
       }
-      console.log('Users mapped successfully to group');
+      //console.log('Users mapped successfully to group');
 
       setMapUserOpen(false);
       setSelectedGroup(null);
@@ -245,7 +245,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
 
   // Handle dialog close
   const handleDialogClose = (dialogType) => {
-    console.log(`Closing ${dialogType} dialog`);
+    //console.log(`Closing ${dialogType} dialog`);
     if (dialogType === 'create') {
       setCreateGroupOpen(false);
       resetForm();

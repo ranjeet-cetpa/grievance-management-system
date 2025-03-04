@@ -92,7 +92,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
       const response = await axiosInstance.get(`/Admin/GetRoleDetail?roleId=${role.id}`);
 
       if (response?.data?.statusCode === 200) {
-        console.log(response?.data?.data?.mappedUsers, 'see the mapped users here . . .. ');
+        //console.log(response?.data?.data?.mappedUsers, 'see the mapped users here . . .. ');
         setMappedUsers(response?.data?.data?.mappedUsers || []);
         setSelectedRoleForMapping(role);
         setShowMappedUsersTable(true);
@@ -111,14 +111,14 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      console.log('Fetching roles from API...');
+      //console.log('Fetching roles from API...');
 
       const response = await axiosInstance.get('/Admin/GetApplicationRole');
       const data = await response?.data?.data;
       logger.log('Roles data:', data);
       setRoles(data);
 
-      console.log('Roles fetched successfully:', roles);
+      //console.log('Roles fetched successfully:', roles);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching roles:', error);
@@ -190,7 +190,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const openMapUserDialog = () => {
     if (!selectedRoleForMapping) return;
 
-    console.log('Opening map user dialog for role:', selectedRoleForMapping);
+    //console.log('Opening map user dialog for role:', selectedRoleForMapping);
     setSelectedRole(selectedRoleForMapping);
     setSelectedUsers([]);
     setMapUserOpen(true);
@@ -198,7 +198,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
 
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
-    console.log('User selection changed:', selectedOptions);
+    //console.log('User selection changed:', selectedOptions);
     setSelectedUsers(selectedOptions);
   };
 

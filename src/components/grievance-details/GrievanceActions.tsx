@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import Heading from '@/components/ui/heading';
+import { Paperclip } from 'lucide-react';
 
 interface GrievanceActionsProps {
   isCreator: boolean;
@@ -20,7 +21,7 @@ interface GrievanceActionsProps {
   onAcceptReject: (accept: boolean, feedback?: string) => void;
   onResolutionSubmit: (resolution: string) => void;
   onTransfer: () => void;
-  onCommentSubmit: (comment: string) => void;
+  onCommentSubmit: (comment: string, attachments: File[]) => void;
   onStatusChange?: (status: number) => void;
   status: string;
   setStatus: (status: string) => void;
@@ -38,6 +39,7 @@ export const GrievanceActions = ({
   onStatusChange,
 }: GrievanceActionsProps) => {
   const [commentText, setCommentText] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
@@ -46,11 +48,22 @@ export const GrievanceActions = ({
     setStatus(value);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setAttachments((prev) => [...prev, ...newFiles]);
+    }
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleCommentSubmit = () => {
     if (commentText.trim()) {
-      onCommentSubmit(commentText);
-      onStatusChange?.(Number(status));
+      onCommentSubmit(commentText, attachments);
       setCommentText('');
+      setAttachments([]);
     }
   };
 
@@ -152,6 +165,35 @@ export const GrievanceActions = ({
               <Heading type={6}>Comment</Heading>
               <div className="h-[200px]">
                 <ReactQuill theme="snow" style={{ height: '150px' }} value={commentText} onChange={setCommentText} />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md flex items-center gap-2"
+                  >
+                    <Paperclip className="w-4 h-4" />
+                    Add Attachments
+                  </label>
+                </div>
+                {attachments.length > 0 && (
+                  <div className="space-y-2">
+                    {attachments.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                        <span className="text-sm truncate">{file.name}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeAttachment(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="flex gap-4">
                 <Button

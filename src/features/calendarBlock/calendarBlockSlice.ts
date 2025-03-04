@@ -23,9 +23,9 @@ export const fetchCalendarBlockMessage = createAsyncThunk(
   async (userId: string, { rejectWithValue }) => {
     try {
       const response = await axiosInstance.get(`/Admin/ISEmployeeCalenderHidden/${userId}`);
-      console.log(response, 'response is coming ');
+      //console.log(response, 'response is coming ');
       const data = await response?.data;
-      console.log(data, 'this is data . . .');
+      //console.log(data, 'this is data . . .');
       return {
         message: data?.message,
         isBlocked: data?.data,

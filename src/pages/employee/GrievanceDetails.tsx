@@ -23,6 +23,7 @@ import { RootState } from '@/app/store';
 
 interface GrievanceDetails {
   grievanceId: number;
+  statusId: string;
   grievanceProcessId: number;
   title: string;
   description: string;
@@ -86,6 +87,7 @@ const GrievanceDetails = () => {
         );
         if (response.data.statusCode === 200) {
           setGrievance(response.data.data);
+          setStatus(response.data.data.statusId.toString());
         } else {
           toast.error('Failed to fetch grievance details');
         }
@@ -187,7 +189,7 @@ const GrievanceDetails = () => {
     // Add more comments as needed
   ];
 
-  console.log('grievance', grievance);
+  //console.log('grievance', grievance);
   const handleResolutionSubmit = async (resolution: string) => {
     try {
       setLoading(true);
@@ -196,7 +198,7 @@ const GrievanceDetails = () => {
         CommentText: resolution,
         StatusId: 2,
       });
-      console.log('resolution', response);
+      //console.log('resolution', response);
       toast.success('Resolution submitted successfully');
     } catch (error) {
       toast.error('Failed to submit resolution');
@@ -208,8 +210,8 @@ const GrievanceDetails = () => {
   const handleTransfer = async () => {
     try {
       const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
-      console.log(addressalUnit);
-      console.log('addressalUnit', addressalUnit);
+      //console.log(addressalUnit);
+      //console.log('addressalUnit', addressalUnit);
       if (!addressalUnit) {
         toast.error('Unit information or role details not available');
         return;
@@ -227,7 +229,17 @@ const GrievanceDetails = () => {
       const formData = new FormData();
 
       // Append all grievance properties to FormData
-      const excludedFields = ['attachments', 'statusId', 'userCode', 'userDetails', 'grievanceProcessId'];
+      const excludedFields = [
+        'attachments',
+        'statusId',
+        'userCode',
+        'userDetails',
+        'grievanceProcessId',
+        'createdBy',
+        'createdDate',
+        'modifiedBy',
+        'modifiedDate',
+      ];
       Object.entries(grievance || {}).forEach(([key, value]) => {
         if (value !== null && value !== undefined && !excludedFields.includes(key)) {
           formData.append(key, value.toString());
@@ -237,7 +249,7 @@ const GrievanceDetails = () => {
       // Update specific fields for transfer
       formData.set('assignedUserCode', unitNodalOfficer.userCode);
       formData.set('assignedUserDetails', unitNodalOfficer.userDetails);
-      formData.set('statusId', status);
+      formData.set('statusId', grievance?.statusId);
       formData.set('userCode', user?.EmpCode.toString());
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
@@ -317,21 +329,39 @@ const GrievanceDetails = () => {
     }
   };
 
-  const handleCommentSubmit = async (comment: string) => {
+  const handleCommentSubmit = async (comment: string, attachments: File[]) => {
     try {
       setLoading(true);
       const formData = new FormData();
 
       // Append all grievance properties to FormData
+      const excludedFields = [
+        'attachments',
+        'statusId',
+        'userCode',
+        'userDetails',
+        'grievanceProcessId',
+        'createdBy',
+        'createdDate',
+        'modifiedBy',
+        'modifiedDate',
+      ];
+
       Object.entries(grievance || {}).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
+        if (value !== null && value !== undefined && !excludedFields.includes(key)) {
           formData.append(key, value.toString());
         }
       });
 
+      // Update comment and status
       formData.set('CommentText', comment);
       formData.set('StatusId', status);
       formData.set('userCode', user?.EmpCode.toString());
+
+      // Append attachments
+      attachments.forEach((file) => {
+        formData.append('attachments', file);
+      });
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
@@ -362,7 +392,7 @@ const GrievanceDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <Card className="w-full shadow-md p-4">
-        {loading && (
+        {loading ? (
           <div className="flex justify-center items-center min-h-[600px]">
             <Loader />
           </div>
@@ -390,7 +420,7 @@ const GrievanceDetails = () => {
                 <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
               </TabsContent>
               <TabsContent value="comments">
-                <Comments comments={comments} />
+                <Comments grievanceId={Number(grievanceId)} />
               </TabsContent>
             </Tabs>
             <GrievanceActions

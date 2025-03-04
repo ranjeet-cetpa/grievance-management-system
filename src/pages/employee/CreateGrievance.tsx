@@ -79,11 +79,11 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        console.log(user, 'this is user');
+        //console.log(user, 'this is user');
         const response = await axiosInstance.get('/Admin/GetServiceMasterList');
-        console.log('Raw API Response:', response);
-        console.log('API Response Data:', response.data);
-        console.log('API Services:', response.data.data);
+        //console.log('Raw API Response:', response);
+        //console.log('API Response Data:', response.data);
+        //console.log('API Services:', response.data.data);
 
         if (response.data.error) {
           throw new Error(response.data.errorDetail || 'Failed to fetch services');
@@ -91,11 +91,8 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
 
         const organizedServices = organizeServices(response.data.data);
 
-        console.log('Organized Services:', organizedServices);
-        console.log(
-          'Active Root Services:',
-          organizedServices.filter((s) => s.isActive)
-        );
+        //console.log('Organized Services:', organizedServices);
+
         setServices(organizedServices);
       } catch (error) {
         console.error('Error fetching services:', error);
@@ -108,7 +105,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
 
   // Function to organize services into a hierarchical structure
   const organizeServices = (flatServices) => {
-    console.log('Organizing services from:', flatServices);
+    //console.log('Organizing services from:', flatServices);
     const serviceMap = new Map();
     const rootServices = [];
 
@@ -116,7 +113,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
     flatServices.forEach((service) => {
       // Only include active services
       if (service.isActive) {
-        console.log('Adding active service to map:', service);
+        //console.log('Adding active service to map:', service);
         serviceMap.set(service.id, { ...service, children: [] });
       }
     });
@@ -124,27 +121,27 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
     // Second pass: Organize into hierarchy
     flatServices.forEach((service) => {
       if (!service.isActive) {
-        console.log('Skipping inactive service:', service);
+        //console.log('Skipping inactive service:', service);
         return;
       }
 
       const currentService = serviceMap.get(service.id);
       if (service.parentServiceId === null) {
-        console.log('Adding root service:', service);
+        //console.log('Adding root service:', service);
         rootServices.push(currentService);
       } else {
         const parentService = serviceMap.get(service.parentServiceId);
         if (parentService) {
-          console.log('Adding child service:', service, 'to parent:', parentService);
+          //console.log('Adding child service:', service, 'to parent:', parentService);
           parentService.children = parentService.children || [];
           parentService.children.push(currentService);
         } else {
-          console.log('Parent service not found for:', service);
+          //console.log('Parent service not found for:', service);
         }
       }
     });
 
-    console.log('Final root services:', rootServices);
+    //console.log('Final root services:', rootServices);
     return rootServices;
   };
 
@@ -161,7 +158,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   // Get services for a specific level based on selected parent
   const getServicesForLevel = (level: number): ServiceCategory[] => {
     let currentServices = services;
-    console.log('Getting services for level:', level, 'Current services:', currentServices);
+    //console.log('Getting services for level:', level, 'Current services:', currentServices);
 
     for (let i = 0; i < level; i++) {
       const selectedId = selectedCategories[i];
@@ -185,12 +182,6 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
 
     // Set the serviceId to the last selected category
     form.setValue('serviceId', numericValue);
-
-    console.log('Selected category:', {
-      level,
-      value: numericValue,
-      allCategories: newSelectedCategories,
-    });
   };
 
   // Handle file selection
@@ -249,7 +240,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
 
       if (response?.data?.statusCode === 200) {
         toast.success('Grievance submitted successfully');
-        console.log('Submission response:', response);
+        //console.log('Submission response:', response);
         setOpen(false);
         form.reset();
         setSelectedFiles([]);
