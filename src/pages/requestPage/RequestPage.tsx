@@ -8,6 +8,7 @@ import { useParams } from 'react-router';
 import axiosInstance from '@/services/axiosInstance';
 import { environment } from '@/config';
 import toast from 'react-hot-toast';
+import SiteHeader from '@/components/site-header';
 
 interface ResolutionResponse {
   isAccepted: boolean;
@@ -110,6 +111,8 @@ const RequestPage = () => {
 
   return (
     <div className="container mx-auto py-10">
+      <SiteHeader showtoggle={false} />
+
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
           <CardTitle>Grievance Resolution Response</CardTitle>

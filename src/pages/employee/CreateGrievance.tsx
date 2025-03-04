@@ -352,7 +352,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium mb-0">Title</FormLabel>
+                      <FormLabel className="text-sm font-medium mb-0">Subject</FormLabel>
                       <FormControl>
                         <Input className="h-8" placeholder="Enter grievance title" {...field} />
                       </FormControl>
