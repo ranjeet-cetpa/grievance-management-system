@@ -2,19 +2,53 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import Heading from '@/components/ui/heading';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 import { AlertCircle, Clock, CheckCircle2, MessageCircle, TimerReset } from 'lucide-react';
-import React from 'react';
-
-// Mock data - replace with actual data from your API
-const grievanceChartData = [
-  { name: 'Jan', total: 2 },
-  { name: 'Feb', total: 1 },
-  { name: 'Mar', total: 0 },
-  { name: 'Apr', total: 3 },
-  { name: 'May', total: 10 },
-  { name: 'Jun', total: 2 },
-];
+import React, { useEffect, useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+import toast from 'react-hot-toast';
+import axiosInstance from '@/services/axiosInstance';
+import Loader from '@/components/ui/loader';
 
 const Dashboard = () => {
+  const user = useSelector((state: RootState) => state.user);
+  const [loading, setLoading] = useState(false);
+  const [dashboardData, setDashboardData] = useState<any>(null);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await axiosInstance.get(`/Grievance/GetMyDashboardData?userCode=${user?.EmpCode}`);
+      setDashboardData(response?.data?.data);
+      console.log(response?.data?.data);
+    } catch (error) {
+      toast.error('Something went wrong!');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const grievanceChartData = useMemo(() => {
+    const currentYear = new Date().getFullYear().toString();
+    const currentMonth = new Date().getMonth() + 1;
+    if (currentYear) {
+      return (
+        dashboardData?.monthlyGrievances
+          ?.filter((month) => {
+            const monthNumber = new Date(`2023-${month.monthName}-01`).getMonth() + 1;
+            return monthNumber <= currentMonth;
+          })
+          .map((month) => ({
+            name: month.monthName.substring(0, 3),
+            total: month.totalCount,
+          })) || []
+      );
+    }
+  }, [dashboardData]);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-row items-center justify-between">
@@ -23,6 +57,7 @@ const Dashboard = () => {
           <p className="text-gray-500">Overview of your grievance submissions</p>
         </div>
       </div>
+      {loading && <Loader />}
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-100 to-blue-200 border-none">
@@ -30,7 +65,7 @@ const Dashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Total Submitted</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-blue-800">9</p>
+                <p className="text-2xl font-bold text-blue-800">{dashboardData?.totalGrievance || 0}</p>
               </div>
             </div>
             <div className="p-2 bg-blue-200 rounded-full">
@@ -44,7 +79,7 @@ const Dashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">In Progress</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-orange-800">2</p>
+                <p className="text-2xl font-bold text-orange-800">{dashboardData?.inProgress || 0}</p>
                 <span className="ml-2 text-xs text-orange-700">Active</span>
               </div>
             </div>
@@ -59,7 +94,7 @@ const Dashboard = () => {
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Resolved</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-green-800">6</p>
+                <p className="text-2xl font-bold text-green-800">{dashboardData?.resolved || 0}</p>
                 <span className="ml-2 text-xs text-green-700">Complete</span>
               </div>
             </div>

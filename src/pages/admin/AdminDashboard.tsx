@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import Loader from '@/components/ui/loader';
+import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -26,7 +27,6 @@ const AdminDashboard = () => {
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const selectedUnit = useSelector((state: RootState) => state.workspace.selectedWorkspace);
-  console.log('selectedUnit', selectedUnit);
 
   const departmentsList = useMemo(() => {
     const uniqueDepts = new Set(employeeList?.map((emp) => emp.department?.trim()).filter(Boolean));
@@ -52,10 +52,9 @@ const AdminDashboard = () => {
       }
       const response = await axiosInstance.get(`/Grievance/GetDashboardData?${params.toString()}`);
       const data = response?.data?.data;
-      console.log('data', data);
       setDashboardData(data);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      toast.error('Something went wrong!');
     } finally {
       setLoading(false);
     }
@@ -68,7 +67,6 @@ const AdminDashboard = () => {
   const grievanceChartData = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
     const currentMonth = new Date().getMonth() + 1;
-
     if (selectedYear === currentYear) {
       return (
         dashboardData?.monthlyGrievances

@@ -43,31 +43,6 @@ import { environment } from '@/config';
 import { setSelectedWorkspace } from '@/features/workspace/workspaceSlice';
 import useUserRoles from '@/hooks/useUserRoles';
 
-const data = {
-  navMain: [
-    {
-      title: 'Dashboard',
-      url: '/admin-dashboard',
-      icon: LayoutGrid,
-    },
-    {
-      title: 'My Grievances',
-      url: '/admin-grievances',
-      icon: BadgeAlert,
-    },
-    {
-      title: 'Manage Services',
-      url: '/admin-manage-services',
-      icon: Users,
-    },
-    {
-      title: 'Manage Roles',
-      url: '/admin-manage-role',
-      icon: UserRoundCog,
-    },
-  ],
-};
-
 export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch<AppDispatch>();
@@ -76,6 +51,34 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { state } = useSidebar();
   const navigate = useNavigate();
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
+  const data = {
+    navMain: [
+      {
+        title: 'Dashboard',
+        url: '/admin-dashboard',
+        icon: LayoutGrid,
+      },
+      {
+        title: 'My Grievances',
+        url: '/admin-grievances',
+        icon: BadgeAlert,
+      },
+      {
+        title: 'Manage Services',
+        url: '/admin-manage-services',
+        icon: Users,
+      },
+      ...(isSuperAdmin
+        ? [
+            {
+              title: 'Manage Roles',
+              url: '/admin-manage-role',
+              icon: UserRoundCog,
+            },
+          ]
+        : []),
+    ],
+  };
 
   const handleWorkspaceChange = (workspaceName: string, workspaceId: number) => {
     dispatch(setSelectedWorkspace({ unitName: workspaceName, unitId: workspaceId }));
