@@ -34,6 +34,7 @@ import logger from '@/lib/logger';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loader from './ui/loader';
+import { Checkbox } from './ui/checkbox';
 
 const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const [groups, setGroups] = useState([]);
@@ -73,6 +74,9 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     description: '',
     isParent: true,
     parentId: null,
+    isHOD: false,
+    isCommitee: false,
+    HODofGroupId: '',
   });
 
   const showMappedUsersHandler = async (group) => {
@@ -90,7 +94,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     try {
       setLoading(true);
       console.log('Fetching groups from API...');
-
       const response = await axiosInstance.get('/Admin/GetGroupMasterList');
       const data = await response?.data?.data;
       logger.log('this is data ', data);
@@ -132,6 +135,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   // Handle group creation or update
   const handleSaveGroup = async () => {
     try {
+      console.log('formData', formData);
       setLoading(true);
       const groupData = {
         id: formData.id || '0',
@@ -139,6 +143,9 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         description: formData.description,
         parentGroupId: formData.isParent ? '0' : formData.parentId,
         userCode: user?.EmpCode,
+        ...(formData.isHOD && { isHOD: formData.isHOD }),
+        ...(formData.isCommitee && { isCommitee: formData.isCommitee }),
+        ...(formData.HODofGroupId && { HODofGroupId: Number(formData.HODofGroupId) }),
       };
 
       const response = await axiosInstance.post('/Admin/AddUpdateGroupMaster', groupData);
@@ -397,7 +404,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-
               <div className="grid gap-2">
                 <Label htmlFor="description" className="font-medium">
                   Description
@@ -412,19 +418,73 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-
-              {/* <div className="grid gap-2">
-                <Label className="font-medium">Group Type</Label>
-                <ShadSelect onValueChange={handleIsParentChange} value={formData.isParent ? 'parent' : 'child'}>
-                  <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select group type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="parent">Parent Group</SelectItem>
-                    <SelectItem value="child">Child Group</SelectItem>
-                  </SelectContent>
-                </ShadSelect>
-              </div> */}
+              <div>
+                <Label htmlFor="type" className="font-medium">
+                  Select Group Type
+                </Label>
+                <div className="flex flex-row gap-2 mt-2">
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="IsHOD"
+                      checked={formData.isHOD}
+                      onCheckedChange={(checked) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          isHOD: checked,
+                          isCommitee: checked ? false : prev.isCommitee,
+                        }));
+                      }}
+                    />
+                    <label
+                      htmlFor="IsHOD"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Is HOD Group
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="IsCommitee"
+                      checked={formData.isCommitee}
+                      onCheckedChange={(checked: boolean) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          isCommitee: checked,
+                          isHOD: checked ? false : prev.isHOD,
+                        }));
+                      }}
+                    />
+                    <label
+                      htmlFor="IsCommitee"
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Is Committee Group
+                    </label>
+                  </div>
+                </div>
+                {formData.isHOD && (
+                  <Select
+                    onValueChange={(value) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        HODofGroupId: value,
+                      }));
+                    }}
+                    value={formData.HODofGroupId}
+                  >
+                    <SelectTrigger className="mt-4">
+                      <SelectValue placeholder="Select Group" className="mt-4" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {parentGroups.map((group) => (
+                        <SelectItem key={group.id} value={group.id.toString()}>
+                          {group.groupName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
 
               {!formData.isParent && (
                 <div className="grid gap-2">
@@ -470,7 +530,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         </Dialog>
       </div>
 
-      {/* Group Listing */}
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <Table>
           <TableHeader>
@@ -554,51 +613,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
           </TableBody>
         </Table>
       </div>
-      {/* 
-      {tableGroup && (
-        <TableRow className="bg-gray-50">
-          <TableCell colSpan={4} className="px-4 py-2">
-            <div className="rounded-md overflow-hidden border border-gray-200">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-100">
-                    <TableHead className="text-xs font-medium">Unit Name</TableHead>
-                    <TableHead className="text-xs font-medium">Employee Codes</TableHead>
-                    <TableHead className="text-xs font-medium">Employee Details</TableHead>
-                    <TableHead className="text-xs font-medium w-16 text-center">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="text-sm">{'Central Unit'}</TableCell>
-                    <TableCell className="text-sm">
-                      {mappedUsers.map((item) => {
-                        return item[0].user.userCode;
-                      })}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {mappedUsers
-                        .filter((user) => user.groupMasterId === tableGroup.id)
-                        .map((user) => user.userDetails)
-                        .join(', ')}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-full hover:bg-blue-100 h-7 w-7 p-0"
-                        onClick={() => openMapUserDialog(group)}
-                      >
-                        <Edit size={14} className="text-blue-600" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </TableCell>
-        </TableRow>
-      )} */}
+
       {showMappedUsersTable && selectedGroupForMapping && (
         <div className="mt-6 bg-white rounded-lg shadow-lg py-2 overflow-hidden">
           <div className="flex justify-between bg-blue-50 p-4 border-b border-blue-100">

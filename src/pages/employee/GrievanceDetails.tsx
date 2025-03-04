@@ -362,7 +362,7 @@ const GrievanceDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <Card className="w-full shadow-md p-4">
-        {loading ? (
+        {loading && (
           <div className="flex justify-center items-center min-h-[600px]">
             <Loader />
           </div>

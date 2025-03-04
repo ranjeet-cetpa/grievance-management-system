@@ -4,7 +4,6 @@ import AppLayout from '@/components/app-layout';
 import { getSessionItem } from '@/lib/helperFunction';
 const PrivateRoute: React.FC = () => {
   const isAuthenticated = getSessionItem('token');
-  //const isAuthenticated = true;
 
   return isAuthenticated ? (
     <AppLayout>
