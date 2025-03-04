@@ -95,7 +95,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ createServiceOpen
           <SelectItem value={service.id.toString()}>
             <div style={{ paddingLeft: `${level * 16}px` }} className="flex items-center gap-2 min-w-[300px]">
               <div
-                className={`h-5 w-5 ${
+                className={`h-5  w-5 ${
                   level === 0 ? 'rounded-full bg-blue-600' : 'rounded-md bg-blue-500'
                 } flex items-center justify-center`}
               >
