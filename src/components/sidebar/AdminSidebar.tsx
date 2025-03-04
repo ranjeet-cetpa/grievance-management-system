@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { BellRing, CalendarCheck, Users, ChevronDown, ChevronLeft, LayoutGrid, User, LogOut, BadgeAlert } from 'lucide-react';
+import { BellRing, CalendarCheck, Users, ChevronDown, ChevronLeft, LayoutGrid, User, LogOut, BadgeAlert, UserRoundCog } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
     Sidebar,
@@ -30,6 +30,7 @@ import { removeSessionItem } from "@/lib/helperFunction";
 import { resetUser } from "@/features/user/userSlice";
 import { environment } from "@/config";
 import { setSelectedWorkspace } from "@/features/workspace/workspaceSlice";
+import useUserRoles from "@/hooks/useUserRoles";
 
 
 const data = {
@@ -40,16 +41,20 @@ const data = {
             icon: LayoutGrid,
         },
         {
-            title: 'Grievances',
-            url: '/admin-grievances',
+            title: 'My Grievances',
+            url: '/admin-grievances;000',
             icon: BadgeAlert,
         },
         {
-            title: 'Manage Users',
-            url: '/admin-manage-user',
+            title: 'Manage Services',
+            url: '/admin-manage-services',
             icon: Users,
         },
-
+        {
+            title: 'Manage Roles',
+            url: '/admin-manage-user',
+            icon: UserRoundCog,
+        },
     ],
 };
 
@@ -60,6 +65,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
     const units = useSelector((state: RootState) => state.units.units);
     const { state } = useSidebar();
     const navigate = useNavigate()
+    const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
 
 
     const handleWorkspaceChange = (workspaceName: string, workspaceId: number) => {
@@ -68,8 +74,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
     React.useEffect(() => {
         dispatch(setSelectedWorkspace({ unitName: user.Unit, unitId: Number(user.unitId) }));
     }, []);
-    // const isAdmin = user.Roles === 'admin';
-    const isAdmin = true
+
 
     const handleLogout = () => {
         removeSessionItem('token');
@@ -89,7 +94,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenu>
                 <SidebarMenuItem className="mt-4">
                     <DropdownMenu>
-                        <DropdownMenuTrigger disabled={isAdmin} asChild>
+                        <DropdownMenuTrigger disabled={!isSuperAdmin} asChild>
                             <SidebarMenuButton className="flex items-center justify-between border h-12 border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:border-primary capitalize">
                                 {unitName?.toLowerCase()}
                                 <ChevronDown className="ml-2 w-4 h-4 text-gray-500" />
@@ -119,8 +124,8 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <SidebarContent>
                 <NavMain
                     items={data.navMain.filter((ele) => {
-                        if (isAdmin) {
-                            return ele.url !== '/admin-manage-user-permission'; // Return true only if the condition matches
+                        if (isSuperAdmin) {
+                            return ele.url !== '/admin-manage-user'; // Return true only if the condition matches
                         }
                         return true;
                     })}
