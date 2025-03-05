@@ -109,7 +109,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
           </div>
         </CardHeader>
         <CardContent className="p-4 lg:p-6">
-          <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar ">
+          <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {comments.length === 0 ? (
               <div className="text-center text-gray-500 py-8">No comments found</div>
             ) : (

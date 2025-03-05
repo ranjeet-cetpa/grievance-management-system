@@ -29,7 +29,7 @@ export const GrievanceHeader = ({ title, statusId, getStatusText }: GrievanceHea
   // };
 
   return (
-    <div className="border-b">
+    <div className="border-b w-full">
       <div className="container  p-4">
         <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4 hover:bg-gray-100">
           <ChevronLeft className="w-4 h-4 mr-1" />

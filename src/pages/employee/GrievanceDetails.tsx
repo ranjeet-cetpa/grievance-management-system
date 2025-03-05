@@ -498,49 +498,46 @@ const GrievanceDetails = () => {
           </div>
         ) : (
           <>
-            <GrievanceHeader
-              title={grievance?.title || ''}
-              statusId={Number(grievance?.statusId) || 0}
-              getStatusText={getStatusText}
-            />
-            <Tabs defaultValue="info" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-4 w-[200px] mx-auto mt-4">
-                <TabsTrigger value="info" className="w-full">
-                  Info
-                </TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-              </TabsList>
-              <TabsContent value="info">
-                <GrievanceInfo
-                  userDetails={grievance?.userDetails || ''}
-                  createdDate={grievance?.createdDate || ''}
-                  assignedUserDetails={grievance?.assignedUserDetails || ''}
-                  modifiedDate={grievance?.modifiedDate || ''}
-                />
+            <div className="flex w-full flex-col">
+              <GrievanceHeader
+                title={grievance?.title || ''}
+                statusId={Number(grievance?.statusId) || 0}
+                getStatusText={getStatusText}
+              />
+              <GrievanceInfo
+                userDetails={grievance?.userDetails || ''}
+                createdDate={grievance?.createdDate || ''}
+                assignedUserDetails={grievance?.assignedUserDetails || ''}
+                modifiedDate={grievance?.modifiedDate || ''}
+              />
+            </div>
+            <div className="flex  w-full justify-between h-full gap-2">
+              {/* Left Column - Info and Description */}
+              <div className="space-y-6 w-1/2 h-full">
                 <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
-              </TabsContent>
-              <TabsContent value="comments">
-                <Comments grievanceId={Number(grievanceId)} />
-              </TabsContent>
-            </Tabs>
-            {grievance?.assignedUserCode === user?.EmpCode && (
-              <div>
-                <GrievanceActions
-                  isNodalOfficer={isNodalOfficer}
-                  status={status}
-                  setStatus={setStatus}
-                  isCreator={grievance?.isCreator || false}
-                  canAcceptReject={grievance?.canAcceptReject || false}
-                  onAcceptReject={handleAcceptReject}
-                  onResolutionSubmit={handleResolutionSubmit}
-                  onTransfer={handleTransfer}
-                  onTransferToCGM={handleTransferToCGM}
-                  onTransferToHOD={handleTransferToHOD}
-                  onCommentSubmit={handleCommentSubmit}
-                  onStatusChange={handleStatusChange}
-                />
               </div>
-            )}
+
+              {/* Right Column - Comments and Actions */}
+              <div className="space-y-6 w-1/2 h-full">
+                <Comments grievanceId={Number(grievanceId)} />
+                {grievance?.assignedUserCode === user?.EmpCode && (
+                  <GrievanceActions
+                    isNodalOfficer={isNodalOfficer}
+                    status={status}
+                    setStatus={setStatus}
+                    isCreator={grievance?.isCreator || false}
+                    canAcceptReject={grievance?.canAcceptReject || false}
+                    onAcceptReject={handleAcceptReject}
+                    onResolutionSubmit={handleResolutionSubmit}
+                    onTransfer={handleTransfer}
+                    onTransferToCGM={handleTransferToCGM}
+                    onTransferToHOD={handleTransferToHOD}
+                    onCommentSubmit={handleCommentSubmit}
+                    onStatusChange={handleStatusChange}
+                  />
+                )}
+              </div>
+            </div>
           </>
         )}
       </Card>
