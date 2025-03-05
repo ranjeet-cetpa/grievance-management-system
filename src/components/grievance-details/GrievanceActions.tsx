@@ -155,7 +155,7 @@ export const GrievanceActions = ({
   };
 
   return (
-    <Card className="bg-white shadow-sm mt-6">
+    <Card className="bg-white shadow-sm ">
       <CardContent className="p-6">
         {isCreator ? (
           canAcceptReject && (
@@ -234,46 +234,51 @@ export const GrievanceActions = ({
         ) : (
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="flex gap-4 justify-end items-center">
-                <Heading type={6} className="text-gray-700 font-semibold">
-                  Change Status
-                </Heading>
-                <Select value={status} onValueChange={handleStatusChange}>
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">In Progress</SelectItem>
-                    <SelectItem value="3">Awaiting Info</SelectItem>
-                    <SelectItem value="4">Resolved</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <Heading type={6} className="text-gray-700">
+                    Change Status
+                  </Heading>
+                  <Select value={status} onValueChange={handleStatusChange}>
+                    <SelectTrigger className="w-[180px] h-9">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2">In Progress</SelectItem>
+                      <SelectItem value="3">Awaiting Info</SelectItem>
+                      <SelectItem value="4">Resolved</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
+                <label
+                  htmlFor="file-upload"
+                  className="cursor-pointer text-white bg-gray-800 hover:bg-gray-700 px-2 py-1.5 rounded-md flex items-center gap-1"
+                >
+                  <Paperclip className="w-4 h-4" />
+                  <span className="text-sm">Attach</span>
+                </label>
               </div>
-              <Heading type={6}>Comment</Heading>
-              <div className="h-[200px]">
-                <ReactQuill theme="snow" style={{ height: '150px' }} value={commentText} onChange={setCommentText} />
+              <div className="h-[150px]">
+                <ReactQuill
+                  theme="snow"
+                  style={{ height: '100px' }}
+                  value={commentText}
+                  placeholder=" Add Comment "
+                  onChange={setCommentText}
+                />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md flex items-center gap-2"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                    Add Attachments
-                  </label>
-                </div>
                 {attachments.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-1">
                     {attachments.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded-md">
+                      <div key={index} className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md">
                         <span className="text-sm truncate">{file.name}</span>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => removeAttachment(index)}
-                          className="text-red-500 hover:text-red-700"
+                          className="text-red-500 hover:text-red-700 h-7 px-2"
                         >
                           Remove
                         </Button>
@@ -282,17 +287,17 @@ export const GrievanceActions = ({
                   </div>
                 )}
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-3">
                 <Button
                   onClick={handleCommentSubmit}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white h-9 px-4"
                   disabled={!isCommentValid}
                 >
                   Submit
                 </Button>
                 <Button
                   onClick={handleTransfer}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
                   disabled={!isCommentValid}
                 >
                   Transfer to Nodal Officer
@@ -306,7 +311,7 @@ export const GrievanceActions = ({
                         setAttachments([]);
                       }
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
                     disabled={!isCommentValid}
                   >
                     Transfer to Unit CGM
@@ -315,7 +320,7 @@ export const GrievanceActions = ({
                 {isNodalOfficer && unitId === '396' && (
                   <Button
                     onClick={() => setIsHodDialogOpen(true)}
-                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    className="bg-orange-600 hover:bg-orange-700 text-white h-9 px-4"
                     disabled={!isCommentValid}
                   >
                     Transfer to HOD Group

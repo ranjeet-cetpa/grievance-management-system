@@ -109,33 +109,33 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
           </div>
         </CardHeader>
         <CardContent className="p-4 lg:p-6">
-          <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {comments.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No comments found</div>
+              <div className="text-center text-gray-500 py-8 col-span-2">No comments found</div>
             ) : (
-              [...comments].reverse().map((comment, index) => (
+              [...comments]?.map((comment, index) => (
                 <div
                   key={index}
-                  className="group animate-fadeIn hover:bg-blue-100/100 p-4 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
+                  className="group animate-fadeIn hover:bg-blue-100/100 p-3 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
                 >
-                  <div className="flex items-start gap-4 ">
+                  <div className="flex items-start gap-3">
                     <Avatar
-                      className="h-10 w-10 ring-2 ring-primary/10 shrink-0 
+                      className="h-8 w-8 ring-2 ring-primary/10 shrink-0 
                                  shadow-sm group-hover:ring-primary/20 transition-all"
                     >
                       <AvatarImage
                         src={`/avatars/${comment?.commentedByName?.toLowerCase().replace(/\s+/g, '-')}.png`}
                         alt={comment?.commentedByName}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
                         {comment?.commentedByName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="font-semibold text-gray-900">{comment?.commentedByName}</span>
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                          <span className="font-semibold text-gray-900 text-sm">{comment?.commentedByName}</span>
+                          <span className="text-[11px] text-gray-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatTimestamp(comment?.commentedDate)}
                           </span>
@@ -144,16 +144,16 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="flex items-center gap-2 text-xs text-gray-500 hover:text-primary"
+                            className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-primary p-1 h-auto"
                             onClick={() => setSelectedAttachments(comment.attachment)}
                           >
-                            <Paperclip className="w-3.5 h-3.5" />
-                            <span>Attachments ({comment.attachment.length})</span>
+                            <Paperclip className="w-3 h-3" />
+                            <span>({comment.attachment.length})</span>
                           </Button>
                         )}
                       </div>
                       <p
-                        className="mt-2.5 text-sm text-gray-600 whitespace-pre-wrap break-words leading-relaxed"
+                        className="mt-2 text-xs text-gray-600 whitespace-pre-wrap break-words leading-relaxed"
                         dangerouslySetInnerHTML={{ __html: comment?.comment }}
                       />
                     </div>

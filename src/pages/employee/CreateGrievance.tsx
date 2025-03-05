@@ -224,6 +224,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
 
       formData.append('userCode', user.EmpCode || '');
       formData.append('userEmail', findEmployeeDetails(employeeList, user?.EmpCode.toString())?.employee?.empEmail);
+      formData.append('isInternal', 'true');
       // formData.append('round', '0');
       // formData.append('AssignedUserCode', '');
       // formData.append('AssignedUserDetails', '');

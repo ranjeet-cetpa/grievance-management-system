@@ -513,14 +513,13 @@ const GrievanceDetails = () => {
             </div>
             <div className="flex  w-full justify-between h-full gap-2">
               {/* Left Column - Info and Description */}
-              <div className="space-y-6 w-1/2 h-full">
+              <div className={`space-y-6 ${grievance?.assignedUserCode === user?.EmpCode ? 'w-1/2' : 'w-full'} h-full`}>
                 <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
               </div>
 
               {/* Right Column - Comments and Actions */}
-              <div className="space-y-6 w-1/2 h-full">
-                <Comments grievanceId={Number(grievanceId)} />
-                {grievance?.assignedUserCode === user?.EmpCode && (
+              {grievance?.assignedUserCode === user?.EmpCode && (
+                <div className="space-y-6 w-1/2 h-full">
                   <GrievanceActions
                     isNodalOfficer={isNodalOfficer}
                     status={status}
@@ -535,9 +534,10 @@ const GrievanceDetails = () => {
                     onCommentSubmit={handleCommentSubmit}
                     onStatusChange={handleStatusChange}
                   />
-                )}
-              </div>
+                </div>
+              )}
             </div>
+            <Comments grievanceId={Number(grievanceId)} />
           </>
         )}
       </Card>
