@@ -51,11 +51,11 @@ interface GrievanceResponse {
 
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
-  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD } = useUserRoles();
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal } = useUserRoles();
 
   console.log(isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD);
   // Check if user has any of the special roles
-  const hasSpecialRole = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD;
+  const hasSpecialRole = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal;
 
   console.log('this is has special role ', hasSpecialRole);
   logger.log('Current user:', user);

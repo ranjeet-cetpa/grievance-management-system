@@ -467,6 +467,7 @@ const GrievanceDetails = () => {
       setLoading(false);
     }
   };
+  console.log(grievance, 'this is grievance from action component ');
 
   const handleCommentSubmit = async (comment: string, attachments: File[]) => {
     try {

@@ -83,9 +83,8 @@ export const GrievanceActions = ({
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const user = useSelector((state: RootState) => state.user);
-  const { isHOD, isUnitCGM } = useUserRoles();
+  const { isHOD, isUnitCGM, isCommittee } = useUserRoles();
   const { grievanceId } = useParams();
-
   useEffect(() => {
     const fetchHodGroups = async () => {
       try {

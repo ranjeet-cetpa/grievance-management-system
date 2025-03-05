@@ -12,6 +12,7 @@ const useUserRoles = () => {
   const isHOD = roles.includes('hod');
   const isUser = roles.includes('user');
   const isAddressal = roles.includes('addressal');
+  const isCommittee = roles.includes('committee');
 
   return {
     isNodalOfficer,
@@ -20,6 +21,7 @@ const useUserRoles = () => {
     isUnitCGM,
     isHOD,
     isAddressal,
+    isCommittee,
     isUser,
     roles,
   };
