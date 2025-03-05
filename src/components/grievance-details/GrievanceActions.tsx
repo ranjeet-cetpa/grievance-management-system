@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import {
   Dialog,
@@ -16,6 +16,13 @@ import Heading from '@/components/ui/heading';
 import { Paperclip } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import axiosInstance from '@/services/axiosInstance';
+
+interface GroupMaster {
+  id: number;
+  groupName: string;
+  isHOD: boolean;
+}
 
 interface GrievanceActionsProps {
   isNodalOfficer: boolean;
@@ -24,9 +31,9 @@ interface GrievanceActionsProps {
   unitId?: number;
   onAcceptReject: (accept: boolean, feedback?: string) => void;
   onResolutionSubmit: (resolution: string) => void;
-  onTransfer: () => void;
-  onTransferToCGM?: () => void;
-  onTransferToHOD?: () => void;
+  onTransfer: (commentText: string, attachments: File[]) => void;
+  onTransferToCGM?: (commentText: string, attachments: File[]) => void;
+  onTransferToHOD?: (formData: FormData) => void;
   onCommentSubmit: (comment: string, attachments: File[]) => void;
   onStatusChange?: (status: number) => void;
   status: string;
@@ -39,7 +46,6 @@ export const GrievanceActions = ({
   setStatus,
   isCreator,
   canAcceptReject,
-
   onAcceptReject,
   onResolutionSubmit,
   onTransfer,
@@ -52,11 +58,29 @@ export const GrievanceActions = ({
   const [attachments, setAttachments] = useState<File[]>([]);
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
+  const [isHodDialogOpen, setIsHodDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
+  const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
+  const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
   const user = useSelector((state: RootState) => state.user);
   const unitId = user?.unitId;
 
-  console.log('this is nodal officer ', isNodalOfficer);
+  useEffect(() => {
+    const fetchHodGroups = async () => {
+      try {
+        const response = await axiosInstance.get('/Admin/GetGroupMasterList');
+        if (response.data.statusCode === 200) {
+          const hodGroupsList = response.data.data.filter((group: GroupMaster) => group.isHOD);
+          setHodGroups(hodGroupsList);
+        }
+      } catch (error) {
+        console.error('Error fetching HOD groups:', error);
+      }
+    };
+
+    fetchHodGroups();
+  }, []);
+
   const handleStatusChange = (value: string) => {
     setStatus(value);
   };
@@ -82,14 +106,53 @@ export const GrievanceActions = ({
 
   const handleTransfer = () => {
     if (commentText.trim()) {
-      onCommentSubmit(commentText, attachments);
-      onTransfer();
+      onTransfer(commentText, attachments);
       setCommentText('');
       setAttachments([]);
     }
   };
 
   const isCommentValid = commentText.trim().length > 0;
+
+  const handleHodTransfer = async () => {
+    try {
+      if (selectedHodGroup && isCommentValid) {
+        // Fetch group details
+        const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${selectedHodGroup}`);
+
+        if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+          const firstUser = response.data.data.groupMapping[0][0];
+
+          // Create form data for transfer
+          const formData = new FormData();
+
+          // Set assigned user details from the group
+          formData.set('assignedUserCode', firstUser.userCode);
+          formData.set('assignedUserDetails', firstUser.userDetails);
+          formData.set('CommentText', commentText);
+          formData.set('isInternal', 'true');
+
+          // Append attachments if any
+          attachments.forEach((file) => {
+            formData.append('attachments', file);
+          });
+
+          // Call the transfer API
+          await onTransferToHOD?.(formData);
+
+          // Clear form and close dialog
+          setCommentText('');
+          setAttachments([]);
+          setIsHodDialogOpen(false);
+          setSelectedHodGroup('');
+        } else {
+          console.error('No users found in the selected group');
+        }
+      }
+    } catch (error) {
+      console.error('Error transferring to HOD:', error);
+    }
+  };
 
   return (
     <Card className="bg-white shadow-sm mt-6">
@@ -238,8 +301,7 @@ export const GrievanceActions = ({
                   <Button
                     onClick={() => {
                       if (isCommentValid) {
-                        onCommentSubmit(commentText, attachments);
-                        onTransferToCGM();
+                        onTransferToCGM(commentText, attachments);
                         setCommentText('');
                         setAttachments([]);
                       }
@@ -252,14 +314,7 @@ export const GrievanceActions = ({
                 )}
                 {isNodalOfficer && unitId === '396' && (
                   <Button
-                    onClick={() => {
-                      if (isCommentValid) {
-                        onCommentSubmit(commentText, attachments);
-                        onTransferToHOD();
-                        setCommentText('');
-                        setAttachments([]);
-                      }
-                    }}
+                    onClick={() => setIsHodDialogOpen(true)}
                     className="bg-orange-600 hover:bg-orange-700 text-white"
                     disabled={!isCommentValid}
                   >
@@ -270,6 +325,41 @@ export const GrievanceActions = ({
             </div>
           </div>
         )}
+
+        <Dialog open={isHodDialogOpen} onOpenChange={setIsHodDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Transfer to HOD Group</DialogTitle>
+              <DialogDescription>Please select a HOD group to transfer the grievance</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Select value={selectedHodGroup} onValueChange={setSelectedHodGroup}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select HOD Group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {hodGroups.map((group) => (
+                    <SelectItem key={group.id} value={group.id.toString()}>
+                      {group.groupName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsHodDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-orange-600 hover:bg-orange-700 text-white"
+                onClick={handleHodTransfer}
+                disabled={!selectedHodGroup}
+              >
+                Transfer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );

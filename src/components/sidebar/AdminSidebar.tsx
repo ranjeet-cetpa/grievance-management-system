@@ -58,11 +58,11 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: '/admin-dashboard',
         icon: LayoutGrid,
       },
-      {
-        title: 'My Grievances',
-        url: '/admin-grievances',
-        icon: BadgeAlert,
-      },
+      // {
+      //   title: 'My Grievances',
+      //   url: '/admin-grievances',
+      //   icon: BadgeAlert,
+      // },
       {
         title: 'Manage Services',
         url: '/admin-manage-services',

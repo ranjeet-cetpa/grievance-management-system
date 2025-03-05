@@ -123,8 +123,8 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ createServiceOpen
 
   const formatEmployeeForSelect = (employee) => {
     const option = {
-      value: employee.empCode.toString(),
-      label: `${employee.empName ?? 'Unnamed'} ${employee.empCode ? `(${employee.empCode})` : ''} ${
+      value: employee?.empCode?.toString(),
+      label: `${employee.empName ?? 'Unnamed'} ${employee?.empCode ? `(${employee?.empCode})` : ''} ${
         employee.designation ? `- ${employee.designation}` : ''
       } ${employee.department ? `| ${employee.department}` : ''}`,
       original: employee,

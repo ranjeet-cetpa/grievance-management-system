@@ -58,8 +58,8 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const deptDD = extractUniqueDepartments(employeeList);
   const formatEmployeeForSelect = (employee) => {
     const option = {
-      value: employee.empCode.toString(),
-      label: `${employee.empName ?? 'Unnamed'} ${employee.empCode ? `(${employee.empCode})` : ''} ${
+      value: employee?.empCode?.toString(),
+      label: `${employee.empName ?? 'Unnamed'} ${employee.empCode ? `(${employee?.empCode})` : ''} ${
         employee.designation ? `- ${employee.designation}` : ''
       } ${employee.department ? `| ${employee.department}` : ''}`,
       original: employee,
@@ -201,7 +201,12 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
 
   // Handle user selection change
   const handleUserSelectionChange = (selectedOptions) => {
-    //console.log('User selection changed:', selectedOptions);
+    if (selectedGroupForMapping?.isHOD && selectedOptions?.length > 1) {
+      toast.error('HOD groups can only have one user mapped');
+      // Keep only the most recently selected user
+      setSelectedUsers(selectedOptions.slice(-1));
+      return;
+    }
     setSelectedUsers(selectedOptions);
   };
 
@@ -212,12 +217,25 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
     try {
       setLoading(true);
 
+      // Validation for HOD groups
+      if (selectedGroupForMapping.isHOD) {
+        if (selectedUsers.length > 1) {
+          toast.error('HOD groups can only have one user mapped');
+          setLoading(false);
+          return;
+        }
+        if (selectedUnit !== '396') {
+          // Assuming '1' is the Corporate Office unit ID
+          toast.error('HOD groups can only map users from Corporate Office');
+          setLoading(false);
+          return;
+        }
+      }
+
       const payload = {
         groupMasterId: selectedGroupForMapping.id,
         unitId: selectedUnit,
         unitName: unitsDD?.find((u) => Number(u.unitId) === Number(selectedUnit))?.unitName,
-
-        //   userCodes: [{ userCode: selectedUsers.value, userDetails: selectedUsers.label?.trim() }],
         userCodes: selectedUsers?.map((user) => {
           return { userCode: user?.value, userDetails: user?.label?.trim() };
         }),
@@ -284,18 +302,22 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               {/* Unit Dropdown */}
               <div>
                 <Label className="mb-2 block font-medium">Unit:</Label>
-                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                <Select value={selectedUnit} onValueChange={setSelectedUnit} disabled={selectedGroupForMapping?.isHOD}>
                   <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select a unit" />
+                    <SelectValue placeholder={selectedGroupForMapping?.isHOD ? 'Corporate Office' : 'Select a unit'} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Units</SelectLabel>
-                      {unitsDD.map((unit) => (
-                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
-                          {unit.unitName}
-                        </SelectItem>
-                      ))}
+                      {selectedGroupForMapping?.isHOD ? (
+                        <SelectItem value="1">Corporate Office</SelectItem>
+                      ) : (
+                        unitsDD.map((unit) => (
+                          <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
+                            {unit.unitName}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectGroup>
                   </SelectContent>
                 </Select>

@@ -87,7 +87,7 @@ const DepartmentManagement = () => {
 
   const formatEmployeeForSelect = (employee) => {
     const option = {
-      value: employee.empCode.toString(),
+      value: employee?.empCode?.toString(),
       label: `${employee.empName ?? 'Unnamed'} ${employee.empCode ? `(${employee.empCode})` : ''} ${
         employee.designation ? `- ${employee.designation}` : ''
       } ${employee.department ? `| ${employee.department}` : ''}`,

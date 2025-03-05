@@ -77,6 +77,8 @@ const GrievanceDetails = () => {
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('2');
   const [activeTab, setActiveTab] = useState('info');
+  const [commentText, setCommentText] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const [resolutionText, setResolutionText] = useState('');
   const [showResolutionInput, setShowResolutionInput] = useState(false);
@@ -165,11 +167,10 @@ const GrievanceDetails = () => {
     }
   };
 
-  const handleTransfer = async () => {
+  const handleTransfer = async (commentText, attachments) => {
     try {
-      const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
-      //console.log(addressalUnit);
-      //console.log('addressalUnit', addressalUnit);
+      const addressalUnit = findEmployeeDetails(employeeList, grievance?.createdBy?.toString()).employee?.unitId;
+
       if (!addressalUnit) {
         toast.error('Unit information or role details not available');
         return;
@@ -209,7 +210,11 @@ const GrievanceDetails = () => {
       formData.set('assignedUserDetails', unitNodalOfficer.userDetails);
       formData.set('statusId', grievance?.statusId);
       formData.set('userCode', user?.EmpCode.toString());
+      formData.set('CommentText', commentText);
 
+      attachments.forEach((file) => {
+        formData.append('attachments', file);
+      });
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -236,7 +241,7 @@ const GrievanceDetails = () => {
     }
   };
 
-  const handleTransferToCGM = async () => {
+  const handleTransferToCGM = async (commentText: string, attachments: File[]) => {
     try {
       const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
@@ -279,6 +284,13 @@ const GrievanceDetails = () => {
       formData.set('assignedUserDetails', unitCGM.userDetails);
       formData.set('statusId', grievance?.statusId);
       formData.set('userCode', user?.EmpCode.toString());
+      formData.set('CommentText', commentText);
+      formData.set('isInternal', 'true');
+
+      // Append attachments if any
+      attachments.forEach((file) => {
+        formData.append('attachments', file);
+      });
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
@@ -288,6 +300,60 @@ const GrievanceDetails = () => {
 
       if (response.data.statusCode === 200) {
         toast.success('Grievance transferred to unit CGM successfully');
+        // Refresh grievance details
+        const updatedResponse = await axiosInstance.get(
+          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+        );
+        if (updatedResponse.data.statusCode === 200) {
+          setGrievance(updatedResponse.data.data);
+        }
+      } else {
+        toast.error('Failed to transfer grievance');
+      }
+    } catch (error) {
+      console.error('Error transferring grievance:', error);
+      toast.error('Failed to transfer grievance');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTransferToHOD = async (formData: FormData) => {
+    try {
+      setLoading(true);
+
+      // Append all grievance properties to FormData
+      const excludedFields = [
+        'attachments',
+        'statusId',
+        'userCode',
+        'userDetails',
+        'assignedUserCode',
+        'assignedUserDetails',
+        'grievanceProcessId',
+        'createdBy',
+        'createdDate',
+        'modifiedBy',
+        'modifiedDate',
+      ];
+      Object.entries(grievance || {}).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && !excludedFields.includes(key)) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Update status and user code
+      formData.set('statusId', grievance?.statusId);
+      formData.set('userCode', user?.EmpCode.toString());
+
+      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance transferred to HOD successfully');
         // Refresh grievance details
         const updatedResponse = await axiosInstance.get(
           `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
@@ -469,6 +535,7 @@ const GrievanceDetails = () => {
                   onResolutionSubmit={handleResolutionSubmit}
                   onTransfer={handleTransfer}
                   onTransferToCGM={handleTransferToCGM}
+                  onTransferToHOD={handleTransferToHOD}
                   onCommentSubmit={handleCommentSubmit}
                   onStatusChange={handleStatusChange}
                 />

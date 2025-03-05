@@ -221,8 +221,10 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
       formData.append('title', data.title);
       formData.append('description', data.description);
       formData.append('serviceId', data.serviceId.toString());
+
       formData.append('userCode', user.EmpCode || '');
       formData.append('userEmail', findEmployeeDetails(employeeList, user?.EmpCode.toString())?.employee?.empEmail);
+      // formData.append('round', '0');
       // formData.append('AssignedUserCode', '');
       // formData.append('AssignedUserDetails', '');
       // Append files
