@@ -18,6 +18,10 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import useUserRoles from '@/hooks/useUserRoles';
+import { Label } from '@/components/ui/label';
+import { toast } from 'react-hot-toast';
+import { environment } from '@/config';
+import { useParams } from 'react-router';
 
 interface GroupMaster {
   id: number;
@@ -42,10 +46,12 @@ interface GrievanceActionsProps {
   setStatus: (status: string) => void;
   handleHodAssignToMembers: (selectedMember: any, commentText: string, attachments: File[]) => void;
   handleGroupChangeByCGM?: (selectedUnit: string) => void;
+  setGrievance: any;
 }
 
 export const GrievanceActions = ({
   grievance,
+  setGrievance,
   isNodalOfficer,
   status,
   setStatus,
@@ -68,19 +74,23 @@ export const GrievanceActions = ({
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isHodDialogOpen, setIsHodDialogOpen] = useState(false);
   const [isHodAssignDialogOpen, setIsHodAssignDialogOpen] = useState(false);
+  const [groupMasterList, setGroupMasterList] = useState<any[]>([]);
   const [rejectFeedback, setRejectFeedback] = useState('');
   const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
   const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isGroupChangeDialogOpen, setIsGroupChangeDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<string>('');
+  const [selectedGroup, setSelectedGroup] = useState<string>('');
   const user = useSelector((state: RootState) => state.user);
   const { isHOD, isUnitCGM } = useUserRoles();
+  const { grievanceId } = useParams();
 
   useEffect(() => {
     const fetchHodGroups = async () => {
       try {
         const response = await axiosInstance.get('/Admin/GetGroupMasterList');
+        setGroupMasterList(response.data.data);
         if (response.data.statusCode === 200) {
           const hodGroupsList = response.data.data.filter((group: GroupMaster) => group.isHOD);
           setHodGroups(hodGroupsList);
@@ -92,6 +102,7 @@ export const GrievanceActions = ({
 
     const fetchHodGroupMembers = async () => {
       const response = await axiosInstance.get(`/Admin/GetGroupMasterList`);
+
       const filteredResponse = response.data.data.filter((item: any) => item.isHOD === true);
       console.log(filteredResponse);
       const serviceDetail = await axiosInstance.get(`/Admin/GetServiceDetail?serviceId=${grievance?.serviceId}`);
@@ -189,10 +200,82 @@ export const GrievanceActions = ({
 
   const handleUnitChange = (value: string) => {
     setSelectedUnit(value);
-    if (handleGroupChangeByCGM) {
-      handleGroupChangeByCGM(value);
+    setSelectedGroup('');
+  };
+
+  const getFilteredGroups = () => {
+    if (selectedUnit === '396') {
+      return groupMasterList.filter((group) => group.isHOD === true);
+    } else {
+      return groupMasterList.filter((group) => !group.isHOD && !group.isCommitee);
     }
-    setIsGroupChangeDialogOpen(false);
+  };
+
+  const handleGroupSubmit = async () => {
+    try {
+      if (!selectedGroup) return;
+
+      const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${selectedGroup}`);
+
+      if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+        // Get the first user from the first array in groupMapping
+        const firstUser = response.data.data.groupMapping[0][0];
+
+        // Create form data for transfer
+        const formData = new FormData();
+
+        // Append all grievance properties to FormData
+        const excludedFields = [
+          'attachments',
+          'statusId',
+          'userCode',
+          'userDetails',
+          'grievanceProcessId',
+          'createdBy',
+          'createdDate',
+          'modifiedBy',
+          'modifiedDate',
+        ];
+        Object.entries(grievance || {}).forEach(([key, value]) => {
+          if (value !== null && value !== undefined && !excludedFields.includes(key)) {
+            formData.append(key, value.toString());
+          }
+        });
+
+        // Set assigned user details from the group
+        formData.set('assignedUserCode', firstUser.userCode);
+        formData.set('assignedUserDetails', firstUser.userDetails);
+        formData.set('userCode', user?.EmpCode.toString());
+        formData.set('statusId', grievance?.statusId);
+        formData.set('isInternal', 'true');
+
+        // Make the API call to transfer
+        const transferResponse = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+
+        if (transferResponse.data.statusCode === 200) {
+          toast.success('Group changed successfully');
+          const updatedResponse = await axiosInstance.get(
+            `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment?.baseUrl}`
+          );
+          if (updatedResponse.data.statusCode === 200) {
+            setGrievance(updatedResponse.data.data);
+          }
+        } else {
+          toast.error('Failed to change group');
+        }
+      }
+    } catch (error) {
+      console.error('Error changing group:', error);
+      toast.error('Failed to change group');
+    } finally {
+      setIsGroupChangeDialogOpen(false);
+      setSelectedUnit('');
+      setSelectedGroup('');
+    }
   };
 
   return (
@@ -346,7 +429,7 @@ export const GrievanceActions = ({
                     Transfer to Nodal Officer
                   </Button>
                 )}
-                {isNodalOfficer && unitId !== '396' && (
+                {isNodalOfficer && user?.unitId !== '396' && (
                   <Button
                     onClick={() => {
                       if (isCommentValid) {
@@ -361,7 +444,7 @@ export const GrievanceActions = ({
                     Transfer to Unit CGM
                   </Button>
                 )}
-                {isNodalOfficer && unitId === '396' && (
+                {isNodalOfficer && user?.unitId === '396' && (
                   <Button
                     onClick={() => setIsHodDialogOpen(true)}
                     className="bg-orange-600 hover:bg-orange-700 text-white h-9 px-4"
@@ -397,19 +480,59 @@ export const GrievanceActions = ({
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Change Group</DialogTitle>
-                  <DialogDescription>Please select a unit to change the group</DialogDescription>
+                  <DialogDescription>Please select a unit and group to change</DialogDescription>
                 </DialogHeader>
-                <div className="py-4">
-                  <Select value={selectedUnit} onValueChange={handleUnitChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="396">Corporate Office</SelectItem>
-                      <SelectItem value={user?.unitId?.toString() || ''}>{user?.Unit || 'Current Unit'}</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="py-4 space-y-4">
+                  <div>
+                    <Label>Select Unit</Label>
+                    <Select value={selectedUnit} onValueChange={handleUnitChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="396">Corporate Office</SelectItem>
+                        <SelectItem value={user?.unitId?.toString() || ''}>{user?.Unit || 'Current Unit'}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {selectedUnit && (
+                    <div>
+                      <Label>Select Group</Label>
+                      <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select Group" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getFilteredGroups().map((group) => (
+                            <SelectItem key={group.id} value={group.id.toString()}>
+                              {group.groupName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsGroupChangeDialogOpen(false);
+                      setSelectedUnit('');
+                      setSelectedGroup('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    onClick={handleGroupSubmit}
+                    disabled={!selectedUnit || !selectedGroup}
+                  >
+                    Change Group
+                  </Button>
+                </DialogFooter>
               </DialogContent>
             </Dialog>
           </div>

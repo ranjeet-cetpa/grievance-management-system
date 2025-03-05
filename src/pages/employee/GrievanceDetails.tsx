@@ -602,6 +602,7 @@ const GrievanceDetails = () => {
                   <div className="space-y-6 w-1/2 h-full">
                     <GrievanceActions
                       grievance={grievance}
+                      setGrievance={setGrievance}
                       isNodalOfficer={isNodalOfficer}
                       status={status}
                       setStatus={setStatus}
