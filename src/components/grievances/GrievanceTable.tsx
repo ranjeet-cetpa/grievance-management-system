@@ -109,9 +109,9 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
       case 1:
         return 'Created';
       case 2:
-        return 'InProgress';
+        return 'In Progress';
       case 3:
-        return 'AwaitingInfo';
+        return 'Awaiting Info';
       case 4:
         return 'Resolved';
       default:

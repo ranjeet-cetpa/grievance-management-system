@@ -111,9 +111,9 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
         <CardContent className="p-4 lg:p-6">
           <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar ">
             {comments.length === 0 ? (
-              <div className="text-center text-gray-500 py-8">No comments yet. Be the first to comment!</div>
+              <div className="text-center text-gray-500 py-8">No comments found</div>
             ) : (
-              comments.map((comment, index) => (
+              [...comments].reverse().map((comment, index) => (
                 <div
                   key={index}
                   className="group animate-fadeIn hover:bg-blue-100/100 p-4 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
@@ -124,23 +124,23 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                                  shadow-sm group-hover:ring-primary/20 transition-all"
                     >
                       <AvatarImage
-                        src={`/avatars/${comment.commentedByName?.toLowerCase().replace(/\s+/g, '-')}.png`}
-                        alt={comment.commentedByName}
+                        src={`/avatars/${comment?.commentedByName?.toLowerCase().replace(/\s+/g, '-')}.png`}
+                        alt={comment?.commentedByName}
                       />
                       <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
-                        {comment.commentedByName?.[0]}
+                        {comment?.commentedByName?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="font-semibold text-gray-900">{comment.commentedByName}</span>
+                          <span className="font-semibold text-gray-900">{comment?.commentedByName}</span>
                           <span className="text-xs text-gray-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
-                            {formatTimestamp(comment.commentedDate)}
+                            {formatTimestamp(comment?.commentedDate)}
                           </span>
                         </div>
-                        {comment.attachment && comment.attachment.length > 0 && (
+                        {comment?.attachment && comment?.attachment.length > 0 && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -154,7 +154,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                       </div>
                       <p
                         className="mt-2.5 text-sm text-gray-600 whitespace-pre-wrap break-words leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: comment.comment }}
+                        dangerouslySetInnerHTML={{ __html: comment?.comment }}
                       />
                     </div>
                   </div>

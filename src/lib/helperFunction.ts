@@ -100,8 +100,8 @@ export const getStatusColor = (status?: string): string => {
   console.log('status color from helper ', status);
   const colors: Record<string, string> = {
     completed: 'bg-green-600 text-white text-xs font-bold',
-    inprogress: 'bg-yellow-600 text-white text-xs font-bold',
-    awaitinginfo: 'bg-purple-600 text-white text-xs font-bold',
+    'in progress': 'bg-yellow-600 text-white text-xs font-bold',
+    'awaiting info': 'bg-purple-600 text-white text-xs font-bold',
     created: 'bg-gray-600 text-white text-xs font-bold',
     resolved: 'bg-blue-600 text-white text-xs font-bold',
   };

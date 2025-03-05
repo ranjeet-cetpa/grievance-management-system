@@ -76,10 +76,12 @@ const GrievanceDetails = () => {
   const [grievance, setGrievance] = useState<GrievanceDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('2');
+  const [activeTab, setActiveTab] = useState('info');
 
   const [resolutionText, setResolutionText] = useState('');
   const [showResolutionInput, setShowResolutionInput] = useState(false);
   const [roleDetails, setRoleDetails] = useState<RoleDetail | null>(null);
+  const [unitCGMDetails, setUnitCGMDetails] = useState<RoleDetail | null>(null);
 
   console.log(isNodalOfficer);
   useEffect(() => {
@@ -102,15 +104,19 @@ const GrievanceDetails = () => {
       }
     };
 
-    fetchGrievanceDetails();
-  }, [grievanceId]);
-
-  useEffect(() => {
     const fetchRoleDetails = async () => {
       try {
-        const response = await axiosInstance.get('/Admin/GetRoleDetail?roleId=1');
-        if (response.data.statusCode === 200) {
-          setRoleDetails(response.data.data);
+        const [nodalResponse, cgmResponse] = await Promise.all([
+          axiosInstance.get('/Admin/GetRoleDetail?roleId=1'),
+          isNodalOfficer ? axiosInstance.get('/Admin/GetRoleDetail?roleId=2') : Promise.resolve(null),
+        ]);
+
+        if (nodalResponse.data.statusCode === 200) {
+          setRoleDetails(nodalResponse.data.data);
+        }
+
+        if (cgmResponse && cgmResponse.data.statusCode === 200) {
+          setUnitCGMDetails(cgmResponse.data.data);
         }
       } catch (error) {
         console.error('Error fetching role details:', error);
@@ -118,8 +124,9 @@ const GrievanceDetails = () => {
       }
     };
 
+    fetchGrievanceDetails();
     fetchRoleDetails();
-  }, []);
+  }, [grievanceId, isNodalOfficer]);
 
   const getStatusText = (statusId: number): string => {
     console.log('this is status id ', statusId);
@@ -128,9 +135,9 @@ const GrievanceDetails = () => {
       case 1:
         return 'Created';
       case 2:
-        return 'InProgress';
+        return 'In Progress';
       case 3:
-        return 'AwaitingInfo';
+        return 'Awaiting Info';
       case 4:
         return 'Resolved';
       default:
@@ -211,6 +218,76 @@ const GrievanceDetails = () => {
 
       if (response.data.statusCode === 200) {
         toast.success('Grievance transferred to nodal officer successfully');
+        // Refresh grievance details
+        const updatedResponse = await axiosInstance.get(
+          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+        );
+        if (updatedResponse.data.statusCode === 200) {
+          setGrievance(updatedResponse.data.data);
+        }
+      } else {
+        toast.error('Failed to transfer grievance');
+      }
+    } catch (error) {
+      console.error('Error transferring grievance:', error);
+      toast.error('Failed to transfer grievance');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTransferToCGM = async () => {
+    try {
+      const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
+
+      if (!addressalUnit || !unitCGMDetails) {
+        toast.error('Unit information or CGM details not available');
+        return;
+      }
+
+      // Find the CGM for the current unit
+      const unitCGM = unitCGMDetails.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
+
+      if (!unitCGM) {
+        toast.error('No CGM found for your unit');
+        return;
+      }
+
+      setLoading(true);
+      const formData = new FormData();
+
+      // Append all grievance properties to FormData
+      const excludedFields = [
+        'attachments',
+        'statusId',
+        'userCode',
+        'userDetails',
+        'grievanceProcessId',
+        'createdBy',
+        'createdDate',
+        'modifiedBy',
+        'modifiedDate',
+      ];
+      Object.entries(grievance || {}).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && !excludedFields.includes(key)) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Update specific fields for transfer
+      formData.set('assignedUserCode', unitCGM.userCode);
+      formData.set('assignedUserDetails', unitCGM.userDetails);
+      formData.set('statusId', grievance?.statusId);
+      formData.set('userCode', user?.EmpCode.toString());
+
+      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance transferred to unit CGM successfully');
         // Refresh grievance details
         const updatedResponse = await axiosInstance.get(
           `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
@@ -357,10 +434,10 @@ const GrievanceDetails = () => {
           <>
             <GrievanceHeader
               title={grievance?.title || ''}
-              statusId={grievance?.statusId || 0}
+              statusId={Number(grievance?.statusId) || 0}
               getStatusText={getStatusText}
             />
-            <Tabs defaultValue="info">
+            <Tabs defaultValue="info" value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4 w-[200px] mx-auto mt-4">
                 <TabsTrigger value="info" className="w-full">
                   Info
@@ -391,6 +468,7 @@ const GrievanceDetails = () => {
                   onAcceptReject={handleAcceptReject}
                   onResolutionSubmit={handleResolutionSubmit}
                   onTransfer={handleTransfer}
+                  onTransferToCGM={handleTransferToCGM}
                   onCommentSubmit={handleCommentSubmit}
                   onStatusChange={handleStatusChange}
                 />

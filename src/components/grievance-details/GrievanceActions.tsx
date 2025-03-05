@@ -54,8 +54,8 @@ export const GrievanceActions = ({
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
   const user = useSelector((state: RootState) => state.user);
-  // const unitId = user?.unitId;
-  const unitId = '396';
+  const unitId = user?.unitId;
+
   console.log('this is nodal officer ', isNodalOfficer);
   const handleStatusChange = (value: string) => {
     setStatus(value);
