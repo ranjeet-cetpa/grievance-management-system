@@ -1,15 +1,15 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { formatTaskStatus, getStatusColor } from '@/lib/helperFunction';
+import { formatTaskStatus, getStatusColor, getStatusText } from '@/lib/helperFunction';
 
 interface Props {
-  status: string;
+  statusId: number;
 }
 
-const StatusBadge: React.FC<Props> = ({ status }) => (
+const StatusBadge: React.FC<Props> = ({ statusId }) => (
   <div>
-    <Badge variant="outline" className={`capitalize text-nowrap ${getStatusColor(status)}`}>
-      {formatTaskStatus(status)}
+    <Badge variant="outline" className={`px-4 py-1 text-sm font-medium ${getStatusColor(getStatusText(statusId))}`}>
+      {getStatusText(statusId)}
     </Badge>
   </div>
 );
