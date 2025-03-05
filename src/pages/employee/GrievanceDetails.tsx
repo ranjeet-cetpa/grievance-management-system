@@ -423,6 +423,68 @@ const GrievanceDetails = () => {
     }
   };
 
+  const handleHodAssignToMembers = async (selectedMember: any, commentText: string, attachments: File[]) => {
+    try {
+      setLoading(true);
+      const formData = new FormData();
+
+      // Append all grievance properties to FormData
+      const excludedFields = [
+        'attachments',
+        'statusId',
+        'userCode',
+        'userDetails',
+        'grievanceProcessId',
+        'createdBy',
+        'createdDate',
+        'modifiedBy',
+        'modifiedDate',
+      ];
+      Object.entries(grievance || {}).forEach(([key, value]) => {
+        if (value !== null && value !== undefined && !excludedFields.includes(key)) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Update specific fields for assignment
+      formData.set('assignedUserCode', selectedMember.userCode);
+      formData.set('assignedUserDetails', selectedMember.userDetails);
+      formData.set('statusId', grievance?.statusId);
+      formData.set('userCode', user?.EmpCode.toString());
+      formData.set('CommentText', commentText);
+      formData.set('isInternal', 'true');
+
+      // Append attachments if any
+      attachments.forEach((file) => {
+        formData.append('attachments', file);
+      });
+
+      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance assigned to member successfully');
+        // Refresh grievance details
+        const updatedResponse = await axiosInstance.get(
+          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+        );
+        if (updatedResponse.data.statusCode === 200) {
+          setGrievance(updatedResponse.data.data);
+        }
+      } else {
+        toast.error('Failed to assign grievance');
+      }
+    } catch (error) {
+      console.error('Error assigning grievance:', error);
+      toast.error('Failed to assign grievance');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleCommentSubmit = async (comment: string, attachments: File[]) => {
     try {
       setLoading(true);
@@ -496,6 +558,10 @@ const GrievanceDetails = () => {
     }
   };
 
+  const handleGroupChangeByCGM = (selectedUnit: string) => {
+    console.log('Selected Unit:', selectedUnit);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">
       <Card className="w-full shadow-md p-4">
@@ -535,6 +601,7 @@ const GrievanceDetails = () => {
                 grievance?.createdBy !== user?.EmpCode && (
                   <div className="space-y-6 w-1/2 h-full">
                     <GrievanceActions
+                      grievance={grievance}
                       isNodalOfficer={isNodalOfficer}
                       status={status}
                       setStatus={setStatus}
@@ -546,7 +613,9 @@ const GrievanceDetails = () => {
                       onTransferToCGM={handleTransferToCGM}
                       onTransferToHOD={handleTransferToHOD}
                       onCommentSubmit={handleCommentSubmit}
+                      handleHodAssignToMembers={handleHodAssignToMembers}
                       onStatusChange={handleStatusChange}
+                      handleGroupChangeByCGM={handleGroupChangeByCGM}
                     />
                   </div>
                 )}

@@ -17,6 +17,7 @@ import { Paperclip } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
+import useUserRoles from '@/hooks/useUserRoles';
 
 interface GroupMaster {
   id: number;
@@ -26,6 +27,7 @@ interface GroupMaster {
 
 interface GrievanceActionsProps {
   isNodalOfficer: boolean;
+  grievance: any;
   isCreator: boolean;
   canAcceptReject: boolean;
   unitId?: number;
@@ -38,32 +40,42 @@ interface GrievanceActionsProps {
   onStatusChange?: (status: number) => void;
   status: string;
   setStatus: (status: string) => void;
+  handleHodAssignToMembers: (selectedMember: any, commentText: string, attachments: File[]) => void;
+  handleGroupChangeByCGM?: (selectedUnit: string) => void;
 }
 
 export const GrievanceActions = ({
+  grievance,
   isNodalOfficer,
   status,
   setStatus,
   isCreator,
   canAcceptReject,
   onAcceptReject,
+  handleHodAssignToMembers,
   onResolutionSubmit,
   onTransfer,
   onTransferToCGM,
   onTransferToHOD,
   onCommentSubmit,
   onStatusChange,
+  handleGroupChangeByCGM,
 }: GrievanceActionsProps) => {
   const [commentText, setCommentText] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [filteredGroupMembers, setFilteredGroupMembers] = useState<any[]>([]);
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [isHodDialogOpen, setIsHodDialogOpen] = useState(false);
+  const [isHodAssignDialogOpen, setIsHodAssignDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
   const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
   const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
+  const [selectedMember, setSelectedMember] = useState<any>(null);
+  const [isGroupChangeDialogOpen, setIsGroupChangeDialogOpen] = useState(false);
+  const [selectedUnit, setSelectedUnit] = useState<string>('');
   const user = useSelector((state: RootState) => state.user);
-  const unitId = user?.unitId;
+  const { isHOD, isUnitCGM } = useUserRoles();
 
   useEffect(() => {
     const fetchHodGroups = async () => {
@@ -78,7 +90,28 @@ export const GrievanceActions = ({
       }
     };
 
+    const fetchHodGroupMembers = async () => {
+      const response = await axiosInstance.get(`/Admin/GetGroupMasterList`);
+      const filteredResponse = response.data.data.filter((item: any) => item.isHOD === true);
+      console.log(filteredResponse);
+      const serviceDetail = await axiosInstance.get(`/Admin/GetServiceDetail?serviceId=${grievance?.serviceId}`);
+
+      const hodGroup = filteredResponse.filter(
+        (item) => item?.hoDofGroupId === serviceDetail.data?.data?.groupMasterId
+      );
+
+      console.log(hodGroup, 'this is hod group');
+      const RequiredGroupDetail = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${hodGroup[0]?.hoDofGroupId}`);
+
+      console.log(RequiredGroupDetail.data.data.groupMapping, 'this is required group detail');
+      const filteredGroupMembers = RequiredGroupDetail.data.data.groupMapping
+        ?.flatMap((mapping) => mapping)
+        ?.filter((member) => member.unitId === '396');
+      setFilteredGroupMembers(filteredGroupMembers);
+    };
+
     fetchHodGroups();
+    fetchHodGroupMembers();
   }, []);
 
   const handleStatusChange = (value: string) => {
@@ -152,6 +185,14 @@ export const GrievanceActions = ({
     } catch (error) {
       console.error('Error transferring to HOD:', error);
     }
+  };
+
+  const handleUnitChange = (value: string) => {
+    setSelectedUnit(value);
+    if (handleGroupChangeByCGM) {
+      handleGroupChangeByCGM(value);
+    }
+    setIsGroupChangeDialogOpen(false);
   };
 
   return (
@@ -250,6 +291,7 @@ export const GrievanceActions = ({
                     </SelectContent>
                   </Select>
                 </div>
+
                 <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
                 <label
                   htmlFor="file-upload"
@@ -328,8 +370,48 @@ export const GrievanceActions = ({
                     Transfer to HOD Group
                   </Button>
                 )}
+                {isHOD && (
+                  <Button
+                    onClick={() => {
+                      setIsHodAssignDialogOpen(true);
+                    }}
+                    disabled={!isCommentValid}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-4"
+                  >
+                    Assign To Members
+                  </Button>
+                )}
+                {isUnitCGM && (
+                  <Button
+                    onClick={() => setIsGroupChangeDialogOpen(true)}
+                    disabled={!isCommentValid}
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
+                  >
+                    Change Group
+                  </Button>
+                )}
               </div>
             </div>
+
+            <Dialog open={isGroupChangeDialogOpen} onOpenChange={setIsGroupChangeDialogOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Change Group</DialogTitle>
+                  <DialogDescription>Please select a unit to change the group</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Select value={selectedUnit} onValueChange={handleUnitChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="396">Corporate Office</SelectItem>
+                      <SelectItem value={user?.unitId?.toString() || ''}>{user?.Unit || 'Current Unit'}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </DialogContent>
+            </Dialog>
           </div>
         )}
 
@@ -363,6 +445,63 @@ export const GrievanceActions = ({
                 disabled={!selectedHodGroup}
               >
                 Transfer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isHodAssignDialogOpen} onOpenChange={setIsHodAssignDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign to Group Member</DialogTitle>
+              <DialogDescription>Please select a member to assign the grievance</DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              <Select
+                value={selectedMember?.userCode}
+                onValueChange={(value) => {
+                  const member = filteredGroupMembers.find((m) => m.userCode === value);
+                  setSelectedMember(member);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredGroupMembers.map((member) => (
+                    <SelectItem key={member.userCode} value={member.userCode}>
+                      {member.userDetails}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsHodAssignDialogOpen(false);
+                  setSelectedMember(null);
+                  setCommentText('');
+                  setAttachments([]);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => {
+                  if (selectedMember) {
+                    handleHodAssignToMembers(selectedMember, commentText, attachments);
+                    setIsHodAssignDialogOpen(false);
+                    setSelectedMember(null);
+                    setCommentText('');
+                    setAttachments([]);
+                  }
+                }}
+                disabled={!selectedMember}
+              >
+                Assign
               </Button>
             </DialogFooter>
           </DialogContent>
