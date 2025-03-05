@@ -156,3 +156,18 @@ export const extractUniqueDepartments = (employees) => {
 
   return uniqueDepartments;
 };
+
+export const getStatusText = (statusId: number): string => {
+  switch (statusId) {
+    case 1:
+      return 'Created';
+    case 2:
+      return 'In Progress';
+    case 3:
+      return 'Awaiting Info';
+    case 4:
+      return 'Resolved';
+    default:
+      return 'Closed';
+  }
+};

@@ -17,7 +17,7 @@ import { GrievanceDescription } from '@/components/grievance-details/GrievanceDe
 import { GrievanceActions } from '@/components/grievance-details/GrievanceActions';
 import { Comments } from '@/components/grievance-details/Comments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { findEmployeeDetails } from '@/lib/helperFunction';
+import { findEmployeeDetails, getStatusText } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
@@ -129,23 +129,6 @@ const GrievanceDetails = () => {
     fetchGrievanceDetails();
     fetchRoleDetails();
   }, [grievanceId, isNodalOfficer]);
-
-  const getStatusText = (statusId: number): string => {
-    console.log('this is status id ', statusId);
-
-    switch (statusId) {
-      case 1:
-        return 'Created';
-      case 2:
-        return 'In Progress';
-      case 3:
-        return 'Awaiting Info';
-      case 4:
-        return 'Resolved';
-      default:
-        return 'Closed';
-    }
-  };
 
   // Example comments data - replace with actual data from your backend
 
@@ -572,11 +555,7 @@ const GrievanceDetails = () => {
         ) : (
           <>
             <div className="flex w-full flex-col">
-              <GrievanceHeader
-                title={grievance?.title || ''}
-                statusId={Number(grievance?.statusId) || 0}
-                getStatusText={getStatusText}
-              />
+              <GrievanceHeader title={grievance?.title || ''} statusId={Number(grievance?.statusId) || 0} />
               <GrievanceInfo
                 userDetails={grievance?.userDetails || ''}
                 createdDate={grievance?.createdDate || ''}

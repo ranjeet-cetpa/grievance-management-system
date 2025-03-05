@@ -94,7 +94,7 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
         header: 'Status',
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <StatusBadge status={getStatusText(row.original.statusId)} />
+            <StatusBadge statusId={row.original.statusId} />
           </div>
         ),
       },
