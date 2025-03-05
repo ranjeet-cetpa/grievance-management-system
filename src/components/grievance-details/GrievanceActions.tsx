@@ -295,13 +295,15 @@ export const GrievanceActions = ({
                 >
                   Submit
                 </Button>
-                <Button
-                  onClick={handleTransfer}
-                  className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
-                  disabled={!isCommentValid}
-                >
-                  Transfer to Nodal Officer
-                </Button>
+                {!isNodalOfficer && (
+                  <Button
+                    onClick={handleTransfer}
+                    className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
+                    disabled={!isCommentValid}
+                  >
+                    Transfer to Nodal Officer
+                  </Button>
+                )}
                 {isNodalOfficer && unitId !== '396' && (
                   <Button
                     onClick={() => {

@@ -452,6 +452,13 @@ const GrievanceDetails = () => {
 
       formData.set('StatusId', status);
       formData.set('userCode', user?.EmpCode.toString());
+      formData.set('assignedUserCode', user?.EmpCode);
+      formData.set(
+        'assignedUserDetails',
+        `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
+          user?.Designation ? `- ${user?.Designation}` : ''
+        } ${user?.Department ? `| ${user?.Department}` : ''}`
+      );
 
       // Add baseUrl if status is 4
       if (status === '4') {
@@ -513,29 +520,36 @@ const GrievanceDetails = () => {
             </div>
             <div className="flex  w-full justify-between h-full gap-2">
               {/* Left Column - Info and Description */}
-              <div className={`space-y-6 ${grievance?.assignedUserCode === user?.EmpCode ? 'w-1/2' : 'w-full'} h-full`}>
+              <div
+                className={`space-y-6 ${
+                  grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === ''
+                    ? 'w-1/2'
+                    : 'w-full'
+                } h-full`}
+              >
                 <GrievanceDescription description={grievance?.description || ''} attachments={grievance?.attachments} />
               </div>
 
               {/* Right Column - Comments and Actions */}
-              {grievance?.assignedUserCode === user?.EmpCode && (
-                <div className="space-y-6 w-1/2 h-full">
-                  <GrievanceActions
-                    isNodalOfficer={isNodalOfficer}
-                    status={status}
-                    setStatus={setStatus}
-                    isCreator={grievance?.isCreator || false}
-                    canAcceptReject={grievance?.canAcceptReject || false}
-                    onAcceptReject={handleAcceptReject}
-                    onResolutionSubmit={handleResolutionSubmit}
-                    onTransfer={handleTransfer}
-                    onTransferToCGM={handleTransferToCGM}
-                    onTransferToHOD={handleTransferToHOD}
-                    onCommentSubmit={handleCommentSubmit}
-                    onStatusChange={handleStatusChange}
-                  />
-                </div>
-              )}
+              {(grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === '') &&
+                grievance?.createdBy !== user?.EmpCode && (
+                  <div className="space-y-6 w-1/2 h-full">
+                    <GrievanceActions
+                      isNodalOfficer={isNodalOfficer}
+                      status={status}
+                      setStatus={setStatus}
+                      isCreator={grievance?.isCreator || false}
+                      canAcceptReject={grievance?.canAcceptReject || false}
+                      onAcceptReject={handleAcceptReject}
+                      onResolutionSubmit={handleResolutionSubmit}
+                      onTransfer={handleTransfer}
+                      onTransferToCGM={handleTransferToCGM}
+                      onTransferToHOD={handleTransferToHOD}
+                      onCommentSubmit={handleCommentSubmit}
+                      onStatusChange={handleStatusChange}
+                    />
+                  </div>
+                )}
             </div>
             <Comments grievanceId={Number(grievanceId)} />
           </>

@@ -14,7 +14,7 @@ export const GrievanceDescription = ({ description, attachments }: GrievanceDesc
   };
 
   return (
-    <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border-gray-100">
+    <Card className="bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-black-600">
       <CardHeader className="border-b border-gray-100 bg-gray-50/40">
         <div className="flex items-center gap-2">
           <FileText className="w-5 h-5 text-primary/80" />
@@ -42,7 +42,7 @@ export const GrievanceDescription = ({ description, attachments }: GrievanceDesc
                 <div
                   key={index}
                   className="group flex items-center bg-gray-50 rounded-lg border border-gray-100 
-                                             hover:border-primary/20 hover:bg-gray-50/80 transition-all duration-200"
+                 hover:border-primary/20 hover:bg-gray-50/80 transition-all duration-200"
                 >
                   <div className="flex-1 min-w-0 p-3">
                     <p className="text-sm font-medium text-gray-700 truncate" title={getFileNameFromUrl(attachment)}>

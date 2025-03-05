@@ -203,7 +203,11 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const handleUserSelectionChange = (selectedOptions) => {
     if (selectedGroupForMapping?.isHOD && selectedOptions?.length > 1) {
       toast.error('HOD groups can only have one user mapped');
-      // Keep only the most recently selected user
+      setSelectedUsers(selectedOptions.slice(-1));
+      return;
+    }
+    if (selectedGroupForMapping?.isCommitee && selectedOptions?.length > 1) {
+      toast.error('Committee groups can only have one user mapped');
       setSelectedUsers(selectedOptions.slice(-1));
       return;
     }
@@ -225,11 +229,17 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
           return;
         }
         if (selectedUnit !== '396') {
-          // Assuming '1' is the Corporate Office unit ID
           toast.error('HOD groups can only map users from Corporate Office');
           setLoading(false);
           return;
         }
+      }
+
+      // Validation for Committee groups
+      if (selectedGroupForMapping.isCommitee && selectedUsers.length > 1) {
+        toast.error('Committee groups can only have one user mapped');
+        setLoading(false);
+        return;
       }
 
       const payload = {

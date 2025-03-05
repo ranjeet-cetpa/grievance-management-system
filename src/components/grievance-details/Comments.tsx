@@ -95,7 +95,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
 
   return (
     <>
-      <Card className="bg-white border-none shadow-sm hover:shadow-md transition-shadow duration-300">
+      <Card className="bg-white mt-2 border-black-600 shadow-sm hover:shadow-md transition-shadow duration-300">
         <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -134,7 +134,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="font-semibold text-gray-900 text-sm">{comment?.commentedByName}</span>
+                          <span className="font-semibold text-gray-900 text-xs">{comment?.commentedByName}</span>
                           <span className="text-[11px] text-gray-400 flex items-center gap-1">
                             <Clock className="w-3 h-3" />
                             {formatTimestamp(comment?.commentedDate)}

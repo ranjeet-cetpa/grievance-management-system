@@ -41,7 +41,7 @@ export const GrievanceInfo = ({ userDetails, createdDate, assignedUserDetails, m
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 animate-fadeIn">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-2   rounded-lg  animate-fadeIn">
       <InfoCard label="Created By" value={userDetails} icon={UserCircle} />
       <InfoCard label="Created Date" value={formatDate(createdDate)} icon={Calendar} />
       <InfoCard label="Assigned To" value={assignedUserDetails || 'Not Assigned'} icon={UserCog} />
