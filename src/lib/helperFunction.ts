@@ -76,12 +76,11 @@ export const findEmployeeDetails = (employees: any, empCode: string) => {
 
 export const formatTaskStatus = (status: string) => {
   const statusMapping = {
-    new: 'New',
-    in_progress: 'In Progress',
-    under_review: 'Under Review',
-    reopen: 'Reopen',
-    pending_extension: 'Pending Extension',
-    completed: 'Completed',
+    Created: 'New',
+    InProgress: 'In Progress',
+    AwaitingInfo: 'Awaiting Info',
+    Resolved: 'Resolved',
+    Closed: 'Closed',
   };
 
   return statusMapping[status] || 'Unknown Status';
@@ -98,13 +97,13 @@ export const getPriorityColor = (priority?: string): string => {
 };
 
 export const getStatusColor = (status?: string): string => {
+  console.log('status color from helper ', status);
   const colors: Record<string, string> = {
     completed: 'bg-green-600 text-white text-xs font-bold',
-    in_progress: 'bg-yellow-600 text-white text-xs font-bold',
-    under_review: 'bg-blue-600 text-white text-xs font-bold',
-    new: 'bg-gray-600 text-white text-xs font-bold',
-    reopen: 'bg-purple-600 text-white text-xs font-bold',
-    pending_extension: 'bg-purple-600 text-white text-xs font-bold',
+    inprogress: 'bg-yellow-600 text-white text-xs font-bold',
+    awaitinginfo: 'bg-purple-600 text-white text-xs font-bold',
+    created: 'bg-gray-600 text-white text-xs font-bold',
+    resolved: 'bg-blue-600 text-white text-xs font-bold',
   };
   return colors[status?.toLowerCase()] || 'bg-gray-500 text-gray-800 text-xs font-bold';
 };

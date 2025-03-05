@@ -14,13 +14,19 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import Heading from '@/components/ui/heading';
 import { Paperclip } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 interface GrievanceActionsProps {
+  isNodalOfficer: boolean;
   isCreator: boolean;
   canAcceptReject: boolean;
+  unitId?: number;
   onAcceptReject: (accept: boolean, feedback?: string) => void;
   onResolutionSubmit: (resolution: string) => void;
   onTransfer: () => void;
+  onTransferToCGM?: () => void;
+  onTransferToHOD?: () => void;
   onCommentSubmit: (comment: string, attachments: File[]) => void;
   onStatusChange?: (status: number) => void;
   status: string;
@@ -28,13 +34,17 @@ interface GrievanceActionsProps {
 }
 
 export const GrievanceActions = ({
+  isNodalOfficer,
   status,
   setStatus,
   isCreator,
   canAcceptReject,
+
   onAcceptReject,
   onResolutionSubmit,
   onTransfer,
+  onTransferToCGM,
+  onTransferToHOD,
   onCommentSubmit,
   onStatusChange,
 }: GrievanceActionsProps) => {
@@ -43,7 +53,10 @@ export const GrievanceActions = ({
   const [isAcceptDialogOpen, setIsAcceptDialogOpen] = useState(false);
   const [isRejectDialogOpen, setIsRejectDialogOpen] = useState(false);
   const [rejectFeedback, setRejectFeedback] = useState('');
-
+  const user = useSelector((state: RootState) => state.user);
+  // const unitId = user?.unitId;
+  const unitId = '396';
+  console.log('this is nodal officer ', isNodalOfficer);
   const handleStatusChange = (value: string) => {
     setStatus(value);
   };
@@ -66,6 +79,17 @@ export const GrievanceActions = ({
       setAttachments([]);
     }
   };
+
+  const handleTransfer = () => {
+    if (commentText.trim()) {
+      onCommentSubmit(commentText, attachments);
+      onTransfer();
+      setCommentText('');
+      setAttachments([]);
+    }
+  };
+
+  const isCommentValid = commentText.trim().length > 0;
 
   return (
     <Card className="bg-white shadow-sm mt-6">
@@ -199,13 +223,49 @@ export const GrievanceActions = ({
                 <Button
                   onClick={handleCommentSubmit}
                   className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!commentText.trim()}
+                  disabled={!isCommentValid}
                 >
                   Submit
                 </Button>
-                <Button onClick={onTransfer} className="bg-purple-600 hover:bg-purple-700 text-white">
+                <Button
+                  onClick={handleTransfer}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  disabled={!isCommentValid}
+                >
                   Transfer to Nodal Officer
                 </Button>
+                {isNodalOfficer && unitId !== '396' && (
+                  <Button
+                    onClick={() => {
+                      if (isCommentValid) {
+                        onCommentSubmit(commentText, attachments);
+                        onTransferToCGM();
+                        setCommentText('');
+                        setAttachments([]);
+                      }
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    disabled={!isCommentValid}
+                  >
+                    Transfer to Unit CGM
+                  </Button>
+                )}
+                {isNodalOfficer && unitId === '396' && (
+                  <Button
+                    onClick={() => {
+                      if (isCommentValid) {
+                        onCommentSubmit(commentText, attachments);
+                        onTransferToHOD();
+                        setCommentText('');
+                        setAttachments([]);
+                      }
+                    }}
+                    className="bg-orange-600 hover:bg-orange-700 text-white"
+                    disabled={!isCommentValid}
+                  >
+                    Transfer to HOD Group
+                  </Button>
+                )}
               </div>
             </div>
           </div>

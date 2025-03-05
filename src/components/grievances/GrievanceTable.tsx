@@ -74,7 +74,7 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
         header: 'Title',
         cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
       },
-      {
+      mode !== 'createdByMe' && {
         id: 'userDetails',
         accessorKey: 'userDetails',
         header: 'Created By',
@@ -100,20 +100,22 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
       },
     ],
     [employeeList]
-  );
+  )?.filter(Boolean);
 
   const getStatusText = (statusId: number): string => {
+    console.log('this is status id ', statusId);
+
     switch (statusId) {
       case 1:
-        return 'new';
+        return 'Created';
       case 2:
-        return 'in_progress';
+        return 'InProgress';
       case 3:
-        return 'resolved';
+        return 'AwaitingInfo';
       case 4:
-        return 'closed';
+        return 'Resolved';
       default:
-        return 'unknown';
+        return 'Closed';
     }
   };
 

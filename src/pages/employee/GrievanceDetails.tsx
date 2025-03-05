@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import useUserRoles from '@/hooks/useUserRoles';
 
 interface GrievanceDetails {
   grievanceId: number;
@@ -68,17 +69,19 @@ interface RoleDetail {
 const GrievanceDetails = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
 
   const navigate = useNavigate();
   const { grievanceId } = useParams();
   const [grievance, setGrievance] = useState<GrievanceDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [status, setStatus] = useState('2'); // Default to "In Progress"
+  const [status, setStatus] = useState('2');
 
   const [resolutionText, setResolutionText] = useState('');
   const [showResolutionInput, setShowResolutionInput] = useState(false);
   const [roleDetails, setRoleDetails] = useState<RoleDetail | null>(null);
 
+  console.log(isNodalOfficer);
   useEffect(() => {
     const fetchGrievanceDetails = async () => {
       try {
@@ -118,76 +121,24 @@ const GrievanceDetails = () => {
     fetchRoleDetails();
   }, []);
 
-  const getStatusText = (status: number): string => {
-    switch (status) {
+  const getStatusText = (statusId: number): string => {
+    console.log('this is status id ', statusId);
+
+    switch (statusId) {
       case 1:
-        return 'New';
+        return 'Created';
       case 2:
-        return 'In Progress';
+        return 'InProgress';
       case 3:
-        return 'Resolved';
+        return 'AwaitingInfo';
       case 4:
-        return 'Closed';
+        return 'Resolved';
       default:
-        return 'Unknown';
+        return 'Closed';
     }
   };
 
   // Example comments data - replace with actual data from your backend
-  const comments = [
-    {
-      id: 1,
-      user: {
-        name: 'Ram Krishna',
-        designation: 'HR Manager',
-        avatar: '/avatars/john.png',
-      },
-      comment: 'This issue needs immediate attention.',
-      timestamp: '2024-03-20T10:00:00',
-    },
-    {
-      id: 1,
-      user: {
-        name: 'Ram Krishna',
-        designation: 'HR Manager',
-        avatar: '/avatars/john.png',
-      },
-      comment: 'This issue needs immediate attention.',
-      timestamp: '2024-03-20T10:00:00',
-    },
-    {
-      id: 1,
-      user: {
-        name: 'Ram Krishna',
-        designation: 'HR Manager',
-        avatar: '/avatars/john.png',
-      },
-      comment: 'This issue needs immediate attention.',
-      timestamp: '2024-03-20T10:00:00',
-    },
-    {
-      id: 1,
-      user: {
-        name: 'Ram Krishna',
-        designation: 'HR Manager',
-        avatar: '/avatars/john.png',
-      },
-      comment: 'This issue needs immediate attention.',
-      timestamp: '2024-03-20T10:00:00',
-    },
-    {
-      id: 1,
-      user: {
-        name: 'Ram Krishna',
-        designation: 'HR Manager',
-        avatar: '/avatars/john.png',
-      },
-      comment: 'This issue needs immediate attention.',
-      timestamp: '2024-03-20T10:00:00',
-    },
-
-    // Add more comments as needed
-  ];
 
   //console.log('grievance', grievance);
   const handleResolutionSubmit = async (resolution: string) => {
@@ -406,7 +357,7 @@ const GrievanceDetails = () => {
           <>
             <GrievanceHeader
               title={grievance?.title || ''}
-              status={grievance?.status || 0}
+              statusId={grievance?.statusId || 0}
               getStatusText={getStatusText}
             />
             <Tabs defaultValue="info">
@@ -429,17 +380,22 @@ const GrievanceDetails = () => {
                 <Comments grievanceId={Number(grievanceId)} />
               </TabsContent>
             </Tabs>
-            <GrievanceActions
-              status={status}
-              setStatus={setStatus}
-              isCreator={grievance?.isCreator || false}
-              canAcceptReject={grievance?.canAcceptReject || false}
-              onAcceptReject={handleAcceptReject}
-              onResolutionSubmit={handleResolutionSubmit}
-              onTransfer={handleTransfer}
-              onCommentSubmit={handleCommentSubmit}
-              onStatusChange={handleStatusChange}
-            />
+            {grievance?.assignedUserCode === user?.EmpCode && (
+              <div>
+                <GrievanceActions
+                  isNodalOfficer={isNodalOfficer}
+                  status={status}
+                  setStatus={setStatus}
+                  isCreator={grievance?.isCreator || false}
+                  canAcceptReject={grievance?.canAcceptReject || false}
+                  onAcceptReject={handleAcceptReject}
+                  onResolutionSubmit={handleResolutionSubmit}
+                  onTransfer={handleTransfer}
+                  onCommentSubmit={handleCommentSubmit}
+                  onStatusChange={handleStatusChange}
+                />
+              </div>
+            )}
           </>
         )}
       </Card>
