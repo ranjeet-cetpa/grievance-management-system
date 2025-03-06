@@ -707,7 +707,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               <TableHeader>
                 <TableRow className=" text-white ">
                   <TableHead className="font-medium text-white">Unit Name</TableHead>
-                  <TableHead className="font-medium text-white">User Code</TableHead>
+
                   <TableHead className="font-medium text-white">User Details</TableHead>
                   <TableHead className="font-medium text-white">Action</TableHead>
                 </TableRow>
@@ -724,7 +724,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   return (
                     <TableRow key={`${user.userCode}-${index}`} className="hover:bg-gray-50  transition-colors">
                       <TableCell>{unitName || 'N/A'}</TableCell>
-                      <TableCell>{userCodes || 'N/A'}</TableCell>
+
                       <TableCell>{userDetails || 'N/A'}</TableCell>
                       <TableCell>
                         <Button variant="ghost" className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto">

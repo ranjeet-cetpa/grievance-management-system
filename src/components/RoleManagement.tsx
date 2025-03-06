@@ -46,6 +46,10 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const [selectedRoleForMapping, setSelectedRoleForMapping] = useState(null);
   const [showMappedUsersTable, setShowMappedUsersTable] = useState(false);
   const [addressalList, setAddressalList] = useState([]);
+  const [addressalGroup, setAddressalGroup] = useState([]);
+  const [hodGroup, setHodGroup] = useState([]);
+  const [committeeGroup, setCommitteeGroup] = useState([]);
+
   const user = useSelector((state) => state.user);
   const employeeList = useSelector((state) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -277,6 +281,14 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
 
       if (response?.data?.statusCode === 200) {
         setAddressalList(response.data.data);
+        setHodGroup(response.data.data[0]?.mappedUserCode?.filter((user) => user.groupDetails.isHOD));
+        setCommitteeGroup(response.data.data[0]?.mappedUserCode?.filter((user) => user.groupDetails.isCommitee));
+        console.log(response.data.data, 'checking . . .');
+        setAddressalGroup(
+          response.data.data[0]?.mappedUserCode?.filter(
+            (user) => !(user.groupDetails.isHOD || user?.groupDetails.isCommitee)
+          )
+        );
       } else {
         toast.error('Failed to fetch addressal list');
       }
@@ -437,29 +449,55 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
                 </div>
 
                 {/* Addressal List Table */}
-                {addressalList.length > 0 ? (
+                {hodGroup?.length > 0 || committeeGroup?.length > 0 || addressalGroup?.length > 0 ? (
                   <Table>
                     <TableHeader>
                       <TableRow className="bg-blue-50">
                         <TableHead className="font-medium">Unit Name</TableHead>
+                        <TableHead>Group</TableHead>
                         <TableHead className="font-medium">User Details</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {addressalList.map((item, index) => (
-                        <TableRow key={`${item.unitId}-${index}`} className="hover:bg-gray-50 transition-colors">
-                          <TableCell className="font-medium">{item.unitName}</TableCell>
+                      {addressalGroup?.length > 0 && (
+                        <TableRow key={`1`} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-medium">{addressalList[0]?.unitName}</TableCell>
+                          <TableCell>{'Addressal Group'}</TableCell>
                           <TableCell>
                             <ul className="list-disc list-inside">
-                              {item.mappedUserCode.map((user, userIndex) => (
-                                <li key={userIndex} className="text-gray-600">
-                                  {user.userDetails}
-                                </li>
+                              {addressalGroup.map((item, index) => (
+                                <li key={index}> {item.userDetails}</li>
                               ))}
                             </ul>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      )}
+                      {hodGroup?.length > 0 && (
+                        <TableRow key={`2`} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-medium">{addressalList[0]?.unitName}</TableCell>
+                          <TableCell>{'HOD Group'}</TableCell>
+                          <TableCell>
+                            <ul className="list-disc list-inside">
+                              {hodGroup.map((item, index) => (
+                                <li key={index}> {item.userDetails}</li>
+                              ))}
+                            </ul>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {committeeGroup?.length > 0 && (
+                        <TableRow key={`3`} className="hover:bg-gray-50 transition-colors">
+                          <TableCell className="font-medium">{addressalList[0]?.unitName}</TableCell>
+                          <TableCell>{'Committee Group'}</TableCell>
+                          <TableCell>
+                            <ul className="list-disc list-inside">
+                              {committeeGroup.map((item, index) => (
+                                <li key={index}> {item.userDetails}</li>
+                              ))}
+                            </ul>
+                          </TableCell>
+                        </TableRow>
+                      )}
                     </TableBody>
                   </Table>
                 ) : (
@@ -492,7 +530,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
                   <TableHeader>
                     <TableRow className="bg-blue-50">
                       <TableHead className="font-medium">Unit Name</TableHead>
-                      <TableHead className="font-medium">User Codes</TableHead>
+
                       <TableHead className="font-medium">User Details</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -500,7 +538,6 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
                     {groupedMappedUsers.map((group, index) => (
                       <TableRow key={`${group.unitName}-${index}`} className="hover:bg-gray-50 transition-colors">
                         <TableCell>{group.unitName}</TableCell>
-                        <TableCell>{group.userCodes.join(', ')}</TableCell>
                         <TableCell>{group.userDetails.join(', ')}</TableCell>
                       </TableRow>
                     ))}
@@ -551,11 +588,18 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectLabel>Units</SelectLabel>
-                      {unitsDD.map((unit) => (
-                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
-                          {unit.unitName}
-                        </SelectItem>
-                      ))}
+                      {unitsDD
+                        ?.filter((u) => {
+                          if (u.unitId === 396 && selectedRole?.id === 2) {
+                            return false;
+                          }
+                          return true;
+                        })
+                        .map((unit) => (
+                          <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
+                            {unit.unitName}
+                          </SelectItem>
+                        ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
