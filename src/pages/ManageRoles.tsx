@@ -14,13 +14,13 @@ const ManageRoles = () => {
             <div>
               <CardTitle className="text-2xl font-bold text-gray-800">Manage Roles</CardTitle>
             </div>
-            <Button
+            {/* <Button
               onClick={() => {
                 setCreateRoleOpen(true);
               }}
             >
               <Plus className="mr-2 h-4 w-4" /> Create Role
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
 

@@ -32,6 +32,7 @@ import logger from '@/lib/logger';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import Loader from './ui/loader';
+import useUserRoles from '@/hooks/useUserRoles';
 
 const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const [roles, setRoles] = useState([]);
@@ -48,6 +49,7 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   const user = useSelector((state) => state.user);
   const employeeList = useSelector((state) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
+  const { isNodalOfficer, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee, isSuperAdmin } = useUserRoles();
 
   const [formData, setFormData] = useState({
     id: '0',
@@ -297,7 +299,6 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
   return (
     <CardContent className="p-6">
       {loading && <Loader />}
-
       {/* Create Role Dialog */}
       <Dialog open={createRoleOpen} onOpenChange={setCreateRoleOpen}>
         <DialogContent className="sm:max-w-md">
@@ -367,31 +368,37 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {roles?.map((role) => (
-              <TableRow key={role.id} className="hover:bg-gray-50 transition-colors">
-                <TableCell className="font-medium text-gray-800 flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
-                    <Shield size={14} />
-                  </div>
-                  {role.roleName}
-                </TableCell>
-                <TableCell className="text-gray-600 max-w-md truncate">{role.description}</TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
-                    onClick={() => showMappedUsersHandler(role)}
-                  >
-                    <Info size={16} className="text-blue-600" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {roles
+              ?.filter((role) => {
+                if (!isSuperAdmin && role.id === 3) {
+                  return false;
+                }
+                return true;
+              })
+              ?.map((role) => (
+                <TableRow key={role.id} className="hover:bg-gray-50 transition-colors">
+                  <TableCell className="font-medium text-gray-800 flex items-center gap-2">
+                    <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs">
+                      <Shield size={14} />
+                    </div>
+                    {role.roleName}
+                  </TableCell>
+                  <TableCell className="text-gray-600 max-w-md truncate">{role.description}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-full hover:bg-blue-100 h-8 w-8 p-0 mx-auto"
+                      onClick={() => showMappedUsersHandler(role)}
+                    >
+                      <Info size={16} className="text-blue-600" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </div>
-
       {/* Mapped Users Table or Special Content for Role ID 4 */}
       {showMappedUsersTable && selectedRoleForMapping && (
         <div className="mt-6 bg-white rounded-lg shadow-sm overflow-hidden">
@@ -522,7 +529,6 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
           )}
         </div>
       )}
-
       {/* Map User Dialog */}
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">

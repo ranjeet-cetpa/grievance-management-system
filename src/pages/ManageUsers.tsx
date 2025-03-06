@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import useUserRoles from '@/hooks/useUserRoles';
 
 const ManageUsers = () => {
   const [activeTab, setActiveTab] = useState('groups');
@@ -16,6 +17,7 @@ const ManageUsers = () => {
   const [createRoleOpen, setCreateRoleOpen] = useState(false);
   const [createServiceOpen, setCreateServiceOpen] = useState(false);
   const user = useSelector((state: RootState) => state.user);
+  const { isNodalOfficer, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee, isSuperAdmin } = useUserRoles();
 
   return (
     <Card className="mt-4 mx-4 shadow-md">
@@ -44,13 +46,13 @@ const ManageUsers = () => {
             )}
           </TabsList>
 
-          {activeTab === 'groups' && (
+          {activeTab === 'groups' && isSuperAdmin && (
             <Button onClick={() => setCreateGroupOpen(true)}>
               <Plus /> Create Group
             </Button>
           )}
 
-          {activeTab === 'services' && (
+          {activeTab === 'services' && isSuperAdmin && (
             <Button onClick={() => setCreateServiceOpen(true)}>
               <Plus /> Create Service
             </Button>
