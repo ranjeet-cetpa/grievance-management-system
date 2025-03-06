@@ -323,7 +323,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
       {loading && <Loader />}
 
       {/* Add Tabs */}
-      <div className="flex w-1/2 space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+      <div className="flex w-1/2 space-x-1 mb-6 bg-gray-100 p-1 rounded-lg mx-auto">
         <Button
           variant={activeTab === 'all' ? 'default' : 'ghost'}
           className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
@@ -559,11 +559,13 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                       <SelectValue placeholder="Select Group" className="mt-4" />
                     </SelectTrigger>
                     <SelectContent>
-                      {parentGroups.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
-                          {group.groupName}
-                        </SelectItem>
-                      ))}
+                      {parentGroups
+                        ?.filter((g) => !(g.isHOD || g.isCommitee))
+                        ?.map((group) => (
+                          <SelectItem key={group.id} value={group.id.toString()}>
+                            {group.groupName}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 )}
