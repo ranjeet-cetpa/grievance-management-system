@@ -111,7 +111,7 @@ const MyGrievances = () => {
             assignedGrievancesResponse.data.statusCode === 200 ? assignedGrievancesResponse.data.data.data : [];
 
           // Combine and remove duplicates based on id
-          const combinedGrievances = [...myGrievances, ...assignedGrievances];
+          const combinedGrievances = [...assignedGrievances];
           const uniqueGrievances = combinedGrievances.filter(
             (grievance, index, self) => index === self.findIndex((g) => g.id === grievance.id)
           );
@@ -257,7 +257,9 @@ const MyGrievances = () => {
                             </TabsTrigger>
                           </TabsList>
                         }
-                        grievances={grievances}
+                        grievances={grievances?.filter(
+                          (g) => g.assignedUserCode?.toString() === user?.EmpCode?.toString()
+                        )}
                       />
                     </TabsContent>
                   )}
