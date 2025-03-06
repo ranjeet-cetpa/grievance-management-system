@@ -375,7 +375,11 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               {/* Unit Dropdown */}
               <div>
                 <Label className="mb-2 block font-medium">Unit:</Label>
-                <Select value={selectedUnit} onValueChange={setSelectedUnit} disabled={selectedGroupForMapping?.isHOD}>
+                <Select
+                  value={selectedGroupForMapping?.isHOD ? '396' : selectedUnit}
+                  onValueChange={setSelectedUnit}
+                  disabled={selectedGroupForMapping?.isHOD}
+                >
                   <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue placeholder={selectedGroupForMapping?.isHOD ? 'Corporate Office' : 'Select a unit'} />
                   </SelectTrigger>
