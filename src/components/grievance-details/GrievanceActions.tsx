@@ -77,6 +77,7 @@ export const GrievanceActions = ({
   const [groupMasterList, setGroupMasterList] = useState<any[]>([]);
   const [rejectFeedback, setRejectFeedback] = useState('');
   const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
+
   const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isGroupChangeDialogOpen, setIsGroupChangeDialogOpen] = useState(false);
@@ -100,24 +101,19 @@ export const GrievanceActions = ({
     };
 
     const fetchHodGroupMembers = async () => {
-      const response = await axiosInstance.get(`/Admin/GetGroupMasterList`);
-
-      const filteredResponse = response.data.data.filter((item: any) => item.isHOD === true);
-      console.log(filteredResponse);
-      const serviceDetail = await axiosInstance.get(`/Admin/GetServiceDetail?serviceId=${grievance?.serviceId}`);
-
-      const hodGroup = filteredResponse.filter(
-        (item) => item?.hoDofGroupId === serviceDetail.data?.data?.groupMasterId
-      );
-
-      console.log(hodGroup, 'this is hod group');
-      const RequiredGroupDetail = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${hodGroup[0]?.hoDofGroupId}`);
-
-      console.log(RequiredGroupDetail.data.data.groupMapping, 'this is required group detail');
-      const filteredGroupMembers = RequiredGroupDetail.data.data.groupMapping
-        ?.flatMap((mapping) => mapping)
-        ?.filter((member) => member.unitId === '396');
-      setFilteredGroupMembers(filteredGroupMembers);
+      const response = await axiosInstance.get(`/Admin/GetAddressalList?unitId=396`);
+      const filteredGroups = response.data.data
+        ?.flatMap((a) => a.mappedUserCode)
+        ?.filter((b) => b.groupDetails?.isHOD && b.userCode === user?.EmpCode?.toString());
+      var arr = [];
+      for (let group of filteredGroups) {
+        const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.groupDetails.hoDofGroupId}`);
+        const filteredGroupMembers = response.data.data.groupMapping
+          ?.flatMap((mapping) => mapping)
+          ?.filter((member) => member.unitId === '396');
+        arr.push(filteredGroupMembers);
+      }
+      setFilteredGroupMembers(...arr);
     };
 
     fetchHodGroups();
