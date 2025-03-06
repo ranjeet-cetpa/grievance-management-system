@@ -415,7 +415,7 @@ export const GrievanceActions = ({
                 >
                   Submit
                 </Button>
-                {!isNodalOfficer && (
+                {!isNodalOfficer && grievance?.round !== 3 && (
                   <Button
                     onClick={handleTransfer}
                     className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
