@@ -327,21 +327,30 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         <Button
           variant={activeTab === 'all' ? 'default' : 'ghost'}
           className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
-          onClick={() => setActiveTab('all')}
+          onClick={() => {
+            setActiveTab('all');
+            setShowMappedUsersTable(false);
+          }}
         >
           Addressal Groups
         </Button>
         <Button
           variant={activeTab === 'hod' ? 'default' : 'ghost'}
           className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
-          onClick={() => setActiveTab('hod')}
+          onClick={() => {
+            setActiveTab('hod');
+            setShowMappedUsersTable(false);
+          }}
         >
           HOD Groups
         </Button>
         <Button
           variant={activeTab === 'committee' ? 'default' : 'ghost'}
           className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
-          onClick={() => setActiveTab('committee')}
+          onClick={() => {
+            setActiveTab('committee');
+            setShowMappedUsersTable(false);
+          }}
         >
           Committee Groups
         </Button>
@@ -386,16 +395,16 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               <div>
                 <Label className="mb-2 block font-medium">Selected Group:</Label>
                 <div className="p-3 bg-blue-50 rounded-md font-medium text-blue-800 flex items-center gap-2">
-                  {selectedGroup ? (
+                  {selectedGroupForMapping ? (
                     <>
                       <div
                         className={`h-6 w-6 rounded-full ${
-                          selectedGroup.isParent ? 'bg-blue-600' : 'bg-purple-500'
+                          selectedGroupForMapping ? 'bg-blue-600' : 'bg-purple-500'
                         } flex items-center justify-center text-white text-xs`}
                       >
-                        {selectedGroup.groupName.charAt(0).toUpperCase()}
+                        {selectedGroupForMapping.groupName.charAt(0).toUpperCase()}
                       </div>
-                      {selectedGroup.groupName}
+                      {selectedGroupForMapping.groupName}
                     </>
                   ) : (
                     'No group selected'
