@@ -358,7 +358,7 @@ const DepartmentManagement = () => {
               {/* Unit Dropdown */}
               <div>
                 <Label className="mb-2 block font-medium">Unit:</Label>
-                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                <Select value={'396'} onValueChange={setSelectedUnit} disabled>
                   <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue placeholder="Select a unit" />
                   </SelectTrigger>
@@ -405,7 +405,7 @@ const DepartmentManagement = () => {
                     <SelectGroup>
                       <SelectLabel>Groups</SelectLabel>
                       {groups
-                        .filter((g) => g.isActive)
+                        .filter((g) => !(g.isHOD || g.isCommitee))
                         .map((group) => (
                           <SelectItem key={group.id} value={group.id.toString()}>
                             {group.groupName}
