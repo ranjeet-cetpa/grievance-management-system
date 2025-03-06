@@ -36,9 +36,7 @@ const RequestPage = () => {
       };
 
       const verificationResponse = await axiosInstance.get(
-        `/Grievance/VerifyResolutionLink?resolutionLink=${
-          environment.baseUrl + '/grievance/' + token.token
-        }&comment=${''}`
+        `/Grievance/VerifyResolutionLink?resolutionLink=${token.token}&comment=${''}`
       );
 
       if (verificationResponse.data.statusCode === 200) {
@@ -84,9 +82,7 @@ const RequestPage = () => {
       };
 
       const verificationResponse = await axiosInstance.get(
-        `/Grievance/VerifyResolutionLink?resolutionLink=${
-          environment.baseUrl + '/grievance/' + token.token
-        }&comment=${encodeURIComponent(rejectionReason)}`
+        `/Grievance/VerifyResolutionLink?resolutionLink=${token.token}&comment=${encodeURIComponent(rejectionReason)}`
       );
 
       if (verificationResponse.data.statusCode === 200) {
