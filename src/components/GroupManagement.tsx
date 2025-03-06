@@ -376,9 +376,9 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               <div>
                 <Label className="mb-2 block font-medium">Unit:</Label>
                 <Select
-                  value={selectedGroupForMapping?.isHOD ? '396' : selectedUnit}
+                  value={selectedGroupForMapping?.isHOD || selectedGroupForMapping?.isCommitee ? '396' : selectedUnit}
                   onValueChange={setSelectedUnit}
-                  disabled={selectedGroupForMapping?.isHOD}
+                  disabled={selectedGroupForMapping?.isHOD || selectedGroupForMapping?.isCommitee}
                 >
                   <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
                     <SelectValue placeholder={selectedGroupForMapping?.isHOD ? 'Corporate Office' : 'Select a unit'} />
@@ -693,7 +693,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             <Button
               onClick={() => {
                 setMapUserOpen(true);
-                if (selectedGroupForMapping?.isHOD) {
+                if (selectedGroupForMapping?.isHOD || selectedGroupForMapping?.isCommitee) {
                   setSelectedUnit('396');
                 }
               }}

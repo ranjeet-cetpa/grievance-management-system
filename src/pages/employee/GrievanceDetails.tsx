@@ -569,7 +569,8 @@ const GrievanceDetails = () => {
               <div
                 className={`space-y-6 ${
                   (grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === '') &&
-                  grievance?.statusId?.toString() !== '5'
+                  grievance?.statusId?.toString() !== '5' &&
+                  grievance?.statusId?.toString() !== '4'
                     ? 'w-1/2'
                     : 'w-full'
                 } h-full`}
@@ -581,6 +582,7 @@ const GrievanceDetails = () => {
               {(grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === '') &&
                 grievance?.createdBy !== user?.EmpCode &&
                 grievance?.statusId?.toString() !== '5' &&
+                grievance?.statusId?.toString() !== '4' &&
                 (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee) && (
                   <div className="space-y-6 w-1/2 h-full">
                     <GrievanceActions
