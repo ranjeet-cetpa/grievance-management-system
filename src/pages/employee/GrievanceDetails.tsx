@@ -152,7 +152,7 @@ const GrievanceDetails = () => {
 
   const handleTransfer = async (commentText, attachments) => {
     try {
-      const addressalUnit = findEmployeeDetails(employeeList, grievance?.createdBy?.toString()).employee?.unitId;
+      const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
       if (!addressalUnit) {
         toast.error('Unit information or role details not available');
