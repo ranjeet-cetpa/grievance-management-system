@@ -319,11 +319,11 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   };
 
   return (
-    <CardContent className="p-6">
+    <CardContent className="p-3 px-6">
       {loading && <Loader />}
 
       {/* Add Tabs */}
-      <div className="flex w-1/2 space-x-1 mb-6 bg-gray-100 p-1 rounded-lg mx-auto">
+      <div className="flex w-2/3 space-x-1 mb-0 bg-gray-100 p-1 rounded-lg ">
         <Button
           variant={activeTab === 'all' ? 'default' : 'ghost'}
           className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
@@ -378,7 +378,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                     <SelectGroup>
                       <SelectLabel>Units</SelectLabel>
                       {selectedGroupForMapping?.isHOD ? (
-                        <SelectItem value="1">Corporate Office</SelectItem>
+                        <SelectItem value="396">Corporate Office</SelectItem>
                       ) : (
                         unitsDD.map((unit) => (
                           <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
