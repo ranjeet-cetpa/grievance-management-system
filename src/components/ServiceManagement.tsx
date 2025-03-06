@@ -473,7 +473,7 @@ const ServiceManagement: React.FC<ServiceManagementProps> = ({ createServiceOpen
                   <SelectGroup>
                     <SelectLabel>Groups</SelectLabel>
                     {groups
-                      .filter((group) => group.isActive)
+                      .filter((group) => !(group.isHOD || group.isCommitee))
                       .map((group) => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.groupName}
