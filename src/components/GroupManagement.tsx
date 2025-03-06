@@ -50,6 +50,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const [mappedUsers, setMappedUsers] = useState([]);
   const [selectedGroupForMapping, setSelectedGroupForMapping] = useState(null);
   const [showMappedUsersTable, setShowMappedUsersTable] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
@@ -182,6 +183,9 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
       description: '',
       isParent: true,
       parentId: null,
+      isHOD: false,
+      isCommitee: false,
+      HODofGroupId: '',
     });
     setIsEditing(false);
   };
@@ -196,6 +200,9 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         description: group.description,
         isParent: group.parentGroupId === null,
         parentId: group.parentGroupId,
+        isHOD: group.isHOD || false,
+        isCommitee: group.isCommitee || false,
+        HODofGroupId: group.HODofGroupId || '',
       });
       setIsEditing(true);
     } else {
@@ -300,9 +307,45 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   // Get parent group options for select
   const parentGroupOptions = groups?.filter((group) => group.parentGroupId === null);
 
+  const filteredGroups = () => {
+    switch (activeTab) {
+      case 'hod':
+        return groups.filter((group) => group.isHOD);
+      case 'committee':
+        return groups.filter((group) => group.isCommitee);
+      default:
+        return groups.filter((group) => !group.isHOD && !group.isCommitee);
+    }
+  };
+
   return (
     <CardContent className="p-6">
       {loading && <Loader />}
+
+      {/* Add Tabs */}
+      <div className="flex w-1/2 space-x-1 mb-6 bg-gray-100 p-1 rounded-lg">
+        <Button
+          variant={activeTab === 'all' ? 'default' : 'ghost'}
+          className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
+          onClick={() => setActiveTab('all')}
+        >
+          Addressal Groups
+        </Button>
+        <Button
+          variant={activeTab === 'hod' ? 'default' : 'ghost'}
+          className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
+          onClick={() => setActiveTab('hod')}
+        >
+          HOD Groups
+        </Button>
+        <Button
+          variant={activeTab === 'committee' ? 'default' : 'ghost'}
+          className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
+          onClick={() => setActiveTab('committee')}
+        >
+          Committee Groups
+        </Button>
+      </div>
 
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">
@@ -467,7 +510,7 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                     <Checkbox
                       id="IsHOD"
                       checked={formData.isHOD}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={(checked: boolean) => {
                         setFormData((prev) => ({
                           ...prev,
                           isHOD: checked,
@@ -576,15 +619,20 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             <TableRow className="bg-primary">
               <TableHead className="text-white font-medium">Group Name</TableHead>
               <TableHead className="text-white font-medium">Description</TableHead>
-              <TableHead className="text-white font-medium w-24 text-center">Action </TableHead>
+              {activeTab === 'hod' && <TableHead className="text-white font-medium">Mapped Group</TableHead>}
+              <TableHead className="text-white font-medium w-24 text-center">Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {parentGroups?.map((group) => (
+            {filteredGroups().map((group) => (
               <React.Fragment key={group.id}>
                 <TableRow className="hover:bg-gray-50 transition-colors">
                   <TableCell className="font-medium text-gray-800 flex items-center gap-2 w-1/3">
-                    <div className="h-6 w-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs flex-shrink-0">
+                    <div
+                      className={`h-6 w-6 rounded-full ${
+                        group.isHOD ? 'bg-orange-600' : group.isCommitee ? 'bg-purple-600' : 'bg-blue-600'
+                      } flex items-center justify-center text-white text-xs flex-shrink-0`}
+                    >
                       {group.groupName.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-nowrap">{group.groupName}</span>
@@ -593,6 +641,14 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   <TableCell className="text-gray-600 w-1/2">
                     <div className="text-wrap max-w-md">{group.description}</div>
                   </TableCell>
+
+                  {activeTab === 'hod' && (
+                    <TableCell className="text-gray-600">
+                      {group.hoDofGroupId
+                        ? groups.find((g) => Number(g?.id) === Number(group?.hoDofGroupId))?.groupName || 'N/A'
+                        : 'Not mapped'}
+                    </TableCell>
+                  )}
 
                   <TableCell className="text-center w-1/6">
                     <div className="flex justify-center items-center gap-1">
@@ -618,36 +674,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                     </div>
                   </TableCell>
                 </TableRow>
-
-                {/* Child groups */}
-                {expandedGroups[group.id] &&
-                  getChildGroups(group.id).map((childGroup) => (
-                    <TableRow key={childGroup.id} className="hover:bg-purple-200 bg-purple-100 transition-colors">
-                      <TableCell className="font-medium text-gray-700 pl-10 flex items-center gap-2 w-1/3">
-                        <div className="h-5 w-5 rounded-md bg-purple-500 flex items-center justify-center text-white text-xs flex-shrink-0">
-                          {childGroup.groupName.charAt(0).toUpperCase()}
-                        </div>
-                        <span className="truncate pl-2">{childGroup.groupName}</span>
-                      </TableCell>
-
-                      <TableCell className="text-gray-600 w-1/2">
-                        <div className="truncate max-w-md">{childGroup.description}</div>
-                      </TableCell>
-
-                      <TableCell className="text-center w-1/6">
-                        <div className="flex justify-center items-center">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-full hover:bg-purple-100 h-8 w-8 p-0"
-                            onClick={() => openGroupDialog(childGroup)}
-                          >
-                            <Edit size={16} className="text-purple-600" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
               </React.Fragment>
             ))}
           </TableBody>
@@ -727,117 +753,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
           </div>
         </div>
       )}
-      {/* Map User Dialog */}
-      <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Map Users to Group</DialogTitle>
-            <DialogDescription className="text-gray-600">
-              {selectedGroup && `Select users to map to "${selectedGroup.groupName}"`}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4">
-            <div className="grid gap-6 sm:grid-cols-2">
-              {/* Unit Dropdown */}
-              <div>
-                <Label className="mb-2 block font-medium">Unit:</Label>
-                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                  <SelectTrigger className="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                    <SelectValue placeholder="Select a unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Units</SelectLabel>
-                      {unitsDD.map((unit) => (
-                        <SelectItem key={unit.unitId} value={unit.unitId.toString()}>
-                          {unit.unitName}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Selected Group Display */}
-              <div>
-                <Label className="mb-2 block font-medium">Selected Group:</Label>
-                <div className="p-3 bg-blue-50 rounded-md font-medium text-blue-800 flex items-center gap-2">
-                  {selectedGroupForMapping ? (
-                    <>
-                      <div
-                        className={`h-6 w-6 rounded-full ${
-                          selectedGroupForMapping.isParent ? 'bg-blue-600' : 'bg-purple-500'
-                        } flex items-center justify-center text-white text-xs`}
-                      >
-                        {selectedGroupForMapping.groupName.charAt(0).toUpperCase()}
-                      </div>
-                      {selectedGroupForMapping.groupName}
-                    </>
-                  ) : (
-                    'No group selected'
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* User Selection */}
-            <Label htmlFor="users" className="mb-2 mt-6 block font-medium">
-              Select Users
-            </Label>
-            <ReactSelect
-              id="users"
-              options={filteredEmployeeList}
-              value={selectedUsers}
-              isMulti
-              onChange={handleUserSelectionChange}
-              className="basic-multi-select"
-              classNamePrefix="select"
-              placeholder={selectedUnit ? 'Select users from this unit' : 'Please select a unit first'}
-              isDisabled={!selectedUnit}
-              styles={{
-                control: (base) => ({
-                  ...base,
-                  borderColor: '#d1d5db',
-                  '&:hover': {
-                    borderColor: '#3b82f6',
-                  },
-                }),
-                multiValue: (base) => ({
-                  ...base,
-                  backgroundColor: '#eff6ff',
-                  borderRadius: '0.375rem',
-                }),
-                multiValueLabel: (base) => ({
-                  ...base,
-                  color: '#1e40af',
-                }),
-                multiValueRemove: (base) => ({
-                  ...base,
-                  color: '#3b82f6',
-                  ':hover': {
-                    backgroundColor: '#dbeafe',
-                    color: '#1e40af',
-                  },
-                }),
-              }}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => handleDialogClose('map')}
-              className="border-gray-300 hover:bg-gray-100"
-            >
-              Cancel
-            </Button>
-            <Button onClick={handleMapUsers} disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white">
-              {loading ? 'Mapping...' : 'Map Users'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* View Mapped Users Dialog */}
       <Dialog open={viewMappedUsersOpen} onOpenChange={setViewMappedUsersOpen}>
