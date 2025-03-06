@@ -51,19 +51,22 @@ interface GrievanceResponse {
 
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
-  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal } = useUserRoles();
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee } = useUserRoles();
 
-  console.log(isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD);
-  // Check if user has any of the special roles
-  const hasSpecialRole = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal;
+  // Check if user has access to assigned grievances
+  const canViewAssignedGrievances = isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee;
 
-  console.log('this is has special role ', hasSpecialRole);
+  // Check if user has access to all grievances
+  const canViewAllGrievances =
+    isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal || isCommittee;
+
   logger.log('Current user:', user);
 
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<string>(
-    hasSpecialRole ? FILTER_OPTIONS.ASSIGNED_TO_ME : FILTER_OPTIONS.CREATED_BY_ME
-  );
+  const [filter, setFilter] = useState<string>(() => {
+    if (canViewAssignedGrievances) return FILTER_OPTIONS.ASSIGNED_TO_ME;
+    return FILTER_OPTIONS.CREATED_BY_ME;
+  });
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
@@ -71,7 +74,7 @@ const MyGrievances = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [pagination, setPagination] = useState({
     pageNumber: 1,
-    pageSize: 10,
+    pageSize: 100000,
     totalRecords: 0,
     totalPages: 1,
   });
@@ -84,7 +87,7 @@ const MyGrievances = () => {
       let response;
 
       // If user has special role, fetch based on selected filter
-      if (hasSpecialRole) {
+      if (canViewAllGrievances) {
         if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
           endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
           response = await axiosInstance.get(endpoint);
@@ -154,7 +157,7 @@ const MyGrievances = () => {
     } finally {
       setLoading(false);
     }
-  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize, hasSpecialRole]);
+  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize, canViewAllGrievances]);
 
   // Fetch grievances when filter or refresh changes
   useEffect(() => {
@@ -195,8 +198,8 @@ const MyGrievances = () => {
         <div className="flex p-6">
           <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
             <div className="w-full mt-4 px-2 sm:px-0 hidden sm:table">
-              {hasSpecialRole ? (
-                // Show all tabs for special roles
+              {canViewAllGrievances ? (
+                // Show appropriate tabs based on user roles
                 <>
                   <TabsContent value={FILTER_OPTIONS.ALL}>
                     <GrievanceTable
@@ -209,40 +212,14 @@ const MyGrievances = () => {
                           >
                             All Grievances
                           </TabsTrigger>
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                          >
-                            Assigned to Me
-                          </TabsTrigger>
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.CREATED_BY_ME}
-                          >
-                            Created by Me
-                          </TabsTrigger>
-                        </TabsList>
-                      }
-                      grievances={grievances}
-                    />
-                  </TabsContent>
-                  <TabsContent value={FILTER_OPTIONS.ASSIGNED_TO_ME}>
-                    <GrievanceTable
-                      mode={'assignedToMe'}
-                      rightElement={
-                        <TabsList className="">
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.ALL}
-                          >
-                            All Grievances
-                          </TabsTrigger>
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                          >
-                            Assigned to Me
-                          </TabsTrigger>
+                          {canViewAssignedGrievances && (
+                            <TabsTrigger
+                              className="w-full sm:w-[200px] md:w-[220px] transition"
+                              value={FILTER_OPTIONS.ASSIGNED_TO_ME}
+                            >
+                              Assigned to Me
+                            </TabsTrigger>
+                          )}
                           <TabsTrigger
                             className="w-full sm:w-[200px] md:w-[220px] transition"
                             value={FILTER_OPTIONS.CREATED_BY_ME}
@@ -254,6 +231,36 @@ const MyGrievances = () => {
                       grievances={grievances}
                     />
                   </TabsContent>
+                  {canViewAssignedGrievances && (
+                    <TabsContent value={FILTER_OPTIONS.ASSIGNED_TO_ME}>
+                      <GrievanceTable
+                        mode={'assignedToMe'}
+                        rightElement={
+                          <TabsList className="">
+                            <TabsTrigger
+                              className="w-full sm:w-[200px] md:w-[220px] transition"
+                              value={FILTER_OPTIONS.ALL}
+                            >
+                              All Grievances
+                            </TabsTrigger>
+                            <TabsTrigger
+                              className="w-full sm:w-[200px] md:w-[220px] transition"
+                              value={FILTER_OPTIONS.ASSIGNED_TO_ME}
+                            >
+                              Assigned to Me
+                            </TabsTrigger>
+                            <TabsTrigger
+                              className="w-full sm:w-[200px] md:w-[220px] transition"
+                              value={FILTER_OPTIONS.CREATED_BY_ME}
+                            >
+                              Created by Me
+                            </TabsTrigger>
+                          </TabsList>
+                        }
+                        grievances={grievances}
+                      />
+                    </TabsContent>
+                  )}
                   <TabsContent value={FILTER_OPTIONS.CREATED_BY_ME}>
                     <GrievanceTable
                       mode={'createdByMe'}
@@ -265,12 +272,14 @@ const MyGrievances = () => {
                           >
                             All Grievances
                           </TabsTrigger>
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                          >
-                            Assigned to Me
-                          </TabsTrigger>
+                          {canViewAssignedGrievances && (
+                            <TabsTrigger
+                              className="w-full sm:w-[200px] md:w-[220px] transition"
+                              value={FILTER_OPTIONS.ASSIGNED_TO_ME}
+                            >
+                              Assigned to Me
+                            </TabsTrigger>
+                          )}
                           <TabsTrigger
                             className="w-full sm:w-[200px] md:w-[220px] transition"
                             value={FILTER_OPTIONS.CREATED_BY_ME}
@@ -329,17 +338,19 @@ const MyGrievances = () => {
                 {/* Mobile view tabs */}
                 <div className="w-full mt-4 sm:hidden block">
                   <TabsList className="">
-                    {hasSpecialRole ? (
+                    {canViewAllGrievances ? (
                       <>
                         <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
                           All Grievances
                         </TabsTrigger>
-                        <TabsTrigger
-                          className="w-full sm:w-[200px] md:w-[220px] transition"
-                          value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                        >
-                          Assigned to Me
-                        </TabsTrigger>
+                        {canViewAssignedGrievances && (
+                          <TabsTrigger
+                            className="w-full sm:w-[200px] md:w-[220px] transition"
+                            value={FILTER_OPTIONS.ASSIGNED_TO_ME}
+                          >
+                            Assigned to Me
+                          </TabsTrigger>
+                        )}
                         <TabsTrigger
                           className="w-full sm:w-[200px] md:w-[220px] transition"
                           value={FILTER_OPTIONS.CREATED_BY_ME}

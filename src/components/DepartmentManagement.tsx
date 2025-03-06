@@ -66,7 +66,7 @@ const DepartmentManagement = () => {
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedUnit, setSelectedUnit] = useState(null);
+  const [selectedUnit, setSelectedUnit] = useState('396');
   const [groups, setGroups] = useState<GroupMaster[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [groupDetail, setGroupDetail] = useState<GroupDetail | null>(null);
