@@ -102,8 +102,8 @@ export const GrievanceActions = ({
 
     const fetchHodGroupMembers = async () => {
       const response = await axiosInstance.get(`/Admin/GetAddressalList?unitId=396`);
-      const filteredGroups = response.data.data
-        ?.flatMap((a) => a.mappedUserCode)
+      const filteredGroups = response.data?.data
+        ?.flatMap((a) => a?.mappedUserCode)
         ?.filter((b) => b.groupDetails?.isHOD && b.userCode === user?.EmpCode?.toString());
       var arr = [];
       for (let group of filteredGroups) {
@@ -391,7 +391,7 @@ export const GrievanceActions = ({
               <div className="space-y-2">
                 {attachments.length > 0 && (
                   <div className="space-y-1">
-                    {attachments.map((file, index) => (
+                    {attachments?.map((file, index) => (
                       <div key={index} className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md">
                         <span className="text-sm truncate">{file.name}</span>
                         <Button
@@ -499,7 +499,7 @@ export const GrievanceActions = ({
                           <SelectValue placeholder="Select Group" />
                         </SelectTrigger>
                         <SelectContent>
-                          {getFilteredGroups().map((group) => (
+                          {getFilteredGroups()?.map((group) => (
                             <SelectItem key={group.id} value={group.id.toString()}>
                               {group.groupName}
                             </SelectItem>
@@ -545,7 +545,7 @@ export const GrievanceActions = ({
                   <SelectValue placeholder="Select HOD Group" />
                 </SelectTrigger>
                 <SelectContent>
-                  {hodGroups.map((group) => (
+                  {hodGroups?.map((group) => (
                     <SelectItem key={group.id} value={group.id.toString()}>
                       {group.groupName}
                     </SelectItem>
@@ -586,7 +586,7 @@ export const GrievanceActions = ({
                   <SelectValue placeholder="Select Member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredGroupMembers.map((member) => (
+                  {filteredGroupMembers?.map((member) => (
                     <SelectItem key={member.userCode} value={member.userCode}>
                       {member.userDetails}
                     </SelectItem>

@@ -160,7 +160,7 @@ const GrievanceDetails = () => {
       }
 
       // Find the nodal officer for the current unit
-      const unitNodalOfficer = roleDetails.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
+      const unitNodalOfficer = roleDetails?.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
 
       if (!unitNodalOfficer) {
         toast.error('No nodal officer found for your unit');
@@ -234,7 +234,7 @@ const GrievanceDetails = () => {
       }
 
       // Find the CGM for the current unit
-      const unitCGM = unitCGMDetails.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
+      const unitCGM = unitCGMDetails?.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
 
       if (!unitCGM) {
         toast.error('No CGM found for your unit');
