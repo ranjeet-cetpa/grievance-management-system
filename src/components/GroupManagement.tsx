@@ -568,29 +568,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
                   </Select>
                 )}
               </div>
-
-              {!formData.isParent && (
-                <div className="grid gap-2">
-                  <Label htmlFor="parentId" className="font-medium">
-                    Parent Group
-                  </Label>
-                  <ShadSelect
-                    onValueChange={handleParentSelection}
-                    value={formData.parentId ? formData.parentId.toString() : undefined}
-                  >
-                    <SelectTrigger className="border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                      <SelectValue placeholder="Select parent group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {parentGroupOptions.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
-                          {group.groupName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </ShadSelect>
-                </div>
-              )}
             </div>
 
             <DialogFooter>
