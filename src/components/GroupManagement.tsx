@@ -690,7 +690,14 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
               </div>{' '}
               User Mapping for Group "{selectedGroupForMapping?.groupName}"
             </h3>
-            <Button onClick={() => setMapUserOpen(true)}>
+            <Button
+              onClick={() => {
+                setMapUserOpen(true);
+                if (selectedGroupForMapping?.isHOD) {
+                  setSelectedUnit('396');
+                }
+              }}
+            >
               <Plus /> Map Users{' '}
             </Button>
           </div>
