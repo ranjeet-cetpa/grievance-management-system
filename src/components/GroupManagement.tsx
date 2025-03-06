@@ -68,6 +68,12 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   };
 
   const formattedEmployeeList = employeeList?.map(formatEmployeeForSelect);
+
+  // Filter employees based on selected unit
+  const filteredEmployeeList = selectedUnit
+    ? formattedEmployeeList?.filter((employee) => employee.original.unitId?.toString() === selectedUnit?.toString())
+    : [];
+
   const [formData, setFormData] = useState({
     id: '0',
     name: '',
@@ -361,12 +367,14 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             </Label>
             <ReactSelect
               id="users"
-              options={formattedEmployeeList}
+              options={filteredEmployeeList}
               value={selectedUsers}
+              isMulti
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select users to map to this group"
+              placeholder={selectedUnit ? 'Select users from this unit' : 'Please select a unit first'}
+              isDisabled={!selectedUnit}
               styles={{
                 control: (base) => ({
                   ...base,
@@ -779,13 +787,14 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
             </Label>
             <ReactSelect
               id="users"
-              options={formattedEmployeeList}
+              options={filteredEmployeeList}
               value={selectedUsers}
               isMulti
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select users to map to this group"
+              placeholder={selectedUnit ? 'Select users from this unit' : 'Please select a unit first'}
+              isDisabled={!selectedUnit}
               styles={{
                 control: (base) => ({
                   ...base,

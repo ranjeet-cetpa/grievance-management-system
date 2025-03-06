@@ -68,6 +68,12 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
 
   const formattedEmployeeList = employeeList?.map(formatEmployeeForSelect);
 
+  // Add new function to filter employees by unit
+  const getFilteredEmployeeOptions = () => {
+    if (!selectedUnit || !employeeList) return [];
+    return employeeList.filter((employee) => employee.unitId?.toString() === selectedUnit).map(formatEmployeeForSelect);
+  };
+
   // Group mapped users by unit
   const groupUsersByUnit = (users) => {
     const groupedUsers = {};
@@ -573,12 +579,13 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
             </Label>
             <ReactSelect
               id="users"
-              options={formattedEmployeeList}
+              options={getFilteredEmployeeOptions()}
               value={selectedUsers}
               onChange={handleUserSelectionChange}
               className="basic-multi-select"
               classNamePrefix="select"
-              placeholder="Select a user to map to this role"
+              placeholder={selectedUnit ? 'Select a user to map to this role' : 'Please select a unit first'}
+              isDisabled={!selectedUnit}
               styles={{
                 control: (base) => ({
                   ...base,
