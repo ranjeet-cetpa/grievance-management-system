@@ -7,12 +7,15 @@ import DepartmentManagement from '@/components/DepartmentManagement';
 import ServiceManagement from '@/components/ServiceManagement';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 const ManageUsers = () => {
   const [activeTab, setActiveTab] = useState('groups');
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [createRoleOpen, setCreateRoleOpen] = useState(false);
   const [createServiceOpen, setCreateServiceOpen] = useState(false);
+  const user = useSelector((state: RootState) => state.user);
 
   return (
     <Card className="mt-4 mx-4 shadow-md">
@@ -34,9 +37,11 @@ const ManageUsers = () => {
             <TabsTrigger className="w-full" value="groups">
               Manage Groups
             </TabsTrigger>
-            <TabsTrigger className="w-full" value="departments">
-              Manage Departments
-            </TabsTrigger>
+            {user?.unitId === '396' && (
+              <TabsTrigger className="w-full" value="departments">
+                Manage Departments
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {activeTab === 'groups' && (

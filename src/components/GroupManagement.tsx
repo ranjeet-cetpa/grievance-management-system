@@ -334,26 +334,31 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
         >
           Addressal Groups
         </Button>
-        <Button
-          variant={activeTab === 'hod' ? 'default' : 'ghost'}
-          className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
-          onClick={() => {
-            setActiveTab('hod');
-            setShowMappedUsersTable(false);
-          }}
-        >
-          HOD Groups
-        </Button>
-        <Button
-          variant={activeTab === 'committee' ? 'default' : 'ghost'}
-          className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
-          onClick={() => {
-            setActiveTab('committee');
-            setShowMappedUsersTable(false);
-          }}
-        >
-          Committee Groups
-        </Button>
+        {user?.unitId === '396' && (
+          <>
+            {' '}
+            <Button
+              variant={activeTab === 'hod' ? 'default' : 'ghost'}
+              className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
+              onClick={() => {
+                setActiveTab('hod');
+                setShowMappedUsersTable(false);
+              }}
+            >
+              HOD Groups
+            </Button>
+            <Button
+              variant={activeTab === 'committee' ? 'default' : 'ghost'}
+              className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
+              onClick={() => {
+                setActiveTab('committee');
+                setShowMappedUsersTable(false);
+              }}
+            >
+              Committee Groups
+            </Button>
+          </>
+        )}
       </div>
 
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
