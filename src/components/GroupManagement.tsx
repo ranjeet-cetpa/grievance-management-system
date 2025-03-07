@@ -323,43 +323,41 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
       {loading && <Loader />}
 
       {/* Add Tabs */}
-      <div className="flex w-2/3 space-x-1 mb-0 bg-gray-100 p-1 rounded-lg ">
-        <Button
-          variant={activeTab === 'all' ? 'default' : 'ghost'}
-          className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
-          onClick={() => {
-            setActiveTab('all');
-            setShowMappedUsersTable(false);
-          }}
-        >
-          Addressal Groups
-        </Button>
-        {user?.unitId === '396' && (
-          <>
-            {' '}
-            <Button
-              variant={activeTab === 'hod' ? 'default' : 'ghost'}
-              className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
-              onClick={() => {
-                setActiveTab('hod');
-                setShowMappedUsersTable(false);
-              }}
-            >
-              HOD Groups
-            </Button>
-            <Button
-              variant={activeTab === 'committee' ? 'default' : 'ghost'}
-              className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
-              onClick={() => {
-                setActiveTab('committee');
-                setShowMappedUsersTable(false);
-              }}
-            >
-              Committee Groups
-            </Button>
-          </>
-        )}
-      </div>
+      {user?.unitId === '396' && (
+        <div className="flex w-2/3 space-x-1 mb-0 bg-gray-100 p-1 rounded-lg ">
+          <Button
+            variant={activeTab === 'all' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'all' ? ' shadow-sm' : ''}`}
+            onClick={() => {
+              setActiveTab('all');
+              setShowMappedUsersTable(false);
+            }}
+          >
+            Addressal Groups
+          </Button>
+
+          <Button
+            variant={activeTab === 'hod' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'hod' ? ' shadow-sm' : ''}`}
+            onClick={() => {
+              setActiveTab('hod');
+              setShowMappedUsersTable(false);
+            }}
+          >
+            HOD Groups
+          </Button>
+          <Button
+            variant={activeTab === 'committee' ? 'default' : 'ghost'}
+            className={`flex-1 ${activeTab === 'committee' ? 'shadow-sm' : ''}`}
+            onClick={() => {
+              setActiveTab('committee');
+              setShowMappedUsersTable(false);
+            }}
+          >
+            Committee Groups
+          </Button>
+        </div>
+      )}
 
       <Dialog open={mapUserOpen} onOpenChange={setMapUserOpen}>
         <DialogContent className="sm:max-w-2xl">

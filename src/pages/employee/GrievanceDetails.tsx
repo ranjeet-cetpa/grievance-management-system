@@ -69,7 +69,7 @@ interface RoleDetail {
 const GrievanceDetails = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
-  const { isNodalOfficer, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee } = useUserRoles();
+  const { isNodalOfficer, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee, isUser } = useUserRoles();
 
   const navigate = useNavigate();
   const { grievanceId } = useParams();
@@ -568,9 +568,12 @@ const GrievanceDetails = () => {
               {/* Left Column - Info and Description */}
               <div
                 className={`space-y-6 ${
-                  (grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === '') &&
+                  (grievance?.assignedUserCode === user?.EmpCode ||
+                    grievance?.assignedUserCode === '' ||
+                    grievance?.createdBy.toString() === user?.EmpCode.toString()) &&
                   grievance?.statusId?.toString() !== '5' &&
-                  grievance?.statusId?.toString() !== '4'
+                  grievance?.statusId?.toString() !== '4' &&
+                  (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee || isUser)
                     ? 'w-1/2'
                     : 'w-full'
                 } h-full`}
@@ -579,11 +582,12 @@ const GrievanceDetails = () => {
               </div>
 
               {/* Right Column - Comments and Actions */}
-              {(grievance?.assignedUserCode === user?.EmpCode || grievance?.assignedUserCode === '') &&
-                grievance?.createdBy !== user?.EmpCode &&
+              {(grievance?.assignedUserCode === user?.EmpCode ||
+                grievance?.assignedUserCode === '' ||
+                grievance?.createdBy.toString() === user?.EmpCode.toString()) &&
                 grievance?.statusId?.toString() !== '5' &&
                 grievance?.statusId?.toString() !== '4' &&
-                (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee) && (
+                (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee || isUser) && (
                   <div className="space-y-6 w-1/2 h-full">
                     <GrievanceActions
                       grievance={grievance}

@@ -13,7 +13,6 @@ const useUserRoles = () => {
   const isUser = roles.includes('user');
   const isAddressal = roles.includes('addressal');
   const isCommittee = roles.includes('committee');
-
   return {
     isNodalOfficer,
     isSuperAdmin,

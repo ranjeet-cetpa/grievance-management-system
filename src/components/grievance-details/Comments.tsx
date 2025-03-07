@@ -49,7 +49,12 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
 
         if (response.data.statusCode === 200) {
           const allComments = response.data.data.map((item: GrievanceHistory) => item.commentDetails[0]);
-          setComments(allComments);
+          console.log(allComments, 'allComments');
+          if (allComments[0] === undefined) {
+            setComments([]);
+          } else {
+            setComments(allComments);
+          }
         } else {
           toast.error('Failed to fetch comments');
         }

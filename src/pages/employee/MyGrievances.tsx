@@ -228,7 +228,9 @@ const MyGrievances = () => {
                           </TabsTrigger>
                         </TabsList>
                       }
-                      grievances={grievances}
+                      grievances={grievances?.filter(
+                        (g) => g.assignedUserCode?.toString() !== user?.EmpCode?.toString()
+                      )}
                     />
                   </TabsContent>
                   {canViewAssignedGrievances && (

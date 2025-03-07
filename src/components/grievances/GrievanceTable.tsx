@@ -17,17 +17,39 @@ interface GrievanceTableProps {
   mode?: string;
 }
 
-const updateGrievanceStatus = async (rowData: any) => {
+const updateGrievanceStatus = async (rowData: any, user) => {
+  console.log('inside update status func');
   try {
-    const updatedGrievance = {
-      ...rowData,
-      statusId: '2',
-    };
-    // const response = await axiosInstance.post('/GrievanceManager/AddUpdateGrievance', updatedGrievance);
-    // if (response.data.statusCode === 200) {
-    //   toast.success('Grievance is now in progress');
-    // }
-    console.log('this is updated grievance', updatedGrievance);
+    const formData = new FormData();
+
+    // Append all grievance properties to FormData
+    Object.entries(rowData).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(key, value.toString());
+      }
+    });
+
+    // Update status
+    formData.set('statusId', '2');
+    formData.set('assignedUserCode', user?.EmpCode?.toString());
+    formData.set(
+      'assignedUserDetails',
+      `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
+        user?.Designation ? `- ${user?.Designation}` : ''
+      } ${user?.Department ? `| ${user?.Department}` : ''}`
+    );
+    formData.set('grievanceMasterId', rowData.id.toString());
+
+    const response = await axiosInstance.post('/Grievance/AddUpdateGrievance', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    if (response.data.statusCode === 200) {
+      toast.success('Grievance is now in progress');
+    }
+    console.log('this is updated grievance', Object.fromEntries(formData));
   } catch (error) {
     console.error('Error updating grievance status:', error);
     toast.error('Failed to update grievance status');
@@ -77,7 +99,7 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
       {
         id: 'title',
         accessorKey: 'title',
-        header: 'Title',
+        header: 'Subject',
         cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
       },
       mode !== 'createdByMe' && {
@@ -131,8 +153,12 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
       columns={columns}
       rightElements={rightElement}
       onRowClick={async (rowData) => {
-        if (rowData?.assignedUserCode === user?.EmpCode?.toString() && rowData?.statusId === 1) {
-          await updateGrievanceStatus(rowData);
+        if (
+          (rowData?.assignedUserCode === user?.EmpCode?.toString() || rowData?.assignedUserCode === '') &&
+          rowData?.statusId === 1 &&
+          rowData?.createdBy?.toString() !== user?.EmpCode?.toString()
+        ) {
+          await updateGrievanceStatus(rowData, user);
         }
         navigate(`/grievances/${rowData.id.toString().trim()}`);
       }}

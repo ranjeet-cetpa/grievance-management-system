@@ -354,29 +354,31 @@ export const GrievanceActions = ({
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Heading type={6} className="text-gray-700">
-                    Change Status
-                  </Heading>
-                  <Select value={status} onValueChange={handleStatusChange}>
-                    <SelectTrigger className="w-[180px] h-9">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    {grievance?.round !== 3 && (
-                      <SelectContent>
-                        <SelectItem value="2">In Progress</SelectItem>
-                        <SelectItem value="3">Awaiting Info</SelectItem>
-                        <SelectItem value="4">Resolved</SelectItem>
-                      </SelectContent>
-                    )}
-                    {grievance?.round === 3 && (
-                      <SelectContent>
-                        <SelectItem value="2">In Progress</SelectItem>
-                        <SelectItem value="5">Closed</SelectItem>
-                      </SelectContent>
-                    )}
-                  </Select>
-                </div>
+                {grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                  <div className="flex items-center gap-4">
+                    <Heading type={6} className="text-gray-700">
+                      Change Status
+                    </Heading>
+                    <Select value={status} onValueChange={handleStatusChange}>
+                      <SelectTrigger className="w-[180px] h-9">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      {grievance?.round !== 3 && (
+                        <SelectContent>
+                          <SelectItem value="2">In Progress</SelectItem>
+                          <SelectItem value="3">Awaiting Info</SelectItem>
+                          <SelectItem value="4">Resolved</SelectItem>
+                        </SelectContent>
+                      )}
+                      {grievance?.round === 3 && (
+                        <SelectContent>
+                          <SelectItem value="2">In Progress</SelectItem>
+                          <SelectItem value="5">Closed</SelectItem>
+                        </SelectContent>
+                      )}
+                    </Select>
+                  </div>
+                )}
 
                 <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
                 <label
@@ -423,40 +425,46 @@ export const GrievanceActions = ({
                 >
                   Submit
                 </Button>
-                {!isNodalOfficer && grievance?.round !== 3 && (
-                  <Button
-                    onClick={handleTransfer}
-                    className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
-                    disabled={!isCommentValid}
-                  >
-                    Transfer to Nodal Officer
-                  </Button>
-                )}
-                {isNodalOfficer && user?.unitId !== '396' && (
-                  <Button
-                    onClick={() => {
-                      if (isCommentValid) {
-                        onTransferToCGM(commentText, attachments);
-                        setCommentText('');
-                        setAttachments([]);
-                      }
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
-                    disabled={!isCommentValid}
-                  >
-                    Transfer to Unit CGM
-                  </Button>
-                )}
-                {isNodalOfficer && user?.unitId === '396' && (
-                  <Button
-                    onClick={() => setIsHodDialogOpen(true)}
-                    className="bg-orange-600 hover:bg-orange-700 text-white h-9 px-4"
-                    disabled={!isCommentValid}
-                  >
-                    Transfer to HOD Group
-                  </Button>
-                )}
-                {isHOD && (
+                {!isNodalOfficer &&
+                  grievance?.round !== 3 &&
+                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                    <Button
+                      onClick={handleTransfer}
+                      className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
+                      disabled={!isCommentValid}
+                    >
+                      Transfer to Nodal Officer
+                    </Button>
+                  )}
+                {isNodalOfficer &&
+                  user?.unitId !== '396' &&
+                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                    <Button
+                      onClick={() => {
+                        if (isCommentValid) {
+                          onTransferToCGM(commentText, attachments);
+                          setCommentText('');
+                          setAttachments([]);
+                        }
+                      }}
+                      className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
+                      disabled={!isCommentValid}
+                    >
+                      Transfer to Unit CGM
+                    </Button>
+                  )}
+                {isNodalOfficer &&
+                  user?.unitId === '396' &&
+                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                    <Button
+                      onClick={() => setIsHodDialogOpen(true)}
+                      className="bg-orange-600 hover:bg-orange-700 text-white h-9 px-4"
+                      disabled={!isCommentValid}
+                    >
+                      Transfer to HOD Group
+                    </Button>
+                  )}
+                {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
                   <Button
                     onClick={() => {
                       setIsHodAssignDialogOpen(true);
@@ -467,7 +475,7 @@ export const GrievanceActions = ({
                     Assign To Members
                   </Button>
                 )}
-                {isUnitCGM && (
+                {isUnitCGM && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
                   <Button
                     onClick={() => setIsGroupChangeDialogOpen(true)}
                     disabled={!isCommentValid}
