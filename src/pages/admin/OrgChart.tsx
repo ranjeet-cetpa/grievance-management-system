@@ -23,8 +23,8 @@ const OrgChart: React.FC = () => {
     id: '1',
     employee: {
       id: '1',
-      name: 'Margaret C. Whitman',
-      position: 'President & CEO',
+      name: 'Alok Shankar Pandey',
+      position: 'MD',
       avatar: '/path/to/avatar.jpg',
     },
     children: [],
@@ -38,8 +38,8 @@ const OrgChart: React.FC = () => {
           id: Math.random().toString(36).substr(2, 9),
           employee: {
             id: Math.random().toString(36).substr(2, 9),
-            name: 'New Employee',
-            position: 'Employee',
+            name: 'Add Employee',
+            position: 'Add Employee',
             avatar: '/path/to/default-avatar.jpg',
           },
           children: [],
@@ -61,14 +61,17 @@ const OrgChart: React.FC = () => {
   };
 
   const handleDeleteNode = (nodeId: string) => {
-    const deleteNode = (node: OrgNode): OrgNode | null => {
+    const deleteNode = (node: OrgNode, parent: OrgNode | null = null): OrgNode | null => {
       if (node.id === nodeId) {
+        // If the node is found, return its children so they can be merged into the parent
         return null;
       }
 
       return {
         ...node,
-        children: node.children.map(deleteNode).filter((child): child is OrgNode => child !== null),
+        children: node.children
+          .flatMap((child) => (child.id === nodeId ? child.children : [deleteNode(child, node)]))
+          .filter((child): child is OrgNode => child !== null),
       };
     };
 
@@ -143,16 +146,23 @@ const OrgChart: React.FC = () => {
   );
 
   const renderOrgNode = (node: OrgNode) => (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center relative">
       <NodeCard node={node} />
       {node.isExpanded && node.children.length > 0 && (
-        <div className="relative mt-8">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 h-8 w-px bg-gray-300" />
-          <div className="relative pt-8">
+        <div className="relative flex flex-col items-center">
+          {/* Vertical line connecting to the horizontal one */}
+          <div className="w-px h-6 bg-gray-300"></div>
+
+          {/* Horizontal line connecting all child nodes */}
+          <div className="flex items-start relative">
             <div className="absolute top-0 left-0 w-full h-px bg-gray-300" />
-            <div className="flex justify-center gap-16">
-              {node.children.map((child) => (
-                <div key={child.id} className="relative">
+
+            {/* Render child nodes dynamically */}
+            <div className="flex gap-8">
+              {node.children.map((child, index) => (
+                <div key={child.id} className="flex flex-col items-center">
+                  {/* Vertical line connecting child node */}
+                  <div className="w-px h-6 bg-gray-300"></div>
                   {renderOrgNode(child)}
                 </div>
               ))}
