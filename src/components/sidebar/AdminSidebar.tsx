@@ -68,14 +68,19 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: '/admin-manage-services',
         icon: Users,
       },
+      {
+        title: 'Orgnasation Charts',
+        url: '/admin-org',
+        icon: Users,
+      },
       ...(isSuperAdmin || isAdmin
         ? [
-            {
-              title: 'Manage Roles',
-              url: '/admin-manage-role',
-              icon: UserRoundCog,
-            },
-          ]
+          {
+            title: 'Manage Roles',
+            url: '/admin-manage-role',
+            icon: UserRoundCog,
+          },
+        ]
         : []),
     ],
   };
