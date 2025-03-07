@@ -17,14 +17,20 @@ interface GrievanceTableProps {
   mode?: string;
 }
 
-const updateGrievanceStatus = async (status: string, id: number) => {
+const updateGrievanceStatus = async (rowData: any) => {
   try {
-    const response = await axiosInstance.put(`/GrievanceManager/ChangeGrievanceStatus/${id}?Status=${status}`);
-    if (response.data.statusCode === 200) {
-      toast.success('Grievance is now in progress');
-    }
+    const updatedGrievance = {
+      ...rowData,
+      statusId: '2',
+    };
+    // const response = await axiosInstance.post('/GrievanceManager/AddUpdateGrievance', updatedGrievance);
+    // if (response.data.statusCode === 200) {
+    //   toast.success('Grievance is now in progress');
+    // }
+    console.log('this is updated grievance', updatedGrievance);
   } catch (error) {
     console.error('Error updating grievance status:', error);
+    toast.error('Failed to update grievance status');
   }
 };
 
@@ -125,8 +131,8 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
       columns={columns}
       rightElements={rightElement}
       onRowClick={async (rowData) => {
-        if (rowData?.userCode === user?.EmpCode?.toString() && rowData?.statusId === 1) {
-          await updateGrievanceStatus('in_progress', rowData?.id);
+        if (rowData?.assignedUserCode === user?.EmpCode?.toString() && rowData?.statusId === 1) {
+          await updateGrievanceStatus(rowData);
         }
         navigate(`/grievances/${rowData.id.toString().trim()}`);
       }}

@@ -362,11 +362,19 @@ export const GrievanceActions = ({
                     <SelectTrigger className="w-[180px] h-9">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2">In Progress</SelectItem>
-                      <SelectItem value="3">Awaiting Info</SelectItem>
-                      <SelectItem value="4">Resolved</SelectItem>
-                    </SelectContent>
+                    {grievance?.round !== 3 && (
+                      <SelectContent>
+                        <SelectItem value="2">In Progress</SelectItem>
+                        <SelectItem value="3">Awaiting Info</SelectItem>
+                        <SelectItem value="4">Resolved</SelectItem>
+                      </SelectContent>
+                    )}
+                    {grievance?.round === 3 && (
+                      <SelectContent>
+                        <SelectItem value="2">In Progress</SelectItem>
+                        <SelectItem value="5">Closed</SelectItem>
+                      </SelectContent>
+                    )}
                   </Select>
                 </div>
 
