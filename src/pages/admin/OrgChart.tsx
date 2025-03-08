@@ -145,25 +145,30 @@ const OrgChart: React.FC = () => {
     </Card>
   );
 
-  const renderOrgNode = (node: OrgNode) => (
+  const renderOrgNode = (node: OrgNode, level: number = 0, isMainBranch: boolean = true) => (
     <div className="flex flex-col items-center relative">
-      <NodeCard node={node} />
+      {level === 1 && isMainBranch && (
+        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+          <div className="px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow-md hover:shadow-lg transition-shadow duration-200 border border-blue-400">
+            Committee
+          </div>
+        </div>
+      )}
+      <div className="flex mt-2">
+        <NodeCard node={node} />
+      </div>
       {node.isExpanded && node.children.length > 0 && (
         <div className="relative flex flex-col items-center">
-          {/* Vertical line connecting to the horizontal one */}
           <div className="w-px h-6 bg-gray-300"></div>
 
-          {/* Horizontal line connecting all child nodes */}
           <div className="flex items-start relative">
             <div className="absolute top-0 left-0 w-full h-px bg-gray-300" />
 
-            {/* Render child nodes dynamically */}
             <div className="flex gap-8">
               {node.children.map((child, index) => (
                 <div key={child.id} className="flex flex-col items-center">
-                  {/* Vertical line connecting child node */}
                   <div className="w-px h-6 bg-gray-300"></div>
-                  {renderOrgNode(child)}
+                  {renderOrgNode(child, level + 1, false)}
                 </div>
               ))}
             </div>
@@ -175,7 +180,7 @@ const OrgChart: React.FC = () => {
 
   return (
     <div className="p-8 min-w-[1200px] overflow-auto bg-gray-50">
-      <div className="flex  justify-center">{renderOrgNode(orgData)}</div>
+      <div className="flex justify-center mt-8">{renderOrgNode(orgData)}</div>
     </div>
   );
 };

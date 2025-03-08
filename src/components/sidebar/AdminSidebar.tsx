@@ -75,12 +75,12 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
       },
       ...(isSuperAdmin || isAdmin
         ? [
-          {
-            title: 'Manage Roles',
-            url: '/admin-manage-role',
-            icon: UserRoundCog,
-          },
-        ]
+            {
+              title: 'Manage Roles',
+              url: '/admin-manage-role',
+              icon: UserRoundCog,
+            },
+          ]
         : []),
     ],
   };
@@ -108,7 +108,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarMenu>
-        <SidebarMenuItem className="mt-4">
+        {/* <SidebarMenuItem className="mt-4">
           <DropdownMenu>
             <DropdownMenuTrigger disabled={!isSuperAdmin} asChild>
               <SidebarMenuButton className="flex items-center justify-between border h-12 border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:border-primary capitalize">
@@ -135,7 +135,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        </SidebarMenuItem>
+        </SidebarMenuItem> */}
       </SidebarMenu>
       <SidebarContent>
         <NavMain items={data.navMain} />

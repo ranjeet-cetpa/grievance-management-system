@@ -13,13 +13,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { environment } from '@/config';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import Loader from '@/components/ui/loader';
 import toast from 'react-hot-toast';
+import { setSelectedWorkspace } from '@/features/workspace/workspaceSlice';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const AdminDashboard = () => {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
@@ -27,6 +35,7 @@ const AdminDashboard = () => {
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const selectedUnit = useSelector((state: RootState) => state.workspace.selectedWorkspace);
+  const units = useSelector((state: RootState) => state.units.units);
 
   const departmentsList = useMemo(() => {
     const uniqueDepts = new Set(employeeList?.map((emp) => emp.department?.trim()).filter(Boolean));
@@ -37,6 +46,12 @@ const AdminDashboard = () => {
       }));
   }, [employeeList]);
 
+  const handleWorkspaceChange = (workspaceName: string, workspaceId: number) => {
+    dispatch(setSelectedWorkspace({ unitName: workspaceName, unitId: workspaceId }));
+  };
+  React.useEffect(() => {
+    dispatch(setSelectedWorkspace({ unitName: user.Unit, unitId: Number(user.unitId) }));
+  }, []);
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -96,23 +111,42 @@ const AdminDashboard = () => {
           {loading && <Loader />}
           <Heading type={4}>Dashboard</Heading>
           <p className="text-gray-500">Overview of grievance management system</p>
+        </div>{' '}
+        <div className="flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger className="px-4 py-2 border rounded-md  bg-white flex items-center gap-2">
+              <span>{selectedUnit?.unitName || 'Select Unit'}</span>
+              <Building2 className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              {units.map((unit) => (
+                <DropdownMenuItem
+                  key={unit.unitId}
+                  className="px-4 py-2 text-sm text-gray-700  cursor-pointer"
+                  onClick={() => handleWorkspaceChange(unit.unitName, unit.unitId)}
+                >
+                  <span className="capitalize">{unit.unitName.toLowerCase()}</span>
+                </DropdownMenuItem>
+              ))}{' '}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+            <SelectTrigger className="border-gray-300 w-[300px] focus:border-blue-500 focus:ring-blue-500">
+              <SelectValue placeholder="Select a department" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                <SelectLabel>Departments</SelectLabel>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departmentsList.map((dept) => (
+                  <SelectItem key={dept.departmentName} value={dept.departmentName}>
+                    {dept.departmentName}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-          <SelectTrigger className="border-gray-300 w-[300px] focus:border-blue-500 focus:ring-blue-500">
-            <SelectValue placeholder="Select a department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Departments</SelectLabel>
-              <SelectItem value="all">All Departments</SelectItem>
-              {departmentsList.map((dept) => (
-                <SelectItem key={dept.departmentName} value={dept.departmentName}>
-                  {dept.departmentName}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
       </div>
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-4">
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-100 to-blue-200 border-none">
