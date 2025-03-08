@@ -370,10 +370,11 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium mb-0">Description</FormLabel>
+                      <FormLabel className="text-sm font-medium mb-0 ">Description</FormLabel>
                       <FormControl>
-                        <div className="rounded-md border">
+                        <div className="rounded-md  h-[200px]">
                           <ReactQuill
+                            style={{ height: '160px' }}
                             placeholder="Enter Description"
                             {...field}
                             onChange={(value) => field.onChange(value)}
@@ -404,7 +405,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                       </div>
                       <FormControl>
                         <div className="relative group">
-                          <div className="flex items-center justify-center h-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors cursor-pointer bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <div className="flex items-center justify-center h-10 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary transition-colors cursor-pointer bg-gray-50/50 dark:bg-gray-800/50 hover:bg-gray-50 dark:hover:bg-gray-800">
                             <div className="flex items-center gap-2">
                               <UploadIcon className="w-4 h-4 text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors" />
                               <p className="text-sm text-gray-600 dark:text-gray-400">

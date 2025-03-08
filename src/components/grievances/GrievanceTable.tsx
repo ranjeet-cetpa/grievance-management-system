@@ -110,7 +110,7 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
           <div className="max-w-52 text-sm text-nowrap">{row.original.userDetails?.split('-')[0]}</div>
         ),
       },
-      {
+      mode !== 'createdByMe' && {
         id: 'unitName',
         accessorKey: 'unitName',
         header: 'Unit',

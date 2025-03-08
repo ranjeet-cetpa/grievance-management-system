@@ -1,15 +1,26 @@
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { UserCircle, Calendar, UserCog, Clock } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 interface GrievanceInfoProps {
   userDetails: string;
   createdDate: string;
   assignedUserDetails: string;
   modifiedDate: string;
+  createdBy: string;
 }
 
-export const GrievanceInfo = ({ userDetails, createdDate, assignedUserDetails, modifiedDate }: GrievanceInfoProps) => {
+export const GrievanceInfo = ({
+  userDetails,
+  createdDate,
+  assignedUserDetails,
+  modifiedDate,
+  createdBy,
+}: GrievanceInfoProps) => {
+  const user = useSelector((state: RootState) => state.user);
+
   const InfoCard = ({ label, value, icon: Icon }: { label: string; value: string; icon: any }) => (
     <Card
       className="bg-white p-4 rounded-lg shadow-[0_2px_8px_-3px_rgba(0,0,0,0.1)] 
@@ -41,11 +52,17 @@ export const GrievanceInfo = ({ userDetails, createdDate, assignedUserDetails, m
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-2   rounded-lg  animate-fadeIn">
-      <InfoCard label="Created By" value={userDetails} icon={UserCircle} />
-      <InfoCard label="Created Date" value={formatDate(createdDate)} icon={Calendar} />
-      <InfoCard label="Assigned To" value={assignedUserDetails || 'Not Assigned'} icon={UserCog} />
-      <InfoCard label="Last Modified" value={modifiedDate ? formatDate(modifiedDate) : 'Not Modified'} icon={Clock} />
+    <div
+      className={`grid grid-cols-1 sm:grid-cols-2  gap-4 my-2   rounded-lg  animate-fadeIn ${
+        user?.EmpCode?.toString() !== createdBy?.toString() ? ' lg : grid - cols-4' : 'lg:grid-cols-3'
+      }`}
+    >
+      {user?.EmpCode?.toString() !== createdBy?.toString() && (
+        <InfoCard label="Created By" value={userDetails} icon={UserCircle} />
+      )}
+      <InfoCard label="Created On" value={formatDate(createdDate)} icon={Calendar} />
+      <InfoCard label="Currently With" value={assignedUserDetails || 'Not Assigned'} icon={UserCog} />
+      <InfoCard label="Pending Since" value={modifiedDate ? formatDate(modifiedDate) : 'Not Modified'} icon={Clock} />
     </div>
   );
 };

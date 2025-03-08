@@ -10,6 +10,7 @@ import {
   BadgeAlert,
   Hotel,
   UserRoundCog,
+  UserRoundPen,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -38,8 +39,16 @@ import { useNavigate } from 'react-router';
 import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
 
-const data = {
-  navMain: [
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { isHOD, isAddressal, isCommittee } = useUserRoles();
+  const navigate = useNavigate();
+  const { state } = useSidebar();
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
+  const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+  const canViewRedressalGrievances =
+    isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal || isCommittee;
+
+  const navMainItems = [
     {
       title: 'Dashboard',
       url: '/dashboard',
@@ -50,14 +59,12 @@ const data = {
       url: '/grievances',
       icon: BadgeAlert,
     },
-  ],
-};
-
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
-  const navigate = useNavigate();
-  const { state } = useSidebar();
-  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
-  const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+    canViewRedressalGrievances && {
+      title: 'Redressal Grievances',
+      url: '/redressal-grievances',
+      icon: UserRoundPen,
+    },
+  ].filter(Boolean);
 
   const dispatch = useDispatch();
   const isAuthenticated = getSessionItem('token');
@@ -111,7 +118,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         />
       </SidebarHeader>
       <SidebarContent className="flex justify-between">
-        <NavMain items={data.navMain} />
+        <NavMain items={navMainItems} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
