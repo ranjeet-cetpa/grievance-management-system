@@ -15,6 +15,8 @@ interface OrgNode {
   id: string;
   employee: Employee;
   children: OrgNode[];
+  leftNodes: OrgNode[];
+  rightNodes: OrgNode[];
   isExpanded?: boolean;
 }
 
@@ -28,6 +30,8 @@ const OrgChart: React.FC = () => {
       avatar: '/path/to/avatar.jpg',
     },
     children: [],
+    leftNodes: [],
+    rightNodes: [],
     isExpanded: true,
   });
 
@@ -43,17 +47,23 @@ const OrgChart: React.FC = () => {
             avatar: '/path/to/default-avatar.jpg',
           },
           children: [],
+          leftNodes: [],
+          rightNodes: [],
           isExpanded: true,
         };
         return {
           ...node,
           children: [...node.children, newNode],
+          leftNodes: node.leftNodes.map(addNode),
+          rightNodes: node.rightNodes.map(addNode),
         };
       }
 
       return {
         ...node,
         children: node.children.map(addNode),
+        leftNodes: node.leftNodes.map(addNode),
+        rightNodes: node.rightNodes.map(addNode),
       };
     };
 
@@ -63,7 +73,6 @@ const OrgChart: React.FC = () => {
   const handleDeleteNode = (nodeId: string) => {
     const deleteNode = (node: OrgNode, parent: OrgNode | null = null): OrgNode | null => {
       if (node.id === nodeId) {
-        // If the node is found, return its children so they can be merged into the parent
         return null;
       }
 
@@ -72,6 +81,8 @@ const OrgChart: React.FC = () => {
         children: node.children
           .flatMap((child) => (child.id === nodeId ? child.children : [deleteNode(child, node)]))
           .filter((child): child is OrgNode => child !== null),
+        leftNodes: node.leftNodes.filter((leftNode) => leftNode.id !== nodeId),
+        rightNodes: node.rightNodes.filter((rightNode) => rightNode.id !== nodeId),
       };
     };
 
@@ -91,14 +102,82 @@ const OrgChart: React.FC = () => {
       return {
         ...node,
         children: node.children.map(toggleNode),
+        leftNodes: node.leftNodes.map(toggleNode),
+        rightNodes: node.rightNodes.map(toggleNode),
       };
     };
 
     setOrgData(toggleNode(orgData));
   };
 
+  const handleAddLeftNode = (parentId: string) => {
+    const addNode = (node: OrgNode): OrgNode => {
+      if (node.id === parentId) {
+        const newNode: OrgNode = {
+          id: Math.random().toString(36).substr(2, 9),
+          employee: {
+            id: Math.random().toString(36).substr(2, 9),
+            name: 'Left Employee',
+            position: 'Left Role',
+            avatar: '/path/to/default-avatar.jpg',
+          },
+          children: [],
+          leftNodes: [],
+          rightNodes: [],
+          isExpanded: true,
+        };
+        return {
+          ...node,
+          leftNodes: [...node.leftNodes, newNode],
+        };
+      }
+
+      return {
+        ...node,
+        children: node.children.map(addNode),
+        leftNodes: node.leftNodes.map(addNode),
+        rightNodes: node.rightNodes.map(addNode),
+      };
+    };
+
+    setOrgData(addNode(orgData));
+  };
+
+  const handleAddRightNode = (parentId: string) => {
+    const addNode = (node: OrgNode): OrgNode => {
+      if (node.id === parentId) {
+        const newNode: OrgNode = {
+          id: Math.random().toString(36).substr(2, 9),
+          employee: {
+            id: Math.random().toString(36).substr(2, 9),
+            name: 'Right Employee',
+            position: 'Right Role',
+            avatar: '/path/to/default-avatar.jpg',
+          },
+          children: [],
+          leftNodes: [],
+          rightNodes: [],
+          isExpanded: true,
+        };
+        return {
+          ...node,
+          rightNodes: [...node.rightNodes, newNode],
+        };
+      }
+
+      return {
+        ...node,
+        children: node.children.map(addNode),
+        leftNodes: node.leftNodes.map(addNode),
+        rightNodes: node.rightNodes.map(addNode),
+      };
+    };
+
+    setOrgData(addNode(orgData));
+  };
+
   const NodeCard: React.FC<{ node: OrgNode }> = ({ node }) => (
-    <Card className="relative flex items-center gap-4 p-4 bg-white rounded-full shadow-lg min-w-[300px]">
+    <Card className="relative flex items-center gap-4 p-2 bg-white rounded-full shadow-lg min-w-[300px]">
       <Avatar className="w-12 h-12">
         <AvatarImage src={node.employee.avatar} />
         <AvatarFallback className="bg-blue-100 text-blue-600">
@@ -116,10 +195,26 @@ const OrgChart: React.FC = () => {
         <Button
           variant="ghost"
           size="sm"
+          className="rounded-full bg-green-100 hover:bg-green-200"
+          onClick={() => handleAddLeftNode(node.id)}
+        >
+          <ChevronDown className="w-4 h-4 -rotate-90 text-green-600" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           className="rounded-full bg-blue-100 hover:bg-blue-200"
           onClick={() => handleAddNode(node.id)}
         >
           <Plus className="w-4 h-4 text-blue-600" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="rounded-full bg-green-100 hover:bg-green-200"
+          onClick={() => handleAddRightNode(node.id)}
+        >
+          <ChevronDown className="w-4 h-4 rotate-90 text-green-600" />
         </Button>
         {node.id !== '1' && (
           <Button
@@ -145,33 +240,77 @@ const OrgChart: React.FC = () => {
     </Card>
   );
 
-  const renderOrgNode = (node: OrgNode, level: number = 0, isMainBranch: boolean = true) => (
+  const renderOrgNode = (node: OrgNode) => (
     <div className="flex flex-col items-center relative">
-      {level === 1 && isMainBranch && (
-        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-          <div className="px-4 py-1 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow-md hover:shadow-lg transition-shadow duration-200 border border-blue-400">
-            Committee
-          </div>
-        </div>
-      )}
-      <div className="flex mt-2">
-        <NodeCard node={node} />
-      </div>
-      {node.isExpanded && node.children.length > 0 && (
-        <div className="relative flex flex-col items-center">
-          <div className="w-px h-6 bg-gray-300"></div>
+      <div className="flex items-center justify-center">
+        <div className="flex flex-col gap-16 relative">
+          {node.leftNodes.map((leftNode, index) => (
+            <div key={leftNode.id} className="relative">
+              <div className="relative flex items-center">
+                <div
+                  className="absolute right-0 w-8 h-[2px] bg-gray-300"
+                  style={{ top: '50%', transform: 'translateY(-50%)' }}
+                />
 
-          <div className="flex items-start relative">
-            <div className="absolute top-0 left-0 w-full h-px bg-gray-300" />
+                {index < node.leftNodes.length - 1 && (
+                  <div className="absolute right-8 h-16 w-[2px] bg-gray-300" style={{ top: '50%' }} />
+                )}
 
-            <div className="flex gap-8">
-              {node.children.map((child, index) => (
-                <div key={child.id} className="flex flex-col items-center">
-                  <div className="w-px h-6 bg-gray-300"></div>
-                  {renderOrgNode(child, level + 1, false)}
-                </div>
-              ))}
+                <div className="mr-8">{renderOrgNode(leftNode)}</div>
+              </div>
             </div>
+          ))}
+        </div>
+
+        <div className="relative flex flex-col items-center">
+          <NodeCard node={node} />
+
+          {node.isExpanded && node.children.length > 0 && <div className="w-[2px] h-8 bg-gray-300 " />}
+        </div>
+
+        <div className="flex flex-col gap-16 relative">
+          {node.rightNodes.map((rightNode, index) => (
+            <div key={rightNode.id} className="relative">
+              <div className="relative flex items-center">
+                <div
+                  className="absolute left-0 w-8 h-[2px] bg-gray-300"
+                  style={{ top: '50%', transform: 'translateY(-50%)' }}
+                />
+
+                {index < node.rightNodes.length - 1 && (
+                  <div className="absolute left-8 h-16 w-[2px] bg-gray-300" style={{ top: '50%' }} />
+                )}
+
+                <div className="ml-8">{renderOrgNode(rightNode)}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {node.isExpanded && node.children.length > 0 && (
+        <div className="flex flex-col items-center ">
+          {node.children.length > 1 && (
+            <div className="relative w-full flex justify-center items-center">
+              <div
+                className="absolute h-[2px] bg-gray-300"
+                style={{
+                  width: `${(node.children.length - 1) * 320}px`,
+                  top: '0',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                }}
+              />
+            </div>
+          )}
+
+          <div className="flex gap-16 mt-8">
+            {node.children.map((child, index) => (
+              <div key={child.id} className="relative flex flex-col items-center">
+                <div className="absolute top-[-32px] w-[2px] h-8 bg-gray-300" />
+                {renderOrgNode(child)}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -179,9 +318,9 @@ const OrgChart: React.FC = () => {
   );
 
   return (
-    <div className="p-8 min-w-[1200px] overflow-auto bg-gray-50">
-      <div className="flex justify-center mt-8">{renderOrgNode(orgData)}</div>
-    </div>
+    <Card className="p-8 min-w-[1200px] overflow-auto">
+      <div className="flex justify-center p-16">{renderOrgNode(orgData)}</div>
+    </Card>
   );
 };
 
