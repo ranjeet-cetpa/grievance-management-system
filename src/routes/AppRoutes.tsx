@@ -14,7 +14,8 @@ import AdminPrivateRoute from './AdminPrivateRoute';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import ManageRoles from '@/pages/ManageRoles';
 import RequestPage from '@/pages/requestPage/RequestPage';
-import OrgChart from "@/pages/admin/OrgChart";
+import OrgChart from '@/pages/admin/OrgChart';
+import RedressalGrievances from '@/pages/redressal-grievances/RedressalGrievances';
 const AppRoutes = () => {
   return (
     <Routes>
@@ -25,6 +26,8 @@ const AppRoutes = () => {
         <Route path="/manage-services" element={<ManageUsers />} />
         <Route path="/manage-roles" element={<ManageRoles />} />
         <Route path="/grievances" element={<MyGrievances />} />
+        <Route path="/redressal-grievances" element={<RedressalGrievances />} />
+
         <Route path="/grievances/:grievanceId" element={<GrievanceDetails />} />
       </Route>
       <Route element={<AdminPrivateRoute />}>

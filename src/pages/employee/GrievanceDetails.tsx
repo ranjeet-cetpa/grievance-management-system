@@ -558,6 +558,8 @@ const GrievanceDetails = () => {
             <div className="flex w-full flex-col">
               <GrievanceHeader title={grievance?.title || ''} statusId={Number(grievance?.statusId) || 0} />
               <GrievanceInfo
+                assignedUserCode={grievance.assignedUserCode || ''}
+                createdBy={grievance?.createdBy || ''}
                 userDetails={grievance?.userDetails || ''}
                 createdDate={grievance?.createdDate || ''}
                 assignedUserDetails={grievance?.assignedUserDetails || ''}
