@@ -118,12 +118,7 @@ const orgData: OrgNode = {
       name: 'Committee',
       role: 'Committee',
       isCommittee: true,
-      members: [
-        { name: 'Rajesh Kumar', role: 'Committee Member', isCommittee: true },
-        { name: 'Rajesh Kumar', role: 'Committee Member', isCommittee: true },
-        { name: 'Rajesh Kumar', role: 'Committee Member', isCommittee: true },
-        { name: 'Rajesh Kumar', role: 'Committee Member', isCommittee: true },
-      ],
+      members: [],
       children: [
         {
           name: '',
@@ -131,23 +126,47 @@ const orgData: OrgNode = {
           children: [
             {
               name: '',
-              role: 'HOD IT ',
-              children: [],
+              role: 'IT ',
+              children: [
+                {
+                  name: '',
+                  role: 'HOD',
+                  children: [],
+                },
+              ],
             },
             {
               name: '',
-              role: 'HOD HR ',
-              children: [],
+              role: 'HR ',
+              children: [
+                {
+                  name: '',
+                  role: 'HOD',
+                  children: [],
+                },
+              ],
             },
             {
               name: '',
-              role: 'HOD Finance ',
-              children: [],
+              role: 'Finance ',
+              children: [
+                {
+                  name: '',
+                  role: 'HOD',
+                  children: [],
+                },
+              ],
             },
             {
               name: '',
-              role: 'HOD Miscellaneous ',
-              children: [],
+              role: 'Miscellaneous ',
+              children: [
+                {
+                  name: '',
+                  role: 'HOD',
+                  children: [],
+                },
+              ],
             },
           ],
         },
@@ -174,7 +193,7 @@ const OrgChart2 = () => {
     const findNodeAndUpdate = (node: OrgNode, level: number): boolean => {
       if (node.name === selectedNode.name && node.role === selectedNode.role) {
         // For MD (level 0) and Nodal Officer (level 2), update both name and members
-        if (level === 0 || level === 2 || level === 3) {
+        if (level === 0 || level === 2 || level === 3 || level === 4) {
           // Update the node's own name
           node.name = newUserName;
 
@@ -277,15 +296,47 @@ const OrgChart2 = () => {
     const isHOD = node.role.includes('HOD');
     const canAddGroup = isHOD && node.name !== '';
 
+    // Function to check if parent nodes have required data
+    const checkParentNodes = (currentNode: OrgNode): boolean => {
+      if (level === 0) return true; // Root node is always enabled
+
+      // Find parent node in the tree
+      const findParent = (node: OrgNode, targetNode: OrgNode, parent: OrgNode | null = null): OrgNode | null => {
+        if (node === targetNode) return parent;
+
+        if (node.children) {
+          for (const child of node.children) {
+            const result = findParent(child, targetNode, node);
+            if (result) return result;
+          }
+        }
+        return null;
+      };
+
+      const parent = findParent(chartData, currentNode);
+      if (!parent) return true;
+
+      // Check if parent has required data
+      if (parent.role === 'Managing Director' || parent.role === 'Nodal Officer') {
+        return parent.members && parent.members.length > 0;
+      }
+      if (parent.role === 'HOD') {
+        return parent.name !== '';
+      }
+      return true;
+    };
+
+    const isParentValid = checkParentNodes(node);
+
     return (
       <StyledNode isCommittee={node.isCommittee} role={node.role}>
         <div className="flex flex-row gap-2">
           <Avatar className="w-10 h-10">
             <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
           </Avatar>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 items-center">
             <NodeLabel role={node.role}>{node.name}</NodeLabel>
-            {<RoleText role={node.role}>{node.role}</RoleText>}
+            {node.role !== 'Committee' && <RoleText role={node.role}>{node.role}</RoleText>}
           </div>
           {(!node.isCommittee || (node.isCommittee && node.role !== 'Committee Member')) && (
             <div className="flex gap-2">
@@ -302,6 +353,7 @@ const OrgChart2 = () => {
                       setNewUserName(node.members?.[0]?.name || '');
                       setAddUserDialogOpen(true);
                     }}
+                    disabled={!isParentValid}
                   >
                     <div className="flex gap-0 items-center">
                       <Pencil className="w-4 h-4" />
@@ -318,6 +370,7 @@ const OrgChart2 = () => {
                       setNewUserName('');
                       setAddUserDialogOpen(true);
                     }}
+                    disabled={!isParentValid}
                   >
                     <div className="flex gap-0 items-center">
                       <User className="w-4 h-4" />+
@@ -335,13 +388,14 @@ const OrgChart2 = () => {
                     setIsEditMode(false);
                     setAddUserDialogOpen(true);
                   }}
+                  disabled={!isParentValid}
                 >
                   <div className="flex gap-0 items-center">
                     <User className="w-4 h-4" />+
                   </div>
                 </Button>
               )}
-              {level > 2 && (
+              {level > 3 && (
                 <Button
                   variant="ghost"
                   className="ml-auto px-1 p-2"
@@ -350,7 +404,7 @@ const OrgChart2 = () => {
                     setSelectedNode(node);
                     setAddGroupDialogOpen(true);
                   }}
-                  disabled={!canAddGroup}
+                  disabled={!canAddGroup || !isParentValid}
                 >
                   <div className="flex gap-0.5 items-center">
                     <Users className="w-4 h-4" />+
