@@ -197,7 +197,7 @@ const OrgChart2 = () => {
           // Update the node's own name
           node.name = newUserName;
 
-          // Update or create members array
+          // Update or  create members array
           if (!node.members) {
             node.members = [];
           }
