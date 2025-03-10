@@ -43,7 +43,7 @@ interface OrgNode {
 }
 
 interface NonCorporateOfficeChartProps {
-  unitId: string;
+  unitId: number;
 }
 
 const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitId }) => {

@@ -2,6 +2,7 @@ import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
 import { Group, Plus, UserPlus, Users, User, Pencil, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
 import React, { useEffect } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import {
@@ -65,16 +66,19 @@ const OrgChart2 = () => {
   const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const dataFetcher = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get('/Admin/GetOrgGroupHierarchy?unitId=396');
       const result = await response.data;
       console.log(result.data);
-
       setChartData(result.data);
     } catch (err) {
       console.error('Error fetching data:', err);
+      setError('Failed to fetch organization data');
+      toast.error('Failed to fetch organization data');
     } finally {
       setLoading(false);
     }
@@ -87,6 +91,7 @@ const OrgChart2 = () => {
     if (!selectedNode) return;
 
     try {
+      setIsSubmitting(true);
       // Prepare the request body
       const requestBody = {
         groupMasterId: selectedNode.id,
@@ -109,6 +114,7 @@ const OrgChart2 = () => {
 
       // Make the API call
       await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
+      toast.success('User mapping updated successfully');
 
       // Update local state
       const newData = JSON.parse(JSON.stringify(chartData));
@@ -166,6 +172,9 @@ const OrgChart2 = () => {
       dataFetcher();
     } catch (error) {
       console.error('Error updating user group mapping:', error);
+      toast.error('Failed to update user mapping');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -221,6 +230,7 @@ const OrgChart2 = () => {
     if (!selectedNode || !newGroupName || selectedUsers.length === 0) return;
 
     try {
+      setIsSubmitting(true);
       const requestBody = {
         id: 0,
         groupName: newGroupName,
@@ -241,6 +251,7 @@ const OrgChart2 = () => {
       };
 
       await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
+      toast.success('Category added successfully');
 
       // Update local state
       const newData = JSON.parse(JSON.stringify(chartData));
@@ -289,6 +300,9 @@ const OrgChart2 = () => {
       dataFetcher();
     } catch (error) {
       console.error('Error adding category:', error);
+      toast.error('Failed to add category');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -382,8 +396,10 @@ const OrgChart2 = () => {
             <AvatarFallback>{node.groupName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-1 items-center">
-            {level !== 5 && <NodeLabel role={node.description}>{node?.mappedUser?.[0]?.userDetail}</NodeLabel>}
-            {level === 5 && <NodeLabel role={node.description}>{node?.groupName}</NodeLabel>}
+            {level !== 5 && level !== 1 && (
+              <NodeLabel role={node.description}>{node?.mappedUser?.[0]?.userDetail}</NodeLabel>
+            )}
+            {(level === 5 || level === 1) && <NodeLabel role={node.description}>{node?.groupName}</NodeLabel>}
             {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
           {(!node.isCommitee || (node.isCommitee && node.description !== 'Committee Member')) && (
@@ -432,7 +448,8 @@ const OrgChart2 = () => {
                 // Allow adding users to Committee level and other levels except 3 and 4
 
                 level !== 3 &&
-                level !== 4 && (
+                level !== 4 &&
+                level !== 5 && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -621,7 +638,13 @@ const OrgChart2 = () => {
               onChange={(users) => {
                 if (selectedNode?.isCommitee) {
                   // For committees, update all users
-                  setSelectedUsers(users);
+                  setSelectedUsers(
+                    users.map((user) => ({
+                      userCode: user.userCode,
+                      userDetail: user.userDetail,
+                      departments: [],
+                    }))
+                  );
                 } else {
                   // For single user roles
                   setNewUserCode(users[0]?.userCode || '');
@@ -640,13 +663,17 @@ const OrgChart2 = () => {
                 setIsEditMode(false);
                 setSelectedUsers([]);
               }}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleAddUser}
-              disabled={selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode}
+              disabled={
+                selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode || isSubmitting
+              }
             >
+              {isSubmitting ? <Loader className="w-4 h-4 mr-2" /> : null}
               {isEditMode ? 'Update User' : 'Add User'}
             </Button>
           </DialogFooter>
@@ -719,6 +746,7 @@ const OrgChart2 = () => {
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Enter category name"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -728,6 +756,7 @@ const OrgChart2 = () => {
                 value={newGroupDescription}
                 onChange={(e) => setNewGroupDescription(e.target.value)}
                 placeholder="Enter category description"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -745,6 +774,7 @@ const OrgChart2 = () => {
                 }
                 isMulti={true}
                 label="Select Users"
+                disabled={isSubmitting}
               />
               {selectedUsers.length === 0 && (
                 <Label className="text-red-500 text-xs">Minimum one Addressal is required</Label>
@@ -752,10 +782,11 @@ const OrgChart2 = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleAddCategory} disabled={!newGroupName || selectedUsers.length === 0}>
+            <Button onClick={handleAddCategory} disabled={!newGroupName || selectedUsers.length === 0 || isSubmitting}>
+              {isSubmitting ? <Loader className="w-4 h-4 mr-2" /> : null}
               Add Category
             </Button>
           </DialogFooter>
