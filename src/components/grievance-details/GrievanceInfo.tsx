@@ -54,7 +54,7 @@ export const GrievanceInfo = ({
   return (
     <div
       className={`grid grid-cols-1 sm:grid-cols-2  gap-4 my-2   rounded-lg  animate-fadeIn ${
-        user?.EmpCode?.toString() !== createdBy?.toString() ? ' lg : grid - cols-4' : 'lg:grid-cols-3'
+        user?.EmpCode?.toString() !== createdBy?.toString() ? ' lg   : grid - cols-4' : 'lg:grid-cols-3'
       }`}
     >
       {user?.EmpCode?.toString() !== createdBy?.toString() && (

@@ -458,23 +458,25 @@ const OrgChart2 = () => {
                   </Button>
                 )
               ) : (
-                // For committee members
-                <Button
-                  variant="ghost"
-                  className="ml-auto px-1 p-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setIsEditMode(false);
-                    setNewUserName('');
-                    setAddUserDialogOpen(true);
-                  }}
-                  disabled={!isParentValid}
-                >
-                  <div className="flex gap-0 items-center">
-                    <User className="w-4 h-4" />+
-                  </div>
-                </Button>
+                level !== 4 &&
+                level !== 3 && (
+                  <Button
+                    variant="ghost"
+                    className="ml-auto px-1 p-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNode(node);
+                      setIsEditMode(false);
+                      setNewUserName('');
+                      setAddUserDialogOpen(true);
+                    }}
+                    disabled={!isParentValid}
+                  >
+                    <div className="flex gap-0 items-center">
+                      <User className="w-4 h-4" />+
+                    </div>
+                  </Button>
+                )
               )}
               {level === 4 && (
                 <>
@@ -505,7 +507,7 @@ const OrgChart2 = () => {
                     disabled={!isParentValid}
                   >
                     <div className="flex gap-0.5 items-center">
-                      <Plus className="w-4 h-4" />
+                      <Users /> <Plus className="w-4 h-4" />
                     </div>
                   </Button>
                 </>
