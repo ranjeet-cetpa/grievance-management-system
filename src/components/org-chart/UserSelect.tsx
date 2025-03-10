@@ -30,7 +30,7 @@ const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isM
     if (isMulti) {
       const selectedUsers = selectedOptions.map((option: any) => ({
         userCode: option.value,
-        userDetail: option.label,
+        userDetail: option.label.split(' (')[0],
       }));
       onChange(selectedUsers);
     } else {
@@ -59,6 +59,7 @@ const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isM
         placeholder="Select user(s)..."
         className="basic-multi-select"
         classNamePrefix="select"
+        isClearable={!isMulti}
       />
     </div>
   );
