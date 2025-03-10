@@ -41,7 +41,7 @@ interface OrgNode {
   mappedUser: UserDetails[];
 }
 
-const OrgChart2 = () => {
+const NonOrgChart = () => {
   const [chartData, setChartData] = React.useState<OrgNode | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -696,4 +696,4 @@ const OrgChart2 = () => {
   );
 };
 
-export default OrgChart2;
+export default NonOrgChart;

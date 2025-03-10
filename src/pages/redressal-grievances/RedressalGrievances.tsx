@@ -121,9 +121,9 @@ const MyGrievances = () => {
 
   const filteredGrievances = useMemo(() => {
     return {
-      [FILTER_OPTIONS.OPEN]: grievances.filter((g) => g.statusId === STATUS_IDS.OPEN),
-      [FILTER_OPTIONS.InProgress]: grievances.filter((g) => g.statusId === STATUS_IDS.IN_PROGRESS),
-      [FILTER_OPTIONS.Closed]: grievances.filter((g) => g.statusId === STATUS_IDS.CLOSED),
+      [FILTER_OPTIONS.OPEN]: grievances?.filter((g) => g.statusId === STATUS_IDS.OPEN),
+      [FILTER_OPTIONS.InProgress]: grievances?.filter((g) => g.statusId === STATUS_IDS.IN_PROGRESS),
+      [FILTER_OPTIONS.Closed]: grievances?.filter((g) => g.statusId === STATUS_IDS.CLOSED),
     };
   }, [grievances]);
 

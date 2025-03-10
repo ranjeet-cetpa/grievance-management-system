@@ -17,6 +17,7 @@ import RequestPage from '@/pages/requestPage/RequestPage';
 import OrgChart from '@/pages/admin/OrgChart';
 import RedressalGrievances from '@/pages/redressal-grievances/RedressalGrievances';
 import OrgChart2 from '@/pages/admin/OrgChart2';
+import NonOrgChart from "@/pages/admin/NonOrgChart";
 const AppRoutes = () => {
   return (
     <Routes>
@@ -38,6 +39,7 @@ const AppRoutes = () => {
         <Route path="/admin-manage-services" element={<ManageUsers />} />
         <Route path="/admin-manage-role" element={<ManageRoles />} />
         <Route path="/admin-org" element={<OrgChart2 />} />
+        <Route path="/admin-non-corporate" element={<NonOrgChart />} />
       </Route>
       <Route path="/grievance/:token" element={<RequestPage />} /> <Route path="/login" element={<Login />} />
       <Route path="*" element={<NotFound />} />
