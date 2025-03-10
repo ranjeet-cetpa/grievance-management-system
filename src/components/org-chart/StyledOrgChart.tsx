@@ -5,13 +5,13 @@ export const StyledNode = styled.div<{ isCommittee?: boolean; role?: string }>`
   border-radius: ${(props) => (props.isCommittee && props.role === 'Committee Member' ? '40%' : '16px')};
   border: 1px solid ${(props) => (props.isCommittee ? '#ff9800' : '#2196f3')};
   display: inline-block;
-  background: ${(props) => (props.role !== 'Committee Member' ? '#ff9800' : 'white')};
+  background: ${(props) => (props.role !== 'Committee Member' ? '#0d56c5' : 'white')};
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
+  min-width: 20px;
   text-align: center;
 
   &:hover {
-    background: ${(props) => (props.role !== 'Committee Member' ? '#f57c00' : '#f5f5f5')};
+    background: ${(props) => (props.role !== 'Committee Member' ? 'royalblue' : '#f5f5f5')};
     transform: translateY(-2px);
     transition: all 0.2s ease;
   }
@@ -41,17 +41,17 @@ export const CommitteeLayout = styled.div`
     content: '';
     position: absolute;
     top: 50%;
-    width: 20px;
+    width: 0px;
     height: 2px;
     background-color: #2196f3;
   }
 
   &::before {
-    right: calc(50% + 100px);
+    right: calc(50% + 300px);
   }
 
   &::after {
-    left: calc(50% + 100px);
+    left: calc(100% + 0px);
   }
 `;
 
@@ -68,7 +68,7 @@ export const MembersList = styled.div`
     top: 50%;
     width: 20px;
     height: 2px;
-    background-color: #2196f3;
+    background-color: #0d56c5;
   }
 
   &:first-child::after {
