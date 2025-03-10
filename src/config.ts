@@ -9,7 +9,7 @@ const DEV_CONFIG = {
 };
 const CETPA_UAT = {
   baseUrl: 'https://gms.cetpainfotech.com',
-  apiUrl: 'https://uat.grivance.services.dfccil.cetpainfotech.com/api',
+  apiUrl: 'https://uat.grivance.dfccil.cetpainfotech.com/api',
   orgHierarchy: 'https://uat.dfccilorganization.services.cetpainfotech.com/api',
   loginUrl: 'https://uat.tourservices.cetpainfotech.com/api',
   logoutUrl: 'https://gms.cetpainfotech.com',

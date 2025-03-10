@@ -2,7 +2,7 @@ import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
 import { Group, Plus, UserPlus, Users, User, Pencil } from 'lucide-react';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import {
   Dialog,
@@ -16,145 +16,102 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { StyledNode, NodeLabel, RoleText, CommitteeLayout, MembersList } from '@/components/org-chart/StyledOrgChart';
+import axiosInstance from '@/services/axiosInstance';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+import UserSelect from '@/components/org-chart/UserSelect';
 
 // Define the type for our org chart data
-interface OrgNode {
-  name: string;
-  role: string;
-  children?: OrgNode[];
-  members?: OrgNode[];
-  isCommittee?: boolean;
+interface UserDetails {
+  userCode: string;
+  userDetail: string;
+  departments: string[];
 }
 
-// Sample data structure
-const orgData: OrgNode = {
-  name: '',
-  role: 'Managing Director',
-  children: [
-    {
-      name: 'Committee',
-      role: 'Committee',
-      isCommittee: true,
-      members: [],
-      children: [
-        {
-          name: '',
-          role: 'Nodal Officer',
-          children: [
-            {
-              name: '',
-              role: 'IT ',
-              children: [
-                {
-                  name: '',
-                  role: 'HOD',
-                  children: [],
-                },
-              ],
-            },
-            {
-              name: '',
-              role: 'HR ',
-              children: [
-                {
-                  name: '',
-                  role: 'HOD',
-                  children: [],
-                },
-              ],
-            },
-            {
-              name: '',
-              role: 'Finance ',
-              children: [
-                {
-                  name: '',
-                  role: 'HOD',
-                  children: [],
-                },
-              ],
-            },
-            {
-              name: '',
-              role: 'Miscellaneous ',
-              children: [
-                {
-                  name: '',
-                  role: 'HOD',
-                  children: [],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+interface OrgNode {
+  id: number;
+  groupName: string;
+  description: string;
+  isCommitee: boolean;
+  isHOD: boolean;
+  isServiceCategory: boolean;
+  unitId?: string;
+  parentGroupId?: number | null;
+  childGroups: OrgNode[];
+  mappedUser: UserDetails[];
+}
 
 const OrgChart2 = () => {
-  const [chartData, setChartData] = React.useState<OrgNode>(orgData);
+  const [chartData, setChartData] = React.useState<OrgNode | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
   const [addUserDialogOpen, setAddUserDialogOpen] = React.useState(false);
   const [addGroupDialogOpen, setAddGroupDialogOpen] = React.useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = React.useState(false);
   const [selectedNode, setSelectedNode] = React.useState<OrgNode | null>(null);
   const [newUserName, setNewUserName] = React.useState('');
+  const [newUserCode, setNewUserCode] = React.useState('');
   const [newGroupName, setNewGroupName] = React.useState('');
   const [newGroupDescription, setNewGroupDescription] = React.useState('');
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<'category' | 'addressal'>('category');
   const [departmentName, setDepartmentName] = React.useState('');
   const [addressalName, setAddressalName] = React.useState('');
+  const [isHOD, setIsHOD] = React.useState(false);
+  const [isServiceCategory, setIsServiceCategory] = React.useState(false);
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get('/Admin/GetOrgGroupHierarchy?unitId=396');
+        const result = await response.data;
+        console.log(result.data);
+
+        setChartData(result.data);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleAddUser = () => {
-    if (!selectedNode || !newUserName) return;
+    if (!selectedNode || !newUserName || !newUserCode) return;
 
     const newData = JSON.parse(JSON.stringify(chartData));
+    if (!newData) return;
 
     const findNodeAndUpdate = (node: OrgNode, level: number): boolean => {
-      if (node.name === selectedNode.name && node.role === selectedNode.role) {
-        // For MD (level 0) and Nodal Officer (level 2), update both name and members
-        if (level === 0 || level === 2 || level === 3 || level === 4) {
-          // Update the node's own name
-          node.name = newUserName;
+      if (node.id === selectedNode.id) {
+        node.groupName = newUserName;
 
-          // Update or  create members array
-          if (!node.members) {
-            node.members = [];
-          }
+        if (!node.mappedUser) {
+          node.mappedUser = [];
+        }
 
-          if (isEditMode) {
-            // In edit mode, update the existing member
-            node.members[0] = {
-              name: newUserName,
-              role: level === 0 ? 'Managing Director' : 'Nodal Officer',
-              isCommittee: false,
-            };
-          } else {
-            // In add mode, add new member
-            node.members.push({
-              name: newUserName,
-              role: level === 0 ? 'Managing Director' : 'Nodal Officer',
-              isCommittee: false,
-            });
-          }
+        if (isEditMode) {
+          node.mappedUser[0] = {
+            userCode: newUserCode,
+            userDetail: newUserName,
+            departments: [],
+          };
         } else {
-          // For committees, only update members array
-          if (!node.members) {
-            node.members = [];
-          }
-          node.members.push({
-            name: newUserName,
-            role: 'Committee Member',
-            isCommittee: true,
+          node.mappedUser.push({
+            userCode: newUserCode,
+            userDetail: newUserName,
+            departments: [],
           });
         }
+        console.log(node.mappedUser);
         return true;
       }
 
-      if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-          if (findNodeAndUpdate(node.children[i], level + 1)) {
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i], level + 1)) {
             return true;
           }
         }
@@ -168,6 +125,7 @@ const OrgChart2 = () => {
 
     setAddUserDialogOpen(false);
     setNewUserName('');
+    setNewUserCode('');
     setSelectedNode(null);
     setIsEditMode(false);
   };
@@ -178,22 +136,29 @@ const OrgChart2 = () => {
     const newData = JSON.parse(JSON.stringify(chartData));
 
     const findNodeAndUpdate = (node: OrgNode): boolean => {
-      if (node.name === selectedNode.name && node.role === selectedNode.role) {
+      if (node.id === selectedNode.id) {
         // Add new group below the current node
-        if (!node.children) {
-          node.children = [];
+        if (!node.childGroups) {
+          node.childGroups = [];
         }
-        node.children.push({
-          name: newGroupName,
-          role: newGroupDescription || 'Group',
-          children: [],
+        node.childGroups.push({
+          id: Math.max(...node.childGroups.map((g) => g.id)) + 1,
+          groupName: newGroupName,
+          description: newGroupDescription || 'Group',
+          isCommitee: false,
+          isHOD: isHOD,
+          isServiceCategory: isServiceCategory,
+          parentGroupId: node.id,
+          unitId: node.unitId,
+          childGroups: [],
+          mappedUser: [],
         });
         return true;
       }
 
-      if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-          if (findNodeAndUpdate(node.children[i])) {
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i])) {
             return true;
           }
         }
@@ -208,6 +173,8 @@ const OrgChart2 = () => {
     setAddGroupDialogOpen(false);
     setNewGroupName('');
     setNewGroupDescription('');
+    setIsHOD(false);
+    setIsServiceCategory(false);
     setSelectedNode(null);
   };
 
@@ -217,21 +184,28 @@ const OrgChart2 = () => {
     const newData = JSON.parse(JSON.stringify(chartData));
 
     const findNodeAndUpdate = (node: OrgNode): boolean => {
-      if (node.name === selectedNode.name && node.role === selectedNode.role) {
-        if (!node.children) {
-          node.children = [];
+      if (node.id === selectedNode.id) {
+        if (!node.childGroups) {
+          node.childGroups = [];
         }
-        node.children.push({
-          name: newGroupName,
-          role: newGroupDescription || 'Category',
-          children: [],
+        node.childGroups.push({
+          id: 0,
+          groupName: newGroupName,
+          description: newGroupDescription || 'Category',
+          isCommitee: false,
+          isHOD: false,
+          isServiceCategory: false,
+          parentGroupId: node.id,
+          unitId: node.unitId,
+          childGroups: [],
+          mappedUser: [],
         });
         return true;
       }
 
-      if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-          if (findNodeAndUpdate(node.children[i])) {
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i])) {
             return true;
           }
         }
@@ -255,21 +229,28 @@ const OrgChart2 = () => {
     const newData = JSON.parse(JSON.stringify(chartData));
 
     const findNodeAndUpdate = (node: OrgNode): boolean => {
-      if (node.name === selectedNode.name && node.role === selectedNode.role) {
-        if (!node.children) {
-          node.children = [];
+      if (node.id === selectedNode.id) {
+        if (!node.childGroups) {
+          node.childGroups = [];
         }
-        node.children.push({
-          name: departmentName,
-          role: addressalName,
-          children: [],
+        node.childGroups.push({
+          id: 0,
+          groupName: departmentName,
+          description: addressalName,
+          isCommitee: false,
+          isHOD: false,
+          isServiceCategory: false,
+          parentGroupId: node.id,
+          unitId: node.unitId,
+          childGroups: [],
+          mappedUser: [],
         });
         return true;
       }
 
-      if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-          if (findNodeAndUpdate(node.children[i])) {
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i])) {
             return true;
           }
         }
@@ -288,10 +269,10 @@ const OrgChart2 = () => {
   };
 
   const RenderNode = ({ node, level = 0 }: { node: OrgNode; level?: number }) => {
-    const hasMember = node.members && node.members.length > 0;
-    const isSingleMemberRole = level === 0 || level === 2; // MD and Nodal Officer only
-    const isHOD = node.role.includes('HOD');
-    const canAddGroup = isHOD && node.name !== '';
+    const hasMember = node.mappedUser && node.mappedUser.length > 0;
+    const isSingleMemberRole = level === 0 || level === 2;
+    const isHOD = node.description.includes('HOD');
+    const canAddGroup = isHOD && node.groupName !== '';
 
     // Function to check if parent nodes have required data
     const checkParentNodes = (currentNode: OrgNode): boolean => {
@@ -301,8 +282,8 @@ const OrgChart2 = () => {
       const findParent = (node: OrgNode, targetNode: OrgNode, parent: OrgNode | null = null): OrgNode | null => {
         if (node === targetNode) return parent;
 
-        if (node.children) {
-          for (const child of node.children) {
+        if (node.childGroups) {
+          for (const child of node.childGroups) {
             const result = findParent(child, targetNode, node);
             if (result) return result;
           }
@@ -314,11 +295,11 @@ const OrgChart2 = () => {
       if (!parent) return true;
 
       // Check if parent has required data
-      if (parent.role === 'Managing Director' || parent.role === 'Nodal Officer') {
-        return parent.members && parent.members.length > 0;
+      if (parent.description === 'Managing Director' || parent.description === 'Nodal Officer') {
+        return parent.mappedUser && parent.mappedUser.length > 0;
       }
-      if (parent.role === 'HOD') {
-        return parent.name !== '';
+      if (parent.description === 'HOD') {
+        return parent.groupName !== '';
       }
       return true;
     };
@@ -326,16 +307,16 @@ const OrgChart2 = () => {
     const isParentValid = checkParentNodes(node);
 
     return (
-      <StyledNode isCommittee={node.isCommittee} role={node.role}>
+      <StyledNode isCommittee={node.isCommitee} role={node.description}>
         <div className="flex flex-row gap-2">
           <Avatar className="w-10 h-10">
-            <AvatarFallback>{node.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{node.groupName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-1 items-center">
-            <NodeLabel role={node.role}>{node.name}</NodeLabel>
-            {node.role !== 'Committee' && <RoleText role={node.role}>{node.role}</RoleText>}
+            <NodeLabel role={node.description}>{node.groupName}</NodeLabel>
+            {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
-          {(!node.isCommittee || (node.isCommittee && node.role !== 'Committee Member')) && (
+          {(!node.isCommitee || (node.isCommitee && node.description !== 'Committee Member')) && (
             <div className="flex gap-2">
               {/* For MD and Nodal Officer only */}
               {isSingleMemberRole ? (
@@ -347,7 +328,8 @@ const OrgChart2 = () => {
                       e.stopPropagation();
                       setSelectedNode(node);
                       setIsEditMode(true);
-                      setNewUserName(node.members?.[0]?.name || '');
+                      setNewUserName(node.mappedUser?.[0]?.userDetail || '');
+                      setNewUserCode(node.mappedUser?.[0]?.userCode || '');
                       setAddUserDialogOpen(true);
                     }}
                     disabled={!isParentValid}
@@ -365,6 +347,7 @@ const OrgChart2 = () => {
                       setSelectedNode(node);
                       setIsEditMode(false);
                       setNewUserName('');
+                      setNewUserCode('');
                       setAddUserDialogOpen(true);
                     }}
                     disabled={!isParentValid}
@@ -375,8 +358,9 @@ const OrgChart2 = () => {
                   </Button>
                 )
               ) : (
-                level !== 4 &&
-                level !== 3 && (
+                // Allow adding users to Committee level and other levels except 3 and 4
+
+                level !== 4 && (
                   <Button
                     variant="ghost"
                     className="ml-auto px-1 p-2"
@@ -385,6 +369,7 @@ const OrgChart2 = () => {
                       setSelectedNode(node);
                       setIsEditMode(false);
                       setNewUserName('');
+                      setNewUserCode('');
                       setAddUserDialogOpen(true);
                     }}
                     disabled={!isParentValid}
@@ -405,6 +390,7 @@ const OrgChart2 = () => {
                       setSelectedNode(node);
                       setIsEditMode(false);
                       setNewUserName('');
+                      setNewUserCode('');
                       setAddUserDialogOpen(true);
                     }}
                     disabled={!isParentValid}
@@ -437,36 +423,52 @@ const OrgChart2 = () => {
   };
 
   const RenderTree = ({ data, level = 0 }: { data: OrgNode; level?: number }) => {
-    if (data.isCommittee && data.members) {
-      // Split members into left and right groups
-      const midPoint = Math.ceil(data.members.length / 2);
-      const leftMembers = data.members.slice(0, midPoint);
-      const rightMembers = data.members.slice(midPoint);
+    if (data.isCommitee && data.mappedUser && data.mappedUser.length > 0) {
+      const midPoint = Math.ceil(data.mappedUser.length / 2);
+      const leftMembers = data.mappedUser.slice(0, midPoint);
+      const rightMembers = data.mappedUser.slice(midPoint);
 
       return (
         <TreeNode
           label={
             <CommitteeLayout>
-              {/* Left Members */}
               <MembersList style={{ alignItems: 'flex-end' }}>
                 {leftMembers.map((member, index) => (
-                  <RenderNode key={`left-${index}`} node={member} level={level} />
+                  <StyledNode key={`left-${index}`} isCommittee={true} role="Committee Member">
+                    <div className="flex flex-row gap-2">
+                      <Avatar className="w-10 h-10">
+                        <AvatarFallback>{member.userDetail.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-1 items-center">
+                        <NodeLabel role="Committee Member">{member.userDetail}</NodeLabel>
+                        <RoleText role="Committee Member">Committee Member</RoleText>
+                      </div>
+                    </div>
+                  </StyledNode>
                 ))}
               </MembersList>
 
-              {/* Committee role */}
               <RenderNode node={data} level={level} />
 
-              {/* Right Members */}
               <MembersList style={{ alignItems: 'flex-start' }}>
                 {rightMembers.map((member, index) => (
-                  <RenderNode key={`right-${index}`} node={member} level={level} />
+                  <StyledNode key={`right-${index}`} isCommittee={true} role="Committee Member">
+                    <div className="flex flex-row gap-2">
+                      <Avatar className="w-10 h-10">
+                        <AvatarFallback>{member.userDetail.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col gap-1 items-center">
+                        <NodeLabel role="Committee Member">{member.userDetail}</NodeLabel>
+                        <RoleText role="Committee Member">Committee Member</RoleText>
+                      </div>
+                    </div>
+                  </StyledNode>
                 ))}
               </MembersList>
             </CommitteeLayout>
           }
         >
-          {data.children?.map((child, index) => (
+          {data.childGroups?.map((child, index) => (
             <RenderTree key={index} data={child} level={level + 1} />
           ))}
         </TreeNode>
@@ -475,12 +477,24 @@ const OrgChart2 = () => {
 
     return (
       <TreeNode label={<RenderNode node={data} level={level} />}>
-        {data.children?.map((child, index) => (
+        {data.childGroups?.map((child, index) => (
           <RenderTree key={index} data={child} level={level + 1} />
         ))}
       </TreeNode>
     );
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
+  if (!chartData) {
+    return <div>No data available</div>;
+  }
 
   return (
     <div style={{ padding: '40px', background: '#f9f9f9', minHeight: '100vh', overflowX: 'auto' }}>
@@ -490,7 +504,7 @@ const OrgChart2 = () => {
         lineBorderRadius={'10px'}
         label={<RenderNode node={chartData} level={0} />}
       >
-        {chartData.children?.map((child, index) => (
+        {chartData.childGroups?.map((child, index) => (
           <RenderTree key={index} data={child} level={1} />
         ))}
       </Tree>
@@ -502,22 +516,28 @@ const OrgChart2 = () => {
             <DialogTitle>{isEditMode ? 'Edit User' : 'Add New User'}</DialogTitle>
             <DialogDescription>
               {isEditMode
-                ? `Edit user for ${selectedNode?.name} with role: ${selectedNode?.role}`
-                : `Add a new user ${selectedNode?.name ? `for ${selectedNode.name}` : ''} with role: ${
-                    selectedNode?.role
+                ? `Edit user for ${selectedNode?.groupName} with role: ${selectedNode?.description}`
+                : `Add a new user ${selectedNode?.groupName ? `for ${selectedNode.groupName}` : ''} with role: ${
+                    selectedNode?.description
                   }`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="name">User Name</Label>
-              <Input
-                id="name"
-                value={newUserName}
-                onChange={(e) => setNewUserName(e.target.value)}
-                placeholder="Enter user name"
-              />
-            </div>
+            <UserSelect
+              employees={employeeList}
+              value={selectedNode?.mappedUser || []}
+              onChange={(users) => {
+                if (isEditMode) {
+                  setNewUserCode(users[0]?.userCode || '');
+                  setNewUserName(users[0]?.userDetail || '');
+                } else {
+                  setNewUserCode(users[0]?.userCode || '');
+                  setNewUserName(users[0]?.userDetail || '');
+                }
+              }}
+              isMulti={false}
+              label="Select User"
+            />
           </div>
           <DialogFooter>
             <Button
@@ -529,7 +549,9 @@ const OrgChart2 = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handleAddUser}>{isEditMode ? 'Update User' : 'Add User'}</Button>
+            <Button onClick={handleAddUser} disabled={!newUserName || !newUserCode}>
+              {isEditMode ? 'Update User' : 'Add User'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -539,7 +561,7 @@ const OrgChart2 = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Group</DialogTitle>
-            <DialogDescription>Add a new group below {selectedNode?.name}</DialogDescription>
+            <DialogDescription>Add a new group below {selectedNode?.groupName}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -560,6 +582,19 @@ const OrgChart2 = () => {
                 placeholder="Enter group description"
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <input type="checkbox" id="isHOD" checked={isHOD} onChange={(e) => setIsHOD(e.target.checked)} />
+              <Label htmlFor="isHOD">Is HOD</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="isServiceCategory"
+                checked={isServiceCategory}
+                onChange={(e) => setIsServiceCategory(e.target.checked)}
+              />
+              <Label htmlFor="isServiceCategory">Is Service Category</Label>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setAddGroupDialogOpen(false)}>
@@ -577,7 +612,7 @@ const OrgChart2 = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Item</DialogTitle>
-            <DialogDescription>Add a new item below {selectedNode?.name}</DialogDescription>
+            <DialogDescription>Add a new item below {selectedNode?.groupName}</DialogDescription>
           </DialogHeader>
           <div className="flex border-b mb-4">
             <button
