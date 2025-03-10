@@ -1,10 +1,21 @@
 import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
-import { Plus } from 'lucide-react';
+import { Group, Plus, UserPlus, Users, User } from 'lucide-react';
 import React from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import styled from 'styled-components';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 
 const StyledNode = styled.div<{ isCommittee?: boolean }>`
   padding: 10px 15px;
@@ -142,40 +153,102 @@ const orgData: OrgNode = {
 
 const OrgChart2 = () => {
   const [chartData, setChartData] = React.useState<OrgNode>(orgData);
+  const [addUserDialogOpen, setAddUserDialogOpen] = React.useState(false);
+  const [addGroupDialogOpen, setAddGroupDialogOpen] = React.useState(false);
+  const [selectedNode, setSelectedNode] = React.useState<OrgNode | null>(null);
+  const [newUserName, setNewUserName] = React.useState('');
+  const [newGroupName, setNewGroupName] = React.useState('');
+  const [newGroupDescription, setNewGroupDescription] = React.useState('');
 
-  const addChild = (parentNode: OrgNode) => {
-    // Create a deep copy of the current chart data
+  const handleAddUser = () => {
+    if (!selectedNode || !newUserName) return;
+
     const newData = JSON.parse(JSON.stringify(chartData));
 
-    // Helper function to find and update the target node
-    const updateNode = (node: OrgNode): boolean => {
-      if (node === parentNode) {
-        // Initialize children array if it doesn't exist
+    const findNodeAndUpdate = (node: OrgNode): boolean => {
+      if (node.name === selectedNode.name && node.role === selectedNode.role) {
+        // Always add as a member to the current node
+        if (!node.members) {
+          node.members = [];
+        }
+        node.members.push({
+          name: newUserName,
+          role: 'Member',
+          isCommittee: false,
+        });
+        return true;
+      }
+
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          if (findNodeAndUpdate(node.children[i])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (findNodeAndUpdate(newData)) {
+      setChartData(newData);
+    } else if (newData.name === selectedNode.name && newData.role === selectedNode.role) {
+      // Handle root node
+      if (!newData.members) {
+        newData.members = [];
+      }
+      newData.members.push({
+        name: newUserName,
+        role: 'Member',
+        isCommittee: false,
+      });
+      setChartData(newData);
+    }
+
+    setAddUserDialogOpen(false);
+    setNewUserName('');
+    setSelectedNode(null);
+  };
+
+  const handleAddGroup = () => {
+    if (!selectedNode || !newGroupName) return;
+
+    const newData = JSON.parse(JSON.stringify(chartData));
+
+    const findNodeAndUpdate = (node: OrgNode): boolean => {
+      if (node.name === selectedNode.name && node.role === selectedNode.role) {
+        // Add new group below the current node
         if (!node.children) {
           node.children = [];
         }
-        // Add new child
         node.children.push({
-          name: 'New Member',
-          role: 'New Role',
+          name: newGroupName,
+          role: newGroupDescription || 'Group',
           children: [],
         });
         return true;
       }
 
       if (node.children) {
-        for (let child of node.children) {
-          if (updateNode(child)) return true;
+        for (let i = 0; i < node.children.length; i++) {
+          if (findNodeAndUpdate(node.children[i])) {
+            return true;
+          }
         }
       }
       return false;
     };
 
-    updateNode(newData);
-    setChartData(newData);
+    if (findNodeAndUpdate(newData)) {
+      setChartData(newData);
+    }
+
+    setAddGroupDialogOpen(false);
+    setNewGroupName('');
+    setNewGroupDescription('');
+    setSelectedNode(null);
   };
 
-  const RenderNode = ({ node }: { node: OrgNode }) => {
+  const RenderNode = ({ node, level = 0 }: { node: OrgNode; level?: number }) => {
     return (
       <StyledNode isCommittee={node.isCommittee}>
         <div className="flex flex-row gap-2">
@@ -186,24 +259,44 @@ const OrgChart2 = () => {
             <NodeLabel>{node.name}</NodeLabel>
             <div style={{ fontSize: '12px', color: '#666' }}>{node.role}</div>
           </div>
-          {!node.isCommittee && (
-            <Button
-              variant="ghost"
-              className="ml-auto px-1 p-2"
-              onClick={(e) => {
-                e.stopPropagation();
-                addChild(node);
-              }}
-            >
-              <Plus className="w-4 h-4" />
-            </Button>
+          {(!node.isCommittee || (node.isCommittee && node.role !== 'Committee Member')) && (
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="ml-auto px-1 p-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedNode(node);
+                  setAddUserDialogOpen(true);
+                }}
+              >
+                <div className="flex gap-0 items-center ">
+                  <User className="w-4 h-4" />+
+                </div>
+              </Button>
+              {level > 2 && (
+                <Button
+                  variant="ghost"
+                  className="ml-auto px-1 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedNode(node);
+                    setAddGroupDialogOpen(true);
+                  }}
+                >
+                  <div className="flex gap-0.5 items-center ">
+                    <Users className="w-4 h-4" />+
+                  </div>
+                </Button>
+              )}
+            </div>
           )}
         </div>
       </StyledNode>
     );
   };
 
-  const RenderTree = ({ data }: { data: OrgNode }) => {
+  const RenderTree = ({ data, level = 0 }: { data: OrgNode; level?: number }) => {
     if (data.isCommittee && data.members) {
       // Split members into left and right groups
       const midPoint = Math.ceil(data.members.length / 2);
@@ -217,33 +310,33 @@ const OrgChart2 = () => {
               {/* Left Members */}
               <MembersList style={{ alignItems: 'flex-end' }}>
                 {leftMembers.map((member, index) => (
-                  <RenderNode key={`left-${index}`} node={member} />
+                  <RenderNode key={`left-${index}`} node={member} level={level} />
                 ))}
               </MembersList>
 
               {/* Committee role */}
-              <RenderNode node={data} />
+              <RenderNode node={data} level={level} />
 
               {/* Right Members */}
               <MembersList style={{ alignItems: 'flex-start' }}>
                 {rightMembers.map((member, index) => (
-                  <RenderNode key={`right-${index}`} node={member} />
+                  <RenderNode key={`right-${index}`} node={member} level={level} />
                 ))}
               </MembersList>
             </CommitteeLayout>
           }
         >
           {data.children?.map((child, index) => (
-            <RenderTree key={index} data={child} />
+            <RenderTree key={index} data={child} level={level + 1} />
           ))}
         </TreeNode>
       );
     }
 
     return (
-      <TreeNode label={<RenderNode node={data} />}>
+      <TreeNode label={<RenderNode node={data} level={level} />}>
         {data.children?.map((child, index) => (
-          <RenderTree key={index} data={child} />
+          <RenderTree key={index} data={child} level={level + 1} />
         ))}
       </TreeNode>
     );
@@ -251,11 +344,81 @@ const OrgChart2 = () => {
 
   return (
     <div style={{ padding: '40px', background: '#f9f9f9', minHeight: '100vh', overflowX: 'auto' }}>
-      <Tree lineWidth={'2px'} lineColor={'#2196f3'} lineBorderRadius={'10px'} label={<RenderNode node={chartData} />}>
+      <Tree
+        lineWidth={'2px'}
+        lineColor={'#2196f3'}
+        lineBorderRadius={'10px'}
+        label={<RenderNode node={chartData} level={0} />}
+      >
         {chartData.children?.map((child, index) => (
-          <RenderTree key={index} data={child} />
+          <RenderTree key={index} data={child} level={1} />
         ))}
       </Tree>
+
+      {/* Add User Dialog */}
+      <Dialog open={addUserDialogOpen} onOpenChange={setAddUserDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New User</DialogTitle>
+            <DialogDescription>
+              Add a new user at the same level as {selectedNode?.name} with role: {selectedNode?.role}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">User Name</Label>
+              <Input
+                id="name"
+                value={newUserName}
+                onChange={(e) => setNewUserName(e.target.value)}
+                placeholder="Enter user name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddUserDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddUser}>Add User</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Group Dialog */}
+      <Dialog open={addGroupDialogOpen} onOpenChange={setAddGroupDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Group</DialogTitle>
+            <DialogDescription>Add a new group below {selectedNode?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="groupName">Group Name</Label>
+              <Input
+                id="groupName"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="Enter group name"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                placeholder="Enter group description"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddGroupDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddGroup}>Add Group</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
