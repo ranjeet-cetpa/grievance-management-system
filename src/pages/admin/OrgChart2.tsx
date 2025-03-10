@@ -179,11 +179,15 @@ const OrgChart2 = () => {
   const [chartData, setChartData] = React.useState<OrgNode>(orgData);
   const [addUserDialogOpen, setAddUserDialogOpen] = React.useState(false);
   const [addGroupDialogOpen, setAddGroupDialogOpen] = React.useState(false);
+  const [addCategoryDialogOpen, setAddCategoryDialogOpen] = React.useState(false);
   const [selectedNode, setSelectedNode] = React.useState<OrgNode | null>(null);
   const [newUserName, setNewUserName] = React.useState('');
   const [newGroupName, setNewGroupName] = React.useState('');
   const [newGroupDescription, setNewGroupDescription] = React.useState('');
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<'category' | 'addressal'>('category');
+  const [departmentName, setDepartmentName] = React.useState('');
+  const [addressalName, setAddressalName] = React.useState('');
 
   const handleAddUser = () => {
     if (!selectedNode || !newUserName) return;
@@ -290,9 +294,85 @@ const OrgChart2 = () => {
     setSelectedNode(null);
   };
 
+  const handleAddCategory = () => {
+    if (!selectedNode || !newGroupName) return;
+
+    const newData = JSON.parse(JSON.stringify(chartData));
+
+    const findNodeAndUpdate = (node: OrgNode): boolean => {
+      if (node.name === selectedNode.name && node.role === selectedNode.role) {
+        if (!node.children) {
+          node.children = [];
+        }
+        node.children.push({
+          name: newGroupName,
+          role: newGroupDescription || 'Category',
+          children: [],
+        });
+        return true;
+      }
+
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          if (findNodeAndUpdate(node.children[i])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (findNodeAndUpdate(newData)) {
+      setChartData(newData);
+    }
+
+    setAddCategoryDialogOpen(false);
+    setNewGroupName('');
+    setNewGroupDescription('');
+    setSelectedNode(null);
+  };
+
+  const handleAddAddressal = () => {
+    if (!selectedNode || !departmentName || !addressalName) return;
+
+    const newData = JSON.parse(JSON.stringify(chartData));
+
+    const findNodeAndUpdate = (node: OrgNode): boolean => {
+      if (node.name === selectedNode.name && node.role === selectedNode.role) {
+        if (!node.children) {
+          node.children = [];
+        }
+        node.children.push({
+          name: departmentName,
+          role: addressalName,
+          children: [],
+        });
+        return true;
+      }
+
+      if (node.children) {
+        for (let i = 0; i < node.children.length; i++) {
+          if (findNodeAndUpdate(node.children[i])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (findNodeAndUpdate(newData)) {
+      setChartData(newData);
+    }
+
+    setAddCategoryDialogOpen(false);
+    setDepartmentName('');
+    setAddressalName('');
+    setSelectedNode(null);
+  };
+
   const RenderNode = ({ node, level = 0 }: { node: OrgNode; level?: number }) => {
     const hasMember = node.members && node.members.length > 0;
-    const isSingleMemberRole = level === 0 || level === 2 || (level === 3 && node.role.includes('HOD')); // MD, Nodal Officer, or HOD
+    const isSingleMemberRole = level === 0 || level === 2; // MD and Nodal Officer only
     const isHOD = node.role.includes('HOD');
     const canAddGroup = isHOD && node.name !== '';
 
@@ -340,7 +420,7 @@ const OrgChart2 = () => {
           </div>
           {(!node.isCommittee || (node.isCommittee && node.role !== 'Committee Member')) && (
             <div className="flex gap-2">
-              {/* For MD, Nodal Officer, and HOD */}
+              {/* For MD and Nodal Officer only */}
               {isSingleMemberRole ? (
                 hasMember ? (
                   <Button
@@ -378,7 +458,7 @@ const OrgChart2 = () => {
                   </Button>
                 )
               ) : (
-                // For other roles (committees)
+                // For committee members
                 <Button
                   variant="ghost"
                   className="ml-auto px-1 p-2"
@@ -386,6 +466,7 @@ const OrgChart2 = () => {
                     e.stopPropagation();
                     setSelectedNode(node);
                     setIsEditMode(false);
+                    setNewUserName('');
                     setAddUserDialogOpen(true);
                   }}
                   disabled={!isParentValid}
@@ -395,21 +476,39 @@ const OrgChart2 = () => {
                   </div>
                 </Button>
               )}
-              {level > 3 && (
-                <Button
-                  variant="ghost"
-                  className="ml-auto px-1 p-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setAddGroupDialogOpen(true);
-                  }}
-                  disabled={!canAddGroup || !isParentValid}
-                >
-                  <div className="flex gap-0.5 items-center">
-                    <Users className="w-4 h-4" />+
-                  </div>
-                </Button>
+              {level === 4 && (
+                <>
+                  <Button
+                    variant="ghost"
+                    className="ml-auto px-1 p-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNode(node);
+                      setIsEditMode(false);
+                      setNewUserName('');
+                      setAddUserDialogOpen(true);
+                    }}
+                    disabled={!isParentValid}
+                  >
+                    <div className="flex gap-0 items-center">
+                      <User className="w-4 h-4" />+
+                    </div>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="ml-auto px-1 p-2"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedNode(node);
+                      setAddCategoryDialogOpen(true);
+                    }}
+                    disabled={!isParentValid}
+                  >
+                    <div className="flex gap-0.5 items-center">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                  </Button>
+                </>
               )}
             </div>
           )}
@@ -551,6 +650,93 @@ const OrgChart2 = () => {
               Add Group
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category/Addressal Dialog */}
+      <Dialog open={addCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Item</DialogTitle>
+            <DialogDescription>Add a new item below {selectedNode?.name}</DialogDescription>
+          </DialogHeader>
+          <div className="flex border-b mb-4">
+            <button
+              className={`px-4 py-2 ${activeTab === 'category' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('category')}
+            >
+              Add Category
+            </button>
+            <button
+              className={`px-4 py-2 ${activeTab === 'addressal' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('addressal')}
+            >
+              Add Addressal
+            </button>
+          </div>
+          {activeTab === 'category' ? (
+            <>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="categoryName">Category Name</Label>
+                  <Input
+                    id="categoryName"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    placeholder="Enter category name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newGroupDescription}
+                    onChange={(e) => setNewGroupDescription(e.target.value)}
+                    placeholder="Enter category description"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddCategory} disabled={!newGroupName}>
+                  Add Category
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="departmentName">Department Name</Label>
+                  <Input
+                    id="departmentName"
+                    value={departmentName}
+                    onChange={(e) => setDepartmentName(e.target.value)}
+                    placeholder="Enter department name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="addressalName">Addressal Name</Label>
+                  <Input
+                    id="addressalName"
+                    value={addressalName}
+                    onChange={(e) => setAddressalName(e.target.value)}
+                    placeholder="Enter addressal name"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddAddressal} disabled={!departmentName || !addressalName}>
+                  Add Addressal
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
