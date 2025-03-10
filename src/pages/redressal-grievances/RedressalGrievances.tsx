@@ -1,26 +1,27 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
-import toast from 'react-hot-toast';
-import logger from '@/lib/logger';
-import GrievanceTable from '@/components/grievances/GrievanceTable';
 import Loader from '@/components/ui/loader';
-import Heading from '@/components/ui/heading';
-import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
-import { Button } from '@/components/ui/button';
-
 import useUserRoles from '@/hooks/useUserRoles';
-import CreateGrievance from '../employee/CreateGrievance';
+import TableList from '@/components/ui/data-table';
+import SortingButton from '@/components/ui/SortingButton';
+import { format } from 'date-fns';
+import StatusBadge from '@/components/common/StatusBadge';
 
 const FILTER_OPTIONS = {
-  ALL: 'all',
-  ASSIGNED_TO_ME: 'assignedToMe',
-  CREATED_BY_ME: 'createdByMe',
+  OPEN: 'open',
+  InProgress: 'inprogress',
+  Closed: 'closed',
 };
+
+const STATUS_IDS = {
+  OPEN: 1,
+  IN_PROGRESS: 2,
+  CLOSED: 5,
+} as const;
 
 interface GrievanceResponse {
   totalRecords: number;
@@ -53,134 +54,80 @@ interface GrievanceResponse {
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee } = useUserRoles();
-
-  // Check if user has access to assigned grievances
-  const canViewAssignedGrievances = isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee;
-
-  // Check if user has access to all grievances
-  const canViewAllGrievances =
-    isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal || isCommittee;
-
-  logger.log('Current user:', user);
-
-  const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState<string>(() => {
-    if (canViewAssignedGrievances) return FILTER_OPTIONS.ASSIGNED_TO_ME;
-    return FILTER_OPTIONS.CREATED_BY_ME;
-  });
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
-  const [refresh, setRefresh] = useState(false);
-  const [filteredGrievances, setFilteredGrievances] = useState<GrievanceResponse['data']>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [pagination, setPagination] = useState({
-    pageNumber: 1,
-    pageSize: 100000,
-    totalRecords: 0,
-    totalPages: 1,
-  });
 
-  // Function to Fetch Grievances from API
-  const fetchGrievances = useCallback(async () => {
+  const fetchGrievances = async () => {
     setLoading(true);
-    try {
-      let endpoint = '';
-      let response;
-
-      // If user has special role, fetch based on selected filter
-      if (canViewAllGrievances) {
-        if (filter === FILTER_OPTIONS.CREATED_BY_ME) {
-          endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
-          response = await axiosInstance.get(endpoint);
-        } else if (filter === FILTER_OPTIONS.ASSIGNED_TO_ME) {
-          endpoint = `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
-          response = await axiosInstance.get(endpoint);
-        } else {
-          // For ALL filter, fetch both types of grievances
-          const [myGrievancesResponse, assignedGrievancesResponse] = await Promise.all([
-            axiosInstance.get(
-              `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
-            ),
-            axiosInstance.get(
-              `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`
-            ),
-          ]);
-
-          // Combine the data from both responses
-          const myGrievances = myGrievancesResponse.data.statusCode === 200 ? myGrievancesResponse.data.data.data : [];
-          const assignedGrievances =
-            assignedGrievancesResponse.data.statusCode === 200 ? assignedGrievancesResponse.data.data.data : [];
-
-          // Combine and remove duplicates based on id
-          const combinedGrievances = [...assignedGrievances];
-          const uniqueGrievances = combinedGrievances.filter(
-            (grievance, index, self) => index === self.findIndex((g) => g.id === grievance.id)
-          );
-
-          // Update the state with combined data
-          setGrievances(uniqueGrievances);
-          setPagination({
-            pageNumber: pagination.pageNumber,
-            pageSize: pagination.pageSize,
-            totalRecords: uniqueGrievances.length,
-            totalPages: Math.ceil(uniqueGrievances.length / pagination.pageSize),
-          });
-          setLoading(false);
-          return;
-        }
-      } else {
-        // For regular users, only fetch created grievances
-        endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
-        response = await axiosInstance.get(endpoint);
-      }
-
-      if (response.data.statusCode === 200) {
-        const responseData = response.data.data;
-        setGrievances(responseData.data);
-        setPagination({
-          pageNumber: responseData.pageNumber,
-          pageSize: responseData.pageSize,
-          totalRecords: responseData.totalRecords,
-          totalPages: responseData.totalPages,
-        });
-        logger.log('Grievances fetched:', responseData);
-      } else if (response?.data?.statusCode === 404) {
-        toast.error('No grievances found');
-        setGrievances([]);
-      } else {
-        toast.error('Failed to fetch grievances');
-        setGrievances([]);
-      }
-    } catch (error) {
-      logger.error('Error fetching grievances:', error);
-      toast.error('Something went wrong while fetching grievances');
-      setGrievances([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [filter, user.EmpCode, pagination.pageNumber, pagination.pageSize, canViewAllGrievances]);
-
-  // Fetch grievances when filter or refresh changes
-  useEffect(() => {
-    fetchGrievances();
-  }, [fetchGrievances, refresh]);
-
-  // Function to refresh grievances
-  const refreshGrievances = () => {
-    setRefresh((prev) => !prev);
+    const response = await axiosInstance.get(
+      `/Grievance/GetGrievanceList?userCode=${user.EmpCode}&pageNumber=1&pageSize=99999999`
+    );
+    setGrievances(response?.data?.data?.data);
+    setLoading(false);
   };
 
-  // Filter grievances based on search term
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredGrievances(grievances);
-    } else {
-      const filtered = grievances.filter(
-        (grievance) => grievance.title && grievance.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredGrievances(filtered);
-    }
-  }, [searchTerm, grievances]);
+    fetchGrievances();
+  }, []);
+
+  const columns = useMemo(
+    () => [
+      {
+        id: 'id',
+        accessorKey: 'id',
+        header: () => <div className="text-nowrap">ID</div>,
+        cell: ({ row }) => (
+          <div className="flex font-semibold text-sm">
+            {'GR-' + (row.original?.id < 1000 ? ('000' + row.original?.id).slice(-4) : row.original?.id)}
+          </div>
+        ),
+      },
+      {
+        id: 'createdDate',
+        accessorKey: 'createdDate',
+        header: ({ column }) => (
+          <div className="flex justify-start pl-8">
+            <SortingButton headerText="Submission Date" column={column} />
+          </div>
+        ),
+        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
+      },
+      {
+        id: 'title',
+        accessorKey: 'title',
+        header: 'Subject',
+        cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
+      },
+
+      {
+        id: 'unitName',
+        accessorKey: 'unitName',
+        header: 'Unit',
+        cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
+      },
+      {
+        id: 'statusId',
+        accessorKey: 'statusId',
+        header: 'Status',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <StatusBadge statusId={row.original.statusId} />
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  const filteredGrievances = useMemo(() => {
+    return {
+      [FILTER_OPTIONS.OPEN]: grievances.filter((g) => g.statusId === STATUS_IDS.OPEN),
+      [FILTER_OPTIONS.InProgress]: grievances.filter((g) => g.statusId === STATUS_IDS.IN_PROGRESS),
+      [FILTER_OPTIONS.Closed]: grievances.filter((g) => g.statusId === STATUS_IDS.CLOSED),
+    };
+  }, [grievances]);
+
+  console.log('grievances', grievances);
 
   return (
     <div className="p-2">
@@ -190,116 +137,45 @@ const MyGrievances = () => {
             <div>
               <CardTitle className="text-2xl font-bold text-gray-800">Redressal Grievances</CardTitle>
             </div>
-
-            <div className="hidden sm:block">{/* <CreateGrievance refreshGrievances={refreshGrievances} /> */}</div>
           </div>
         </CardHeader>
         <div className="flex p-6">
-          <Tabs className="w-full" defaultValue="table" value={filter} onValueChange={setFilter}>
-            <div className="w-full mt-4 px-2 sm:px-0 hidden sm:table">
-              <TabsContent value={FILTER_OPTIONS.ALL}>
-                <GrievanceTable
-                  mode={'all'}
-                  rightElement={
-                    <TabsList className="">
-                      <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
-                        All Grievances
-                      </TabsTrigger>
-                      {canViewAssignedGrievances && (
-                        <TabsTrigger
-                          className="w-full sm:w-[200px] md:w-[220px] transition"
-                          value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                        >
-                          Assigned to Me
-                        </TabsTrigger>
-                      )}
-                    </TabsList>
-                  }
-                  grievances={grievances?.filter((g) => g.assignedUserCode?.toString() !== user?.EmpCode?.toString())}
+          {loading ? <Loader /> :
+            <Tabs className="w-full" defaultValue={FILTER_OPTIONS.OPEN}>
+              <TabsList className="w-[400px]">
+                <TabsTrigger className=" w-full transition" value={FILTER_OPTIONS.OPEN}>
+                  Open
+                </TabsTrigger>
+                <TabsTrigger className=" w-full transition" value={FILTER_OPTIONS.InProgress}>
+                  In Progress
+                </TabsTrigger>
+                <TabsTrigger className="w-full transition" value={FILTER_OPTIONS.Closed}>
+                  Closed
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value={FILTER_OPTIONS.OPEN}>
+                <TableList
+                  data={filteredGrievances[FILTER_OPTIONS.OPEN]}
+                  columns={columns}
+                  inputPlaceholder="Search by Title..."
                 />
               </TabsContent>
-              {canViewAssignedGrievances && (
-                <TabsContent value={FILTER_OPTIONS.ASSIGNED_TO_ME}>
-                  <GrievanceTable
-                    mode={'assignedToMe'}
-                    rightElement={
-                      <TabsList className="">
-                        <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
-                          All Grievances
-                        </TabsTrigger>
-                        <TabsTrigger
-                          className="w-full sm:w-[200px] md:w-[220px] transition"
-                          value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                        >
-                          Assigned to Me
-                        </TabsTrigger>
-                      </TabsList>
-                    }
-                    grievances={grievances?.filter((g) => g.assignedUserCode?.toString() === user?.EmpCode?.toString())}
-                  />
-                </TabsContent>
-              )}
-            </div>
-
-            <div className="flex flex-row gap-4 items-center justify-between mb-4">
-              <div className="flex flex-col">
-                <div className="flex justify-between">
-                  <Heading className="sm:hidden" type={4}>
-                    Grievances
-                  </Heading>
-                  <div className="flex flex-row gap-2 md:hidden">
-                    <CreateGrievance refreshGrievances={refreshGrievances} />
-                  </div>
-                </div>
-                <div className="relative sm:hidden mt-4 w-full">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <Input
-                    type="text"
-                    placeholder="Search by grievance title"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 w-full"
-                  />
-                </div>
-                {/* Mobile view tabs */}
-                <div className="w-full mt-4 sm:hidden block">
-                  <TabsList className="">
-                    {canViewAllGrievances ? (
-                      <>
-                        <TabsTrigger className="w-full sm:w-[200px] md:w-[220px] transition" value={FILTER_OPTIONS.ALL}>
-                          All Grievances
-                        </TabsTrigger>
-                        {canViewAssignedGrievances && (
-                          <TabsTrigger
-                            className="w-full sm:w-[200px] md:w-[220px] transition"
-                            value={FILTER_OPTIONS.ASSIGNED_TO_ME}
-                          >
-                            Assigned to Me
-                          </TabsTrigger>
-                        )}
-                        <TabsTrigger
-                          className="w-full sm:w-[200px] md:w-[220px] transition"
-                          value={FILTER_OPTIONS.CREATED_BY_ME}
-                        >
-                          Created by Me
-                        </TabsTrigger>
-                      </>
-                    ) : (
-                      <TabsTrigger
-                        className="w-full sm:w-[200px] md:w-[220px] transition"
-                        value={FILTER_OPTIONS.CREATED_BY_ME}
-                      >
-                        Created by Me
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-                </div>
-              </div>
-            </div>
-            {loading && <Loader />}
-          </Tabs>
+              <TabsContent value={FILTER_OPTIONS.InProgress}>
+                <TableList
+                  data={filteredGrievances[FILTER_OPTIONS.InProgress]}
+                  columns={columns}
+                  inputPlaceholder="Search by Title..."
+                />
+              </TabsContent>
+              <TabsContent value={FILTER_OPTIONS.Closed}>
+                <TableList
+                  data={filteredGrievances[FILTER_OPTIONS.Closed]}
+                  columns={columns}
+                  inputPlaceholder="Search by Title..."
+                />
+              </TabsContent>
+            </Tabs>
+          }
         </div>
       </Card>
     </div>

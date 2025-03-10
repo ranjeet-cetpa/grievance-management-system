@@ -10,6 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import axiosInstance from '@/services/axiosInstance';
 import CreateGrievance from './CreateGrievance';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TableList from '@/components/ui/data-table';
+import SortingButton from '@/components/ui/SortingButton';
+import { format } from 'date-fns';
+import { useNavigate } from 'react-router';
 
 interface GrievanceResponse {
   totalRecords: number;
@@ -44,31 +49,17 @@ const MyGrievances = () => {
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filteredGrievances, setFilteredGrievances] = useState<GrievanceResponse['data']>([]);
-  const [pagination, setPagination] = useState({
-    pageNumber: 1,
-    pageSize: 100000,
-    totalRecords: 0,
-    totalPages: 1,
-  });
+  const navigate = useNavigate();
 
   // Function to Fetch Grievances from API
   const fetchGrievances = useCallback(async () => {
     setLoading(true);
     try {
-      const endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=${pagination.pageNumber}&pageSize=${pagination.pageSize}`;
+      const endpoint = `/Grievance/MyGrievanceList?userCode=${user.EmpCode}&pageNumber=1&pageSize= 10000000`;
       const response = await axiosInstance.get(endpoint);
-
       if (response.data.statusCode === 200) {
         const responseData = response.data.data;
         setGrievances(responseData.data);
-        setPagination({
-          pageNumber: responseData.pageNumber,
-          pageSize: responseData.pageSize,
-          totalRecords: responseData.totalRecords,
-          totalPages: responseData.totalPages,
-        });
         logger.log('Grievances fetched:', responseData);
       } else if (response?.data?.statusCode === 404) {
         toast.error('No grievances found');
@@ -84,7 +75,7 @@ const MyGrievances = () => {
     } finally {
       setLoading(false);
     }
-  }, [user.EmpCode, pagination.pageNumber, pagination.pageSize]);
+  }, [user.EmpCode]);
 
   // Fetch grievances when component mounts or refresh changes
   useEffect(() => {
@@ -96,17 +87,43 @@ const MyGrievances = () => {
     setRefresh((prev) => !prev);
   };
 
-  // Filter grievances based on search term
-  useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredGrievances(grievances);
-    } else {
-      const filtered = grievances.filter(
-        (grievance) => grievance.title && grievance.title.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      setFilteredGrievances(filtered);
-    }
-  }, [searchTerm, grievances]);
+  const openGrievances = grievances.filter((grievance) => grievance.statusId === 1 || 2 || 3 || 4);
+  const closedGrievances = grievances.filter((grievance) => grievance.statusId === 5);
+
+  const columns = [
+    {
+      id: 'id',
+      accessorKey: 'id',
+      header: () => <div className="text-nowrap">ID</div>,
+      cell: ({ row }) => (
+        <div className="flex font-semibold text-sm">
+          {'GR-' + (row.original?.id < 1000 ? ('000' + row.original?.id).slice(-4) : row.original?.id)}
+        </div>
+      ),
+    },
+    {
+      id: 'createdDate',
+      accessorKey: 'createdDate',
+      header: ({ column }) => (
+        <div className="flex justify-start pl-8">
+          <SortingButton headerText="Submission Date" column={column} />
+        </div>
+      ),
+      cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
+    },
+    {
+      id: 'title',
+      accessorKey: 'title',
+      header: 'Subject',
+      cell: ({ row }) => <div className="max-w-[300px] text-sm truncate">{row.original.title}</div>,
+    },
+    {
+      id: 'department',
+      accessorKey: 'department',
+      header: 'Currently With',
+      cell: ({ row }) => <div className="max-w-52 text-sm capitalize">{row.original.department}</div>,
+    },
+  ];
 
   return (
     <div className="p-2">
@@ -117,15 +134,29 @@ const MyGrievances = () => {
             <CreateGrievance refreshGrievances={refreshGrievances} />
           </div>
         </CardHeader>
-
         <div className="p-6">
           {loading ? (
             <Loader />
           ) : (
-            <GrievanceTable
-              mode="createdByMe"
-              grievances={searchTerm.trim() === '' ? grievances : filteredGrievances}
-            />
+            <div>
+              <Tabs defaultValue="open">
+                <TabsList className="grid w-[300px] grid-cols-2">
+                  <TabsTrigger value="open">Open</TabsTrigger>
+                  <TabsTrigger value="closed">Closed</TabsTrigger>
+                </TabsList>
+                <TabsContent value="open" className="mt-6">
+                  <TableList
+                    data={openGrievances}
+                    columns={columns}
+                    inputPlaceholder="Search by Title..."
+                    onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
+                  />
+                </TabsContent>
+                <TabsContent value="closed" className="mt-6">
+                  <TableList data={closedGrievances} columns={columns} inputPlaceholder="Search by Title..." />
+                </TabsContent>
+              </Tabs>
+            </div>
           )}
         </div>
       </Card>

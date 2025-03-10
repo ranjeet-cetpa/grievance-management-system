@@ -98,7 +98,6 @@ export const getPriorityColor = (priority?: string): string => {
 };
 
 export const getStatusColor = (status?: string): string => {
-  console.log('status color from helper ', status);
   const colors: Record<string, string> = {
     completed: 'bg-green-600 text-white text-xs font-bold',
     'in progress': 'bg-yellow-600 text-white text-xs font-bold',
