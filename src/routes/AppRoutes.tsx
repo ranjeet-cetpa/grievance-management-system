@@ -16,6 +16,7 @@ import ManageRoles from '@/pages/ManageRoles';
 import RequestPage from '@/pages/requestPage/RequestPage';
 import RedressalGrievances from '@/pages/redressal-grievances/RedressalGrievances';
 import OrganizationChart from '@/pages/admin/OrganizationChart';
+import NonOrgChart from "@/pages/admin/NonOrgChart";
 
 const AppRoutes = () => {
   return (
@@ -37,6 +38,7 @@ const AppRoutes = () => {
         <Route path="/admin-grievances/:grievanceId" element={<GrievanceDetails />} />
         <Route path="/admin-manage-services" element={<ManageUsers />} />
         <Route path="/admin-manage-role" element={<ManageRoles />} />
+        <Route path="/admin-non-corporate" element={<NonOrgChart />} />
         <Route path="/admin-org" element={<OrganizationChart />} />
       </Route>
       <Route path="/grievance/:token" element={<RequestPage />} /> <Route path="/login" element={<Login />} />
