@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import UserSelect from '@/components/org-chart/UserSelect';
 import Loader from '@/components/ui/loader';
-import axios from "axios";
+import axios from 'axios';
 
 // Define the type for our org chart data
 interface UserDetails {
@@ -72,7 +72,9 @@ const OrgChart2 = () => {
   const dataFetcher = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=396');
+      const response = await axios.get(
+        'https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=396'
+      );
       const result = await response.data;
       console.log(result.data);
       setChartData(result.data);
@@ -100,17 +102,17 @@ const OrgChart2 = () => {
         unitName: selectedNode.groupName,
         userCodes: selectedNode.isCommitee
           ? selectedUsers.map((user) => ({
-            userCode: user.userCode,
-            userDetails: user.userDetail,
-            departments: [],
-          }))
-          : [
-            {
-              userCode: newUserCode,
-              userDetails: newUserName,
+              userCode: user.userCode,
+              userDetails: user.userDetail,
               departments: [],
-            },
-          ],
+            }))
+          : [
+              {
+                userCode: newUserCode,
+                userDetails: newUserName,
+                departments: [],
+              },
+            ],
       };
 
       // Make the API call
@@ -627,8 +629,9 @@ const OrgChart2 = () => {
             <DialogDescription>
               {isEditMode
                 ? `Edit user for ${selectedNode?.groupName} with role: ${selectedNode?.description}`
-                : `Add a new user ${selectedNode?.groupName ? `for ${selectedNode.groupName}` : ''} with role: ${selectedNode?.description
-                }`}
+                : `Add a new user ${selectedNode?.groupName ? `for ${selectedNode.groupName}` : ''} with role: ${
+                    selectedNode?.description
+                  }`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

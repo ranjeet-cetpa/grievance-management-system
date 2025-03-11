@@ -17,11 +17,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { StyledNode, NodeLabel, RoleText, CommitteeLayout, MembersList } from '@/components/org-chart/StyledOrgChart';
-import axiosInstance from '@/services/axiosInstance';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import UserSelect from '@/components/org-chart/UserSelect';
 import Loader from '@/components/ui/loader';
+import axios from 'axios';
 
 // Define the type for our org chart data
 interface UserDetails {
@@ -64,11 +64,14 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  console.log(employeeList);
 
   const dataFetcher = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
+      const response = await axios.get(
+        `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=${unitId}`
+      );
       const result = await response.data;
       console.log(result.data);
       setChartData(result.data);
@@ -109,7 +112,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
             ],
       };
 
-      await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
+      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserGroupMapping', requestBody);
       toast.success('User mapping updated successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
@@ -194,7 +197,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
         })),
       };
 
-      await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
+      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
       toast.success('Category added successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
