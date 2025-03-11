@@ -19,6 +19,7 @@ import {
 const OrganizationChart = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
+  console.log(unitsDD);
   const [selectedUnit, setSelectedUnit] = useState(396);
 
   return (
