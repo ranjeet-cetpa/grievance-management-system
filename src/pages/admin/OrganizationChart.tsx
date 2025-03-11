@@ -17,7 +17,6 @@ import {
 } from '@/components/ui/select';
 
 const OrganizationChart = () => {
-  const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = [
     {
       unitId: 396,
@@ -72,7 +71,7 @@ const OrganizationChart = () => {
       <Card className="rounded-md mt-2 mx-2">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <Heading type={4}>Organization Chart</Heading>
+            <Heading type={4}>Grievance Organization</Heading>
             <Select value={selectedUnit} onValueChange={setSelectedUnit}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Select Unit">
