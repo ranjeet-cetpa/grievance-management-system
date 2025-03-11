@@ -62,6 +62,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
+  console.log(employeeList);
   const user = useSelector((state: RootState) => state.user);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   console.log(employeeList);
