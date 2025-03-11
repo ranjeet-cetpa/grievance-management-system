@@ -73,11 +73,6 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: '/admin-org',
         icon: Users,
       },
-      {
-        title: 'Non Corporate Charts',
-        url: '/admin-non-corporate',
-        icon: Users,
-      },
       ...(isSuperAdmin || isAdmin
         ? [
           {
