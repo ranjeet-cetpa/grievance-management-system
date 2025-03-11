@@ -2,6 +2,7 @@ import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
 import { Plus, UserPlus, Users, User, Pencil, Info } from 'lucide-react';
+import toast from 'react-hot-toast';
 import React, { useEffect } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import {
@@ -62,16 +63,19 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
   const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const dataFetcher = async () => {
     try {
+      setLoading(true);
       const response = await axiosInstance.get(`/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
       const result = await response.data;
       console.log(result.data);
-
       setChartData(result.data);
     } catch (err) {
       console.error('Error fetching data:', err);
+      setError('Failed to fetch organization data');
+      toast.error('Failed to fetch organization data');
     } finally {
       setLoading(false);
     }
@@ -85,6 +89,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
     if (!selectedNode) return;
 
     try {
+      setIsSubmitting(true);
       const requestBody = {
         groupMasterId: selectedNode.id,
         unitId: selectedNode.unitId || unitId,
@@ -105,6 +110,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       };
 
       await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
+      toast.success('User mapping updated successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
       if (!newData) return;
@@ -158,6 +164,9 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       dataFetcher();
     } catch (error) {
       console.error('Error updating user group mapping:', error);
+      toast.error('Failed to update user mapping');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -165,6 +174,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
     if (!selectedNode || !newGroupName || selectedUsers.length === 0) return;
 
     try {
+      setIsSubmitting(true);
       const requestBody = {
         id: 0,
         groupName: newGroupName,
@@ -185,6 +195,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       };
 
       await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
+      toast.success('Category added successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
       if (!newData) return;
@@ -231,6 +242,9 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       dataFetcher();
     } catch (error) {
       console.error('Error adding category:', error);
+      toast.error('Failed to add category');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -251,8 +265,8 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
             {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
           <div className="flex gap-2">
-            {isSingleMemberRole ? (
-              hasMember ? (
+            {level !== 2 &&
+              (hasMember ? (
                 <Button
                   variant="outline"
                   className="ml-auto px-1 p-2"
@@ -287,37 +301,40 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
                     <User className="w-4 h-4 " />+
                   </div>
                 </Button>
-              )
-            ) : (
-              level === 1 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setAddCategoryDialogOpen(true);
-                    }}
-                  >
-                    <div className="flex gap-0.5 items-center">
-                      <Users /> <Plus className="w-4 h-4" />
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setShowMappedUsersDialog(true);
-                    }}
-                  >
-                    <Info />
-                  </Button>
-                </>
-              )
+              ))}
+            {level === 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto px-1 p-2"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedNode(node);
+                    setAddCategoryDialogOpen(true);
+                  }}
+                >
+                  <div className="flex gap-0.5 items-center">
+                    <Users /> <Plus className="w-4 h-4" />
+                  </div>
+                </Button>
+              </>
+            )}
+            {level === 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="ml-auto px-1 p-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedNode(node);
+                  setShowMappedUsersDialog(true);
+                }}
+              >
+                <div className="flex gap-0.5 items-center">
+                  <Info className="w-4 h-4" />
+                </div>
+              </Button>
             )}
           </div>
         </div>
@@ -459,13 +476,17 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
                 setIsEditMode(false);
                 setSelectedUsers([]);
               }}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
             <Button
               onClick={handleAddUser}
-              disabled={selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode}
+              disabled={
+                selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode || isSubmitting
+              }
             >
+              {isSubmitting ? <Loader className="w-4 h-4 mr-2" /> : null}
               {isEditMode ? 'Update User' : 'Add User'}
             </Button>
           </DialogFooter>
@@ -487,6 +508,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 placeholder="Enter category name"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -496,6 +518,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
                 value={newGroupDescription}
                 onChange={(e) => setNewGroupDescription(e.target.value)}
                 placeholder="Enter category description"
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -520,10 +543,11 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleAddCategory} disabled={!newGroupName || selectedUsers.length === 0}>
+            <Button onClick={handleAddCategory} disabled={!newGroupName || selectedUsers.length === 0 || isSubmitting}>
+              {isSubmitting ? <Loader className="w-4 h-4 mr-2" /> : null}
               Add Category
             </Button>
           </DialogFooter>
