@@ -1,8 +1,7 @@
 import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
-import { Group, Plus, UserPlus, Users, User, Pencil, Info } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { Group, Plus, UserPlus, Users, User, Pencil } from 'lucide-react';
 import React, { useEffect } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
 import {
@@ -21,8 +20,6 @@ import axiosInstance from '@/services/axiosInstance';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import UserSelect from '@/components/org-chart/UserSelect';
-import Loader from '@/components/ui/loader';
-import axios from "axios";
 
 // Define the type for our org chart data
 interface UserDetails {
@@ -44,7 +41,7 @@ interface OrgNode {
   mappedUser: UserDetails[];
 }
 
-const OrgChart2 = () => {
+const NonOrgChart = () => {
   const [chartData, setChartData] = React.useState<OrgNode | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -52,7 +49,6 @@ const OrgChart2 = () => {
   const [addGroupDialogOpen, setAddGroupDialogOpen] = React.useState(false);
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = React.useState(false);
   const [selectedNode, setSelectedNode] = React.useState<OrgNode | null>(null);
-  const [showMappedUsersDialog, setShowMappedUsersDialog] = React.useState(false);
   const [newUserName, setNewUserName] = React.useState('');
   const [newUserCode, setNewUserCode] = React.useState('');
   const [newGroupName, setNewGroupName] = React.useState('');
@@ -63,120 +59,74 @@ const OrgChart2 = () => {
   const [addressalName, setAddressalName] = React.useState('');
   const [isHOD, setIsHOD] = React.useState(false);
   const [isServiceCategory, setIsServiceCategory] = React.useState(false);
-  const [mappedUser, setMappedUser] = React.useState<UserDetails[]>([]);
-  const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-  const user = useSelector((state: RootState) => state.user);
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  const dataFetcher = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=396');
-      const result = await response.data;
-      console.log(result.data);
-      setChartData(result.data);
-    } catch (err) {
-      console.error('Error fetching data:', err);
-      setError('Failed to fetch organization data');
-      toast.error('Failed to fetch organization data');
-    } finally {
-      setLoading(false);
-    }
-  };
   useEffect(() => {
-    dataFetcher();
+    const fetchData = async () => {
+      try {
+        const response = await axiosInstance.get('/Admin/GetOrgGroupHierarchy?unitId=396');
+        const result = await response.data;
+        console.log(result.data);
+
+        setChartData(result.data);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, []);
 
-  const handleAddUser = async () => {
-    if (!selectedNode) return;
+  const handleAddUser = () => {
+    if (!selectedNode || !newUserName || !newUserCode) return;
+    const newData = JSON.parse(JSON.stringify(chartData));
+    if (!newData) return;
 
-    try {
-      setIsSubmitting(true);
-      // Prepare the request body
-      const requestBody = {
-        groupMasterId: selectedNode.id,
-        unitId: selectedNode.unitId || '396',
-        unitName: selectedNode.groupName,
-        userCodes: selectedNode.isCommitee
-          ? selectedUsers.map((user) => ({
-            userCode: user.userCode,
-            userDetails: user.userDetail,
+    const findNodeAndUpdate = (node: OrgNode, level: number): boolean => {
+      if (node.id === selectedNode.id) {
+        node.groupName = newUserName;
+
+        if (!node.mappedUser) {
+          node.mappedUser = [];
+        }
+
+        if (isEditMode) {
+          node.mappedUser[0] = {
+            userCode: newUserCode,
+            userDetail: newUserName,
             departments: [],
-          }))
-          : [
-            {
-              userCode: newUserCode,
-              userDetails: newUserName,
-              departments: [],
-            },
-          ],
-      };
-
-      // Make the API call
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserGroupMapping', requestBody);
-      toast.success('User mapping updated successfully');
-
-      // Update local state
-      const newData = JSON.parse(JSON.stringify(chartData));
-      if (!newData) return;
-
-      const findNodeAndUpdate = (node: OrgNode, level: number): boolean => {
-        if (node.id === selectedNode.id) {
-          if (node.isCommitee) {
-            // For committees, update all mapped users
-            node.mappedUser = selectedUsers;
-          } else {
-            // For single user roles
-            if (!node.mappedUser) {
-              node.mappedUser = [];
-            }
-
-            if (isEditMode) {
-              node.mappedUser[0] = {
-                userCode: newUserCode,
-                userDetail: newUserName,
-                departments: [],
-              };
-            } else {
-              node.mappedUser.push({
-                userCode: newUserCode,
-                userDetail: newUserName,
-                departments: [],
-              });
-            }
-          }
-          return true;
+          };
+        } else {
+          node.mappedUser.push({
+            userCode: newUserCode,
+            userDetail: newUserName,
+            departments: [],
+          });
         }
-
-        if (node.childGroups) {
-          for (let i = 0; i < node.childGroups.length; i++) {
-            if (findNodeAndUpdate(node.childGroups[i], level + 1)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      if (findNodeAndUpdate(newData, 0)) {
-        setChartData(newData);
+        console.log(node.mappedUser);
+        return true;
       }
 
-      // Reset form state
-      setAddUserDialogOpen(false);
-      setNewUserName('');
-      setNewUserCode('');
-      setSelectedUsers([]);
-      setSelectedNode(null);
-      setIsEditMode(false);
-      dataFetcher();
-    } catch (error) {
-      console.error('Error updating user group mapping:', error);
-      toast.error('Failed to update user mapping');
-    } finally {
-      setIsSubmitting(false);
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i], level + 1)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (findNodeAndUpdate(newData, 0)) {
+      setChartData(newData);
     }
+
+    setAddUserDialogOpen(false);
+    setNewUserName('');
+    setNewUserCode('');
+    setSelectedNode(null);
+    setIsEditMode(false);
   };
 
   const handleAddGroup = () => {
@@ -227,84 +177,49 @@ const OrgChart2 = () => {
     setSelectedNode(null);
   };
 
-  const handleAddCategory = async () => {
-    if (!selectedNode || !newGroupName || selectedUsers.length === 0) return;
+  const handleAddCategory = () => {
+    if (!selectedNode || !newGroupName) return;
 
-    try {
-      setIsSubmitting(true);
-      const requestBody = {
-        id: 0,
-        groupName: newGroupName,
-        description: newGroupDescription || '',
-        isCommitee: false,
-        isHOD: false,
-        isServiceCategory: true,
-        parentGroupId: selectedNode.id,
-        unitId: selectedNode.unitId || '396',
-        unitName: 'Corporate Office',
-        createdBy: user?.EmpCode,
-        childGroup: null,
-        mappedUser: selectedUsers.map((user) => ({
-          userCode: user.userCode,
-          userDetail: user.userDetail,
-          departments: user.departments || [],
-        })),
-      };
+    const newData = JSON.parse(JSON.stringify(chartData));
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
-      toast.success('Category added successfully');
-
-      // Update local state
-      const newData = JSON.parse(JSON.stringify(chartData));
-      if (!newData) return;
-
-      const findNodeAndUpdate = (node: OrgNode): boolean => {
-        if (node.id === selectedNode.id) {
-          if (!node.childGroups) {
-            node.childGroups = [];
-          }
-          node.childGroups.push({
-            id: 0,
-            groupName: newGroupName,
-            description: newGroupDescription || 'Category',
-            isCommitee: true,
-            isHOD: false,
-            isServiceCategory: true,
-            parentGroupId: node.id,
-            unitId: node.unitId,
-            childGroups: [],
-            mappedUser: selectedUsers,
-          });
-          return true;
+    const findNodeAndUpdate = (node: OrgNode): boolean => {
+      if (node.id === selectedNode.id) {
+        if (!node.childGroups) {
+          node.childGroups = [];
         }
-
-        if (node.childGroups) {
-          for (let i = 0; i < node.childGroups.length; i++) {
-            if (findNodeAndUpdate(node.childGroups[i])) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      if (findNodeAndUpdate(newData)) {
-        setChartData(newData);
+        node.childGroups.push({
+          id: 0,
+          groupName: newGroupName,
+          description: newGroupDescription || 'Category',
+          isCommitee: false,
+          isHOD: false,
+          isServiceCategory: false,
+          parentGroupId: node.id,
+          unitId: node.unitId,
+          childGroups: [],
+          mappedUser: [],
+        });
+        return true;
       }
 
-      // Reset form state
-      setAddCategoryDialogOpen(false);
-      setNewGroupName('');
-      setNewGroupDescription('');
-      setSelectedUsers([]);
-      setSelectedNode(null);
-      dataFetcher();
-    } catch (error) {
-      console.error('Error adding category:', error);
-      toast.error('Failed to add category');
-    } finally {
-      setIsSubmitting(false);
+      if (node.childGroups) {
+        for (let i = 0; i < node.childGroups.length; i++) {
+          if (findNodeAndUpdate(node.childGroups[i])) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+
+    if (findNodeAndUpdate(newData)) {
+      setChartData(newData);
     }
+
+    setAddCategoryDialogOpen(false);
+    setNewGroupName('');
+    setNewGroupDescription('');
+    setSelectedNode(null);
   };
 
   const handleAddAddressal = () => {
@@ -397,10 +312,7 @@ const OrgChart2 = () => {
             <AvatarFallback>{node.groupName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-1 items-center">
-            {level !== 5 && level !== 1 && (
-              <NodeLabel role={node.description}>{node?.mappedUser?.[0]?.userDetail}</NodeLabel>
-            )}
-            {(level === 5 || level === 1) && <NodeLabel role={node.description}>{node?.groupName}</NodeLabel>}
+            <NodeLabel role={node.description}>{node.groupName}</NodeLabel>
             {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
           {(!node.isCommitee || (node.isCommitee && node.description !== 'Committee Member')) && (
@@ -409,7 +321,7 @@ const OrgChart2 = () => {
               {isSingleMemberRole ? (
                 hasMember ? (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     className="ml-auto px-1 p-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -427,8 +339,7 @@ const OrgChart2 = () => {
                   </Button>
                 ) : (
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
                     className="ml-auto px-1 p-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -441,19 +352,16 @@ const OrgChart2 = () => {
                     disabled={!isParentValid}
                   >
                     <div className="flex gap-0 items-center">
-                      <User className="w-4 h-4 " />+
+                      <User className="w-4 h-4" />+
                     </div>
                   </Button>
                 )
               ) : (
                 // Allow adding users to Committee level and other levels except 3 and 4
 
-                level !== 3 &&
-                level !== 4 &&
-                level !== 5 && (
+                level !== 4 && (
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
                     className="ml-auto px-1 p-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -474,8 +382,7 @@ const OrgChart2 = () => {
               {level === 4 && (
                 <>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
                     className="ml-auto px-1 p-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -492,8 +399,7 @@ const OrgChart2 = () => {
                     </div>
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant="ghost"
                     className="ml-auto px-1 p-2"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -507,19 +413,6 @@ const OrgChart2 = () => {
                     </div>
                   </Button>
                 </>
-              )}
-              {level === 5 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setShowMappedUsersDialog(true);
-                  }}
-                >
-                  <Info />
-                </Button>
               )}
             </div>
           )}
@@ -591,11 +484,7 @@ const OrgChart2 = () => {
   };
 
   if (loading) {
-    return (
-      <div>
-        <Loader />
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   if (error) {
@@ -627,31 +516,25 @@ const OrgChart2 = () => {
             <DialogDescription>
               {isEditMode
                 ? `Edit user for ${selectedNode?.groupName} with role: ${selectedNode?.description}`
-                : `Add a new user ${selectedNode?.groupName ? `for ${selectedNode.groupName}` : ''} with role: ${selectedNode?.description
-                }`}
+                : `Add a new user ${selectedNode?.groupName ? `for ${selectedNode.groupName}` : ''} with role: ${
+                    selectedNode?.description
+                  }`}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <UserSelect
               employees={employeeList}
-              value={selectedNode?.isCommitee ? selectedUsers : [{ userCode: newUserCode, userDetail: newUserName }]}
+              value={selectedNode?.mappedUser || []}
               onChange={(users) => {
-                if (selectedNode?.isCommitee) {
-                  // For committees, update all users
-                  setSelectedUsers(
-                    users.map((user) => ({
-                      userCode: user.userCode,
-                      userDetail: user.userDetail,
-                      departments: [],
-                    }))
-                  );
+                if (isEditMode) {
+                  setNewUserCode(users[0]?.userCode || '');
+                  setNewUserName(users[0]?.userDetail || '');
                 } else {
-                  // For single user roles
                   setNewUserCode(users[0]?.userCode || '');
                   setNewUserName(users[0]?.userDetail || '');
                 }
               }}
-              isMulti={selectedNode?.isCommitee}
+              isMulti={false}
               label="Select User"
             />
           </div>
@@ -661,19 +544,11 @@ const OrgChart2 = () => {
               onClick={() => {
                 setAddUserDialogOpen(false);
                 setIsEditMode(false);
-                setSelectedUsers([]);
               }}
-              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleAddUser}
-              disabled={
-                selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode || isSubmitting
-              }
-            >
-              {isSubmitting ? <Loader /> : null}
+            <Button onClick={handleAddUser} disabled={!newUserName || !newUserCode}>
               {isEditMode ? 'Update User' : 'Add User'}
             </Button>
           </DialogFooter>
@@ -731,103 +606,94 @@ const OrgChart2 = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Category Dialog */}
+      {/* Add Category/Addressal Dialog */}
       <Dialog open={addCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
-            <DialogDescription>Add a new category below {selectedNode?.groupName}</DialogDescription>
+            <DialogTitle>Add New Item</DialogTitle>
+            <DialogDescription>Add a new item below {selectedNode?.groupName}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="categoryName">Category Name</Label>
-              <Input
-                id="categoryName"
-                value={newGroupName}
-                onChange={(e) => setNewGroupName(e.target.value)}
-                placeholder="Enter category name"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                value={newGroupDescription}
-                onChange={(e) => setNewGroupDescription(e.target.value)}
-                placeholder="Enter category description"
-                disabled={isSubmitting}
-              />
-            </div>
-            <div className="grid gap-2">
-              <UserSelect
-                employees={employeeList}
-                value={selectedUsers}
-                onChange={(users) =>
-                  setSelectedUsers(
-                    users.map((user) => ({
-                      userCode: user.userCode,
-                      userDetail: user.userDetail,
-                      departments: [],
-                    }))
-                  )
-                }
-                isMulti={true}
-                label="Select Users"
-                disabled={isSubmitting}
-              />
-              {selectedUsers.length === 0 && (
-                <Label className="text-red-500 text-xs">Minimum one Addressal is required</Label>
-              )}
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddCategory} disabled={!newGroupName || selectedUsers.length === 0 || isSubmitting}>
-              {isSubmitting ? <Loader /> : null}
+          <div className="flex border-b mb-4">
+            <button
+              className={`px-4 py-2 ${activeTab === 'category' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('category')}
+            >
               Add Category
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Mapped Users Dialog */}
-      <Dialog open={showMappedUsersDialog} onOpenChange={setShowMappedUsersDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Mapped Users</DialogTitle>
-            <DialogDescription>Users mapped to {selectedNode?.groupName}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {selectedNode?.mappedUser && selectedNode.mappedUser.length > 0 ? (
-              <div className="space-y-4">
-                {selectedNode.mappedUser.map((user, index) => (
-                  <div key={index} className="flex items-center gap-4 p-2 border rounded-lg">
-                    <Avatar className="w-10 h-10">
-                      <AvatarFallback>{user.userDetail.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{user.userDetail}</span>
-                      <span className="text-sm text-gray-500">Code: {user.userCode}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500">No users mapped to this group</div>
-            )}
+            </button>
+            <button
+              className={`px-4 py-2 ${activeTab === 'addressal' ? 'border-b-2 border-primary' : ''}`}
+              onClick={() => setActiveTab('addressal')}
+            >
+              Add Addressal
+            </button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowMappedUsersDialog(false)}>
-              Close
-            </Button>
-          </DialogFooter>
+          {activeTab === 'category' ? (
+            <>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="categoryName">Category Name</Label>
+                  <Input
+                    id="categoryName"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    placeholder="Enter category name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={newGroupDescription}
+                    onChange={(e) => setNewGroupDescription(e.target.value)}
+                    placeholder="Enter category description"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddCategory} disabled={!newGroupName}>
+                  Add Category
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="departmentName">Department Name</Label>
+                  <Input
+                    id="departmentName"
+                    value={departmentName}
+                    onChange={(e) => setDepartmentName(e.target.value)}
+                    placeholder="Enter department name"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="addressalName">Addressal Name</Label>
+                  <Input
+                    id="addressalName"
+                    value={addressalName}
+                    onChange={(e) => setAddressalName(e.target.value)}
+                    placeholder="Enter addressal name"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddCategoryDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleAddAddressal} disabled={!departmentName || !addressalName}>
+                  Add Addressal
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
   );
 };
 
-export default OrgChart2;
+export default NonOrgChart;

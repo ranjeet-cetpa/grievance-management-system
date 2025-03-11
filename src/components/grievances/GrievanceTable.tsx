@@ -34,8 +34,7 @@ const updateGrievanceStatus = async (rowData: any, user) => {
     formData.set('assignedUserCode', user?.EmpCode?.toString());
     formData.set(
       'assignedUserDetails',
-      `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
-        user?.Designation ? `- ${user?.Designation}` : ''
+      `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${user?.Designation ? `- ${user?.Designation}` : ''
       } ${user?.Department ? `| ${user?.Department}` : ''}`
     );
     formData.set('grievanceMasterId', rowData.id.toString());
@@ -78,21 +77,12 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
         accessorKey: 'createdDate',
         header: ({ column }) => (
           <div className="flex justify-start pl-8">
-            <SortingButton headerText="Created On" column={column} />
+            <SortingButton headerText="Submission Date" column={column} />
           </div>
         ),
         cell: ({ row }) => (
           <span>
-            {format(
-              new Date(
-                new Date(row.original.createdDate).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })
-              ),
-              'dd-MM-yyyy'
-            )}
+            {format(new Date(row.original.createdDate), "dd MMM, yyyy")}
           </span>
         ),
       },
@@ -130,22 +120,6 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
     [employeeList]
   )?.filter(Boolean);
 
-  const getStatusText = (statusId: number): string => {
-    console.log('this is status id ', statusId);
-
-    switch (statusId) {
-      case 1:
-        return 'Created';
-      case 2:
-        return 'In Progress';
-      case 3:
-        return 'Awaiting Info';
-      case 4:
-        return 'Resolved';
-      default:
-        return 'Closed';
-    }
-  };
 
   return (
     <TableList
