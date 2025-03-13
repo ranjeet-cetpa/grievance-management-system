@@ -21,7 +21,7 @@ interface UserSelectProps {
 }
 
 const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isMulti = false, label }) => {
-  const options = employees.map((emp) => ({
+  const options = employees?.map((emp) => ({
     value: emp.empCode,
     label: `${emp.empName || 'Unnamed'} (${emp.department})`,
   }));
@@ -45,7 +45,7 @@ const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isM
 
   const currentValue = value.map((v) => ({
     value: v.userCode,
-    label: `${v.userDetail} (${employees.find((e) => e.empCode === v.userCode)?.department || ''})`,
+    label: `${v.userDetail} (${employees?.find((e) => e.empCode === v.userCode)?.department || ''})`,
   }));
 
   return (
