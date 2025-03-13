@@ -27,11 +27,10 @@ interface OrgNode {
   id: number;
   groupName: string;
   description: string;
-  isCommitee: boolean;
-  isHOD: boolean;
+  isRoleGroup: boolean;
+  roleId: number | null;
   isServiceCategory: boolean;
   unitId?: string;
-  parentGroupId?: number | null;
   childGroups: OrgNode[];
   mappedUser: UserDetails[];
 }
@@ -40,8 +39,8 @@ interface FlattenedNode {
   id: number;
   groupName: string;
   description: string;
-  isCommitee: boolean;
-  isHOD: boolean;
+  isRoleGroup: boolean;
+  roleId: number | null;
   isServiceCategory: boolean;
   level: number;
   mappedUser: UserDetails[];
@@ -70,7 +69,6 @@ const RenderHOD: React.FC<{
         ) : (
           <div className="text-sm text-gray-500 italic">No user assigned</div>
         )}
-        {/* <span className="font-medium">{node.description}</span> */}
         {node.mappedUser && node.mappedUser.length > 0 ? (
           <Button variant="outline" size="sm" onClick={() => onEdit(node)}>
             <Pencil className="w-4 h-4" />
@@ -149,8 +147,8 @@ const TableViewCorporateOffice = () => {
       id: node?.id,
       groupName: node?.groupName,
       description: node.description,
-      isCommitee: node?.isCommitee,
-      isHOD: node.isHOD,
+      isRoleGroup: node.isRoleGroup,
+      roleId: node.roleId,
       isServiceCategory: node.isServiceCategory,
       level,
       mappedUser: node.mappedUser || [],
@@ -203,7 +201,7 @@ const TableViewCorporateOffice = () => {
         groupMasterId: selectedNode.id,
         unitId: selectedNode.unitId || '396',
         unitName: selectedNode.groupName,
-        userCodes: selectedNode.isCommitee
+        userCodes: selectedNode.isRoleGroup
           ? selectedUsers.map((user) => ({
               userCode: user.userCode,
               userDetails: user.userDetail,
@@ -242,7 +240,7 @@ const TableViewCorporateOffice = () => {
   const handleEditNode = (node: FlattenedNode) => {
     setSelectedNode(node);
     setIsEditMode(true);
-    if (node.isCommitee) {
+    if (node.isRoleGroup) {
       setSelectedUsers(node.mappedUser);
     } else {
       setNewUserName(node.mappedUser[0]?.userDetail || '');
@@ -260,8 +258,8 @@ const TableViewCorporateOffice = () => {
   };
 
   const getDepartmentData = (departmentName: string) => {
-    // Find the Nodal Officer first
-    const nodalOfficer = flattenedData.find((node) => node.groupName === 'Nodal Officer');
+    // Find the Nodal Officer first (roleId 4)
+    const nodalOfficer = flattenedData.find((node) => node.roleId === 4);
     if (!nodalOfficer) return { hod: null, categories: [] };
 
     // Find the department under Nodal Officer
@@ -271,10 +269,8 @@ const TableViewCorporateOffice = () => {
 
     if (!departmentGroup) return { hod: null, categories: [] };
 
-    // Find the HOD group (it's under the department and has isHOD true)
-    const hodGroup = flattenedData.find(
-      (node) => node.parentGroupId === departmentGroup.id && node.groupName === 'HOD' && node.isHOD
-    );
+    // Find the HOD group (it's under the department and has roleId 6)
+    const hodGroup = flattenedData.find((node) => node.parentGroupId === departmentGroup.id && node.roleId === 6);
 
     // Find categories (they're under the HOD group)
     const categories = hodGroup
@@ -309,7 +305,7 @@ const TableViewCorporateOffice = () => {
           {flattenedData
             .filter(
               (node) =>
-                (!node.isHOD && !node.isServiceCategory) ||
+                (node.isRoleGroup && node.roleId !== 6) || // Exclude HOD role which has roleId 6
                 node.groupName === 'Committee' ||
                 node.groupName === 'Nodal Officer'
             )
@@ -370,8 +366,8 @@ const TableViewCorporateOffice = () => {
                       id: 0,
                       groupName: '',
                       description: '',
-                      isCommitee: false,
-                      isHOD: false,
+                      isRoleGroup: false,
+                      roleId: null,
                       isServiceCategory: true,
                       level: 0,
                       mappedUser: [],
@@ -404,8 +400,8 @@ const TableViewCorporateOffice = () => {
                             id: 0,
                             groupName: '',
                             description: '',
-                            isCommitee: false,
-                            isHOD: false,
+                            isRoleGroup: false,
+                            roleId: null,
                             isServiceCategory: true,
                             level: 0,
                             mappedUser: [],
@@ -453,8 +449,8 @@ const TableViewCorporateOffice = () => {
                             id: 0,
                             groupName: '',
                             description: '',
-                            isCommitee: false,
-                            isHOD: false,
+                            isRoleGroup: false,
+                            roleId: null,
                             isServiceCategory: true,
                             level: 0,
                             mappedUser: [],
@@ -502,8 +498,8 @@ const TableViewCorporateOffice = () => {
                             id: 0,
                             groupName: '',
                             description: '',
-                            isCommitee: false,
-                            isHOD: false,
+                            isRoleGroup: false,
+                            roleId: null,
                             isServiceCategory: true,
                             level: 0,
                             mappedUser: [],
@@ -551,8 +547,8 @@ const TableViewCorporateOffice = () => {
                             id: 0,
                             groupName: '',
                             description: '',
-                            isCommitee: false,
-                            isHOD: false,
+                            isRoleGroup: false,
+                            roleId: null,
                             isServiceCategory: true,
                             level: 0,
                             mappedUser: [],
@@ -605,9 +601,9 @@ const TableViewCorporateOffice = () => {
           <div className="grid gap-4 py-4">
             <UserSelect
               employees={employeeList}
-              value={selectedNode?.isCommitee ? selectedUsers : [{ userCode: newUserCode, userDetail: newUserName }]}
+              value={selectedNode?.isRoleGroup ? selectedUsers : [{ userCode: newUserCode, userDetail: newUserName }]}
               onChange={(users) => {
-                if (selectedNode?.isCommitee) {
+                if (selectedNode?.isRoleGroup) {
                   setSelectedUsers(
                     users.map((user) => ({
                       userCode: user.userCode,
@@ -620,7 +616,7 @@ const TableViewCorporateOffice = () => {
                   setNewUserName(users[0]?.userDetail || '');
                 }
               }}
-              isMulti={selectedNode?.isCommitee}
+              isMulti={selectedNode?.isRoleGroup}
               label="Select User"
             />
           </div>
@@ -639,7 +635,7 @@ const TableViewCorporateOffice = () => {
             <Button
               onClick={handleAddUser}
               disabled={
-                selectedNode?.isCommitee ? selectedUsers.length === 0 : !newUserName || !newUserCode || isSubmitting
+                selectedNode?.isRoleGroup ? selectedUsers.length === 0 : !newUserName || !newUserCode || isSubmitting
               }
             >
               {isSubmitting ? <Loader /> : null}
