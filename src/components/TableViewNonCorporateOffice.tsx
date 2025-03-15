@@ -180,7 +180,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[300px] text-white">Role/Position</TableHead>
+            <TableHead className="w-[300px] text-white">Role</TableHead>
             <TableHead className="text-white">Assigned User(s)</TableHead>
             <TableHead className="w-[100px] text-white">Actions</TableHead>
           </TableRow>
@@ -248,7 +248,8 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                 <span className="text-lg font-bold">Departments</span>
                 <Button
                   onClick={() => {}}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled
+                  className="bg-green-600 hover:bg-green-700 text-white hover:text-white"
                   size="sm"
                   variant="outline"
                 >
@@ -309,7 +310,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                   }))
                 )
               }
-              isMulti={true}
+              isMulti={!(selectedNode?.groupName === 'CGM' || selectedNode?.groupName === 'Nodal Officer')}
               label="Select Users"
             />
             {selectedUsers.length === 0 && <div className="text-red-500 text-xs">Please select at least one user</div>}

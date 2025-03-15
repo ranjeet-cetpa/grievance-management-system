@@ -103,8 +103,8 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
     <div className="border rounded-lg p-4">
       <div className="flex gap-1 items-center justify-between mb-4">
         <h3 className="font-semibold text-lg">{departmentName}</h3>
-        <Button variant="outline" size="sm" className="p-1" onClick={() => setAddCategoryDialogOpen(true)}>
-          + Category
+        <Button variant="outline" size="sm" className="p-2" onClick={() => setAddCategoryDialogOpen(true)}>
+          Category +
         </Button>
       </div>
       {/* HOD Section */}
@@ -160,10 +160,10 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
                   )
                 }
                 isMulti={true}
-                label="Select Users"
+                label="Select Redressals"
               />
               {selectedUsers.length === 0 && (
-                <Label className="text-red-500 text-xs">Minimum one user is required</Label>
+                <Label className="text-red-500 text-xs">Minimum one redressal is required</Label>
               )}
             </div>
           </div>

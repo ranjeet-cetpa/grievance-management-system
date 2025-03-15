@@ -1,10 +1,19 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, User, Info, ChevronDown } from 'lucide-react';
+import { Pencil, User, Info, ChevronDown, Trash, Trash2 } from 'lucide-react';
 import { FlattenedNode } from '@/types/orgChart';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { useOrgChart } from '@/hooks/useOrgChart';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -22,11 +31,33 @@ interface CategoriesSectionProps {
 const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdit, onAdd }) => {
   const [selectedCategory, setSelectedCategory] = React.useState<FlattenedNode | null>(null);
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [openAccordion, setOpenAccordion] = React.useState<string | undefined>(undefined);
   const { fetchData } = useOrgChart({
     unitId: '396',
     unitName: 'Corporate Office',
   });
+
+  const handleDelete = async () => {
+    if (!selectedCategory) return;
+
+    try {
+      setIsDeleting(true);
+      await axios.get(
+        `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/ActiveInactiveGroup?groupId=${selectedCategory.id}&isActive=false`
+      );
+      toast.success('Category deleted successfully');
+      setDeleteDialogOpen(false);
+      fetchData(); // Refresh the data
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error('Failed to delete category');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <>
       <Accordion type="single" collapsible value={openAccordion} onValueChange={setOpenAccordion}>
@@ -35,18 +66,33 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
             <AccordionTrigger className="hover:no-underline">
               <div className="flex items-center justify-between w-full pr-4">
                 <span className="font-medium">{node.groupName || node.description}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedCategory(node);
-                    setInfoDialogOpen(true);
-                  }}
-                >
-                  <Info className="w-4 h-4" />
-                </Button>
+                <div>
+                  {' '}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCategory(node);
+                      setInfoDialogOpen(true);
+                    }}
+                  >
+                    <Info className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedCategory(node);
+                      setDeleteDialogOpen(true);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </AccordionTrigger>
             <AccordionContent>
@@ -90,6 +136,26 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
               <div></div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this category? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
