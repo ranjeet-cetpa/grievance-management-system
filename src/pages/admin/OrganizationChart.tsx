@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import TableViewCorporateOffice from '@/components/TableViewCorporateOffice';
+import TableViewNonCorporateOffice from '@/components/TableViewNonCorporateOffice';
 
 const unitsDD = [
   {
@@ -106,8 +107,11 @@ const OrganizationChart = () => {
         <CardContent className="p-0">
           {isTableView ? (
             <div className="p-4">
-              {/* Table view will be implemented here */}
-              <TableViewCorporateOffice />
+              {selectedUnit === '396' ? (
+                <TableViewCorporateOffice />
+              ) : (
+                <TableViewNonCorporateOffice unitId={selectedUnit} />
+              )}
             </div>
           ) : selectedUnit === '396' ? (
             <OrgChart2 />

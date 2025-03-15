@@ -8,6 +8,7 @@ import { removeSessionItem } from '@/lib/helperFunction';
 import { resetUser } from '@/features/user/userSlice';
 import { environment } from '@/config';
 import { RootState } from '@/app/store';
+import Heading from './ui/heading';
 
 const SiteHeader: React.FC = ({ showtoggle = true }: { showtoggle?: boolean }) => {
   const user = useSelector((state: RootState) => state.user);
@@ -37,6 +38,9 @@ const SiteHeader: React.FC = ({ showtoggle = true }: { showtoggle?: boolean }) =
             <span className="text-sm md:text-md text-gray-600">A Govt. of India (Ministry of Railways) Enterprise</span>
           </Link>
         </div>
+        <Heading type={5} className="text-primary">
+          Grievance Management System
+        </Heading>
 
         {/* Right Section (User Info + Logout Button) */}
         <div className="flex items-center space-x-6">

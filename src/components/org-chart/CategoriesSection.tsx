@@ -1,7 +1,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, User } from 'lucide-react';
+import { Pencil, User, Info, ChevronDown } from 'lucide-react';
 import { FlattenedNode } from '@/types/orgChart';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { useOrgChart } from '@/hooks/useOrgChart';
+
+const capitalizeWords = (str: string) => {
+  return str
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 interface CategoriesSectionProps {
   categories: FlattenedNode[];
@@ -10,33 +20,78 @@ interface CategoriesSectionProps {
 }
 
 const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdit, onAdd }) => {
+  const [selectedCategory, setSelectedCategory] = React.useState<FlattenedNode | null>(null);
+  const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
+  const [openAccordion, setOpenAccordion] = React.useState<string | undefined>(undefined);
+  const { fetchData } = useOrgChart({
+    unitId: '396',
+    unitName: 'Corporate Office',
+  });
   return (
     <>
-      {categories.map((node) => (
-        <div key={node.id} className="mb-4 last:mb-0">
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-medium">{node.groupName || node.description}</span>
-            {node.mappedUser && node.mappedUser.length > 0 ? (
-              <Button variant="outline" size="sm" onClick={() => onEdit(node)}>
-                <Pencil className="w-4 h-4" />
-              </Button>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => onAdd(node)}>
-                <User className="w-4 h-4" />+
-              </Button>
-            )}
-          </div>
-          {node.mappedUser && node.mappedUser.length > 0 ? (
-            <div className="text-sm text-gray-600">
-              {node.mappedUser.map((user, idx) => (
-                <div key={idx}>{user.userDetail}</div>
-              ))}
+      <Accordion type="single" collapsible value={openAccordion} onValueChange={setOpenAccordion}>
+        {categories.map((node) => (
+          <AccordionItem key={node.id} value={node.id.toString()}>
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify-between w-full pr-4">
+                <span className="font-medium">{node.groupName || node.description}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedCategory(node);
+                    setInfoDialogOpen(true);
+                  }}
+                >
+                  <Info className="w-4 h-4" />
+                </Button>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="pl-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-sm">Complaint Handlers</h4>
+                  {node.mappedUser && node.mappedUser.length > 0 ? (
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onEdit(node)}>
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onAdd(node)}>
+                      <User className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {node.mappedUser && node.mappedUser.length > 0 ? (
+                  <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                    {node.mappedUser.map((user, idx) => (
+                      <li key={idx}>{capitalizeWords(user.userDetail)}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="text-sm text-gray-500 italic">No user assigned</div>
+                )}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
+        ))}
+      </Accordion>
+
+      <Dialog open={infoDialogOpen} onOpenChange={setInfoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader></DialogHeader>
+          {selectedCategory && (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium">Description</h4>
+                <p className="text-sm text-gray-600">{selectedCategory.description || 'No description provided'}</p>
+              </div>
+              <div></div>
             </div>
-          ) : (
-            <div className="text-sm text-gray-500 italic">No user assigned</div>
           )}
-        </div>
-      ))}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
