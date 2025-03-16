@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Pencil, User, Info, ChevronDown, Trash, Trash2 } from 'lucide-react';
+import { Pencil, User, Info, ChevronDown, Trash, Trash2, Plus } from 'lucide-react';
 import { FlattenedNode } from '@/types/orgChart';
 import {
   Dialog,
@@ -26,12 +26,15 @@ interface CategoriesSectionProps {
   categories: FlattenedNode[];
   onEdit: (node: FlattenedNode) => void;
   onAdd: (node: FlattenedNode) => void;
+  onFetchData: () => void;
 }
 
-const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdit, onAdd }) => {
+const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdit, onAdd, onFetchData }) => {
   const [selectedCategory, setSelectedCategory] = React.useState<FlattenedNode | null>(null);
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [mapUserDialogOpen, setMapUserDialogOpen] = React.useState(false);
+  const [selectedUser, setSelectedUser] = React.useState<{ userDetail: string; userId?: string } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [openAccordion, setOpenAccordion] = React.useState<string | undefined>(undefined);
   const { fetchData } = useOrgChart({
@@ -47,9 +50,18 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
       await axios.get(
         `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/ActiveInactiveGroup?groupId=${selectedCategory.id}&isActive=false`
       );
-      toast.success('Category deleted successfully');
+      await onFetchData();
+
+      // First close the dialog and reset state
       setDeleteDialogOpen(false);
-      fetchData(); // Refresh the data
+      setSelectedCategory(null);
+      setOpenAccordion(undefined);
+
+      // Then show success message
+      toast.success('Category deleted successfully');
+
+      // Finally refresh the data
+      await fetchData();
     } catch (error) {
       console.error('Error deleting category:', error);
       toast.error('Failed to delete category');
@@ -96,7 +108,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <div className="pl-4">
+              <div className="pl-2">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-sm">Complaint Handlers</h4>
                   {node.mappedUser && node.mappedUser.length > 0 ? (
@@ -110,9 +122,23 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                   )}
                 </div>
                 {node.mappedUser && node.mappedUser.length > 0 ? (
-                  <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
+                  <ul className="text-sm text-gray-600 space-y-1 list-none pl-0">
                     {node.mappedUser.map((user, idx) => (
-                      <li key={idx}>{capitalizeWords(user.userDetail)}</li>
+                      <li key={idx} className="flex items-center justify-between">
+                        <span>{capitalizeWords(user.userDetail)}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setSelectedCategory(node);
+                            setMapUserDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </li>
                     ))}
                   </ul>
                 ) : (
@@ -154,6 +180,33 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
             </Button>
             <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Map User to Department Dialog */}
+      <Dialog open={mapUserDialogOpen} onOpenChange={setMapUserDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Map User to Department</DialogTitle>
+            <DialogDescription>{selectedUser && `Map ${selectedUser.userDetail} to departments`}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Add your department mapping form here */}
+            <p className="text-sm text-gray-600">Department mapping functionality will go here</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMapUserDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Add your mapping logic here
+                setMapUserDialogOpen(false);
+              }}
+            >
+              Map User
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -21,7 +21,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axios from 'axios';
 import { useOrgChart } from '@/hooks/useOrgChart';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import Select from 'react-select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { extractUniqueUnits } from '@/lib/helperFunction';
 
 interface DepartmentCardProps {
@@ -30,14 +31,24 @@ interface DepartmentCardProps {
   categories: FlattenedNode[];
   onEdit: (node: FlattenedNode) => void;
   onAdd: (node: FlattenedNode) => void;
+  onFetchData: () => void;
 }
 
-const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, categories, onEdit, onAdd }) => {
+const DepartmentCard: React.FC<DepartmentCardProps> = ({
+  departmentName,
+  hod,
+  categories,
+  onEdit,
+  onAdd,
+  onFetchData,
+}) => {
   const [addCategoryDialogOpen, setAddCategoryDialogOpen] = React.useState(false);
   const [newCategoryName, setNewCategoryName] = React.useState('');
   const [newCategoryDescription, setNewCategoryDescription] = React.useState('');
   const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [nominateFromOtherUnits, setNominateFromOtherUnits] = React.useState(false);
+  const [selectedUnits, setSelectedUnits] = React.useState<string[]>(['396']); // Default to Corporate Office
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const user = useSelector((state: RootState) => state.user);
   const { fetchData } = useOrgChart({
@@ -45,6 +56,35 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
     unitName: 'Corporate Office',
   });
   const unitsDD = extractUniqueUnits(employeeList);
+  console.log('unitsDD', unitsDD);
+  // Filter employees based on selected units
+  const filteredEmployees = React.useMemo(() => {
+    if (!nominateFromOtherUnits) {
+      // When checkbox is unchecked, show only Corporate Office employees
+      return employeeList.filter((emp) => emp.unitId === 396);
+    }
+    // When checkbox is checked, show only employees from selected units
+    return employeeList.filter((emp) => selectedUnits.includes(emp.unitId.toString()));
+  }, [employeeList, nominateFromOtherUnits, selectedUnits]);
+
+  // Filter out Corporate Office and prepare options for react-select
+  const unitOptions = React.useMemo(
+    () =>
+      unitsDD
+        .filter((unit) => unit.unitId !== 396) // Remove Corporate Office
+        .map((unit) => ({
+          value: unit.unitId.toString(),
+          label: unit.unitName,
+        })),
+    [unitsDD]
+  );
+
+  // Convert selectedUnits to format needed by react-select
+  const selectedUnitOptions = React.useMemo(
+    () => unitOptions.filter((option) => selectedUnits.includes(option.value)),
+    [unitOptions, selectedUnits]
+  );
+
   const handleAddCategory = async () => {
     if (!hod || !newCategoryName || selectedUsers.length === 0) return;
 
@@ -70,30 +110,20 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
       };
 
       await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
-      toast.success('Category added successfully');
-      fetchData();
 
-      // Create a new category node for local state update
-      const newCategory: FlattenedNode = {
-        id: 0,
-        groupName: newCategoryName,
-        description: newCategoryDescription || '',
-        isRoleGroup: false,
-        roleId: null,
-        isServiceCategory: true,
-        mappedUser: selectedUsers,
-        parentGroupId: hod.id,
-        unitId: hod.unitId || '396',
-        createdBy: user?.EmpCode || '',
-      };
-
-      onAdd(newCategory);
-
-      // Reset form state
+      // Reset form state first
       setAddCategoryDialogOpen(false);
       setNewCategoryName('');
       setNewCategoryDescription('');
       setSelectedUsers([]);
+      setNominateFromOtherUnits(false);
+      setSelectedUnits(['396']);
+
+      // Then show success message
+      toast.success('Category added successfully');
+
+      // Finally refresh the data
+      await onFetchData();
     } catch (error) {
       console.error('Error adding category:', error);
       toast.error('Failed to add category');
@@ -118,12 +148,12 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
       {/* Categories Section */}
       <div>
         <h4 className="font-medium bg-blue-100 text-center mb-3 text-blue-600">Categories</h4>
-        <CategoriesSection categories={categories} onEdit={onEdit} onAdd={onAdd} />
+        <CategoriesSection categories={categories} onEdit={onEdit} onAdd={onAdd} onFetchData={onFetchData} />
       </div>
 
       {/* Add Category Dialog */}
       <Dialog open={addCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Add New Category</DialogTitle>
             <DialogDescription>Add a new category for {departmentName}</DialogDescription>
@@ -149,9 +179,41 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
                 disabled={isSubmitting}
               />
             </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="nominateOtherUnits"
+                checked={nominateFromOtherUnits}
+                onCheckedChange={(checked) => {
+                  setNominateFromOtherUnits(checked as boolean);
+                  if (!checked) {
+                    setSelectedUnits(['396']);
+                  }
+                }}
+              />
+              <Label htmlFor="nominateOtherUnits">Nominate from other units</Label>
+            </div>
+
+            {nominateFromOtherUnits && (
+              <div className="grid gap-2">
+                <Label>Select Units</Label>
+                <Select
+                  isMulti
+                  value={selectedUnitOptions}
+                  onChange={(newValue) => {
+                    const selectedValues = (newValue as { value: string; label: string }[]).map((v) => v.value);
+                    setSelectedUnits(selectedValues.length ? selectedValues : []); // Don't include Corporate Office
+                  }}
+                  options={unitOptions}
+                  className="w-full"
+                  classNamePrefix="react-select"
+                  placeholder="Select units"
+                />
+              </div>
+            )}
+
             <div className="grid gap-2">
               <UserSelect
-                employees={employeeList}
+                employees={filteredEmployees}
                 value={selectedUsers}
                 onChange={(users) =>
                   setSelectedUsers(

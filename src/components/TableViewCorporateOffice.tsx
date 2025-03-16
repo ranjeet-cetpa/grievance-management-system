@@ -124,6 +124,7 @@ const TableViewCorporateOffice = () => {
                     categories={getDepartmentDataForName(dept).categories}
                     onEdit={handleEditNode}
                     onAdd={handleAddNode}
+                    onFetchData={fetchData}
                   />
                 ))}
               </div>

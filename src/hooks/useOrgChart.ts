@@ -47,14 +47,18 @@ export const useOrgChart = ({ unitId, unitName }: UseOrgChartProps) => {
       }));
 
       await orgChartService.updateUserGroupMapping(selectedNode.id, unitId, unitName, userCodes);
-      toast.success('User mapping updated successfully');
 
-      await fetchData();
-
+      // First close dialog and reset state
       setAddUserDialogOpen(false);
       setSelectedUsers([]);
       setSelectedNode(null);
       setIsEditMode(false);
+
+      // Then show success message
+      toast.success('User mapping updated successfully');
+
+      // Finally refresh the data
+      await fetchData();
     } catch (error) {
       console.error('Error updating user group mapping:', error);
       toast.error('Failed to update user mapping');

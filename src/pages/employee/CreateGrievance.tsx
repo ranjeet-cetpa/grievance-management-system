@@ -54,6 +54,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   const [services, setServices] = useState<GroupMaster[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const user = useSelector((state: RootState) => state.user);
+  console.log('user ', user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   // Fetch services on component mount
   useEffect(() => {
@@ -147,14 +148,16 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
     try {
       const formData = new FormData();
       // formData.append('StatusId', '0');
-      formData.append('grievanceMasterId', '0');
+      formData.append('GrievanceMasterId', '0');
       formData.append('title', data.title);
       formData.append('description', data.description);
-      formData.append('serviceId', data.serviceId.toString());
+      // formData.append('serviceId', data.serviceId.toString());
 
       formData.append('userCode', user.EmpCode || '');
       formData.append('userEmail', findEmployeeDetails(employeeList, user?.EmpCode.toString())?.employee?.empEmail);
-      formData.append('isInternal', 'true');
+      formData.append('TUnitId', user?.unitId);
+      formData.append('TGroupId', data.serviceId?.toString());
+      formData.append('TDepartment', user?.Department);
       // formData.append('round', '0');
       // formData.append('AssignedUserCode', '');
       // formData.append('AssignedUserDetails', '');
