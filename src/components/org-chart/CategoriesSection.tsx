@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, User, Info, ChevronDown, Trash, Trash2, Plus } from 'lucide-react';
 import { FlattenedNode } from '@/types/orgChart';
+import ReactSelect from 'react-select';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,9 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useOrgChart } from '@/hooks/useOrgChart';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { extractUniqueDepartments } from '@/lib/helperFunction';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -34,13 +38,25 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [mapUserDialogOpen, setMapUserDialogOpen] = React.useState(false);
-  const [selectedUser, setSelectedUser] = React.useState<{ userDetail: string; userId?: string } | null>(null);
+  const [selectedUser, setSelectedUser] = React.useState<{
+    userDetail: string;
+    userCode?: string;
+    userId?: string;
+  } | null>(null);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [openAccordion, setOpenAccordion] = React.useState<string | undefined>(undefined);
+  const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
+  const [isMapping, setIsMapping] = React.useState(false);
+  const [mappedDepartmentsDialogOpen, setMappedDepartmentsDialogOpen] = React.useState(false);
+  const [userMappedDepartments, setUserMappedDepartments] = React.useState<string[]>([]);
+  const [isLoadingDepartments, setIsLoadingDepartments] = React.useState(false);
   const { fetchData } = useOrgChart({
     unitId: '396',
     unitName: 'Corporate Office',
   });
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+  const departmentsDD = extractUniqueDepartments(employeeList);
+  console.log('departmentsDD', departmentsDD);
 
   const handleDelete = async () => {
     if (!selectedCategory) return;
@@ -67,6 +83,64 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
       toast.error('Failed to delete category');
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleMapUserToDepartments = async () => {
+    if (!selectedUser || !selectedCategory) return;
+
+    try {
+      setIsMapping(true);
+      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserDepartmentMapping', {
+        department: selectedDepartments,
+        unitId: '396', // Corporate Office ID
+        unitName: 'Corporate Office',
+        userCodes: [
+          {
+            userCode: selectedUser?.userCode,
+            userDetails: selectedUser.userDetail,
+          },
+        ],
+      });
+
+      // Reset state and close dialog
+      setMapUserDialogOpen(false);
+      setSelectedDepartments([]);
+      setSelectedUser(null);
+
+      // Show success message
+      toast.success('User mapped to departments successfully');
+
+      // Refresh data
+      await fetchData();
+    } catch (error) {
+      console.error('Error mapping user to departments:', error);
+      toast.error('Failed to map user to departments');
+    } finally {
+      setIsMapping(false);
+    }
+  };
+
+  const fetchUserMappedDepartments = async (userCode: string) => {
+    try {
+      setIsLoadingDepartments(true);
+      const response = await axios.get(
+        'https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetDepartmentMappingList'
+      );
+
+      if (response.data.statusCode === 200) {
+        // Filter departments where the user is mapped
+        const mappedDepts = response.data.data
+          .filter((dept: any) => dept.mappedUser?.some((user: any) => user.userCode === userCode))
+          .map((dept: any) => dept.department);
+
+        setUserMappedDepartments(mappedDepts);
+      }
+    } catch (error) {
+      console.error('Error fetching mapped departments:', error);
+      toast.error('Failed to fetch mapped departments');
+    } finally {
+      setIsLoadingDepartments(false);
     }
   };
 
@@ -126,18 +200,32 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                     {node.mappedUser.map((user, idx) => (
                       <li key={idx} className="flex items-center justify-between">
                         <span>{capitalizeWords(user.userDetail)}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => {
-                            setSelectedUser(user);
-                            setSelectedCategory(node);
-                            setMapUserDialogOpen(true);
-                          }}
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              fetchUserMappedDepartments(user.userCode!);
+                              setMappedDepartmentsDialogOpen(true);
+                            }}
+                          >
+                            <Info className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setSelectedCategory(node);
+                              setMapUserDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </li>
                     ))}
                   </ul>
@@ -189,24 +277,72 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
       <Dialog open={mapUserDialogOpen} onOpenChange={setMapUserDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Map User to Department</DialogTitle>
+            <DialogTitle>Map User to Departments</DialogTitle>
             <DialogDescription>{selectedUser && `Map ${selectedUser.userDetail} to departments`}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Add your department mapping form here */}
-            <p className="text-sm text-gray-600">Department mapping functionality will go here</p>
+            <ReactSelect
+              isMulti
+              options={departmentsDD.map((dept) => ({
+                value: dept.departmentName,
+                label: dept.departmentName,
+              }))}
+              value={selectedDepartments.map((dept) => ({
+                value: dept,
+                label: dept,
+              }))}
+              onChange={(selected) => {
+                setSelectedDepartments(selected ? selected.map((option) => option.value) : []);
+              }}
+              className="basic-multi-select"
+              classNamePrefix="select"
+              placeholder="Select departments..."
+            />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setMapUserDialogOpen(false)}>
-              Cancel
-            </Button>
             <Button
+              variant="outline"
               onClick={() => {
-                // Add your mapping logic here
                 setMapUserDialogOpen(false);
+                setSelectedDepartments([]);
               }}
             >
-              Map User
+              Cancel
+            </Button>
+            <Button onClick={handleMapUserToDepartments} disabled={selectedDepartments.length === 0 || isMapping}>
+              {isMapping ? 'Mapping...' : 'Map User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mapped Departments Dialog */}
+      <Dialog open={mappedDepartmentsDialogOpen} onOpenChange={setMappedDepartmentsDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mapped Departments</DialogTitle>
+            <DialogDescription>
+              {selectedUser && `${selectedUser.userDetail} will handle  complaints for the below departments`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {isLoadingDepartments ? (
+              <div className="text-center py-4">Loading...</div>
+            ) : userMappedDepartments.length > 0 ? (
+              <ul className="list-disc pl-4 space-y-1">
+                {userMappedDepartments.map((dept, index) => (
+                  <li key={index} className="text-sm">
+                    {dept}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm text-gray-500 italic">No departments mapped</div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setMappedDepartmentsDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

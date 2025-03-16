@@ -566,7 +566,7 @@ const GrievanceDetails = () => {
                 modifiedDate={grievance?.modifiedDate || ''}
               />
             </div>
-            <div className="flex  w-full justify-between h-full gap-2">
+            <div className="flex  w-full justify-between h-full gap-2 min-h-[200px]">
               {/* Left Column - Info and Description */}
               <div
                 className={`space-y-6 ${

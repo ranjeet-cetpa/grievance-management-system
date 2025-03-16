@@ -274,8 +274,8 @@ export const GrievanceActions = ({
   };
 
   return (
-    <Card className="bg-white shadow-sm ">
-      <CardContent className="p-6">
+    <Card className="bg-white shadow-sm">
+      <CardContent className="p-3 space-y-4">
         {isCreator ? (
           canAcceptReject && (
             <div className="flex gap-4">
@@ -288,267 +288,142 @@ export const GrievanceActions = ({
               <Button onClick={() => setIsRejectDialogOpen(true)} className="bg-red-600 hover:bg-red-700 text-white">
                 Reject Resolution
               </Button>
-              <Dialog open={isAcceptDialogOpen} onOpenChange={setIsAcceptDialogOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Accept Resolution</DialogTitle>
-                    <DialogDescription>Are you sure you want to accept this resolution?</DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsAcceptDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-green-600 hover:bg-green-700 text-white"
-                      onClick={() => {
-                        onAcceptReject(true);
-                        setIsAcceptDialogOpen(false);
-                      }}
-                    >
-                      Confirm Accept
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-              <Dialog open={isRejectDialogOpen} onOpenChange={setIsRejectDialogOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Reject Resolution</DialogTitle>
-                    <DialogDescription>Please provide feedback for rejecting this resolution</DialogDescription>
-                  </DialogHeader>
-                  <div className="py-4">
-                    <Textarea
-                      placeholder="Enter your feedback here..."
-                      value={rejectFeedback}
-                      onChange={(e) => setRejectFeedback(e.target.value)}
-                      className="min-h-[100px]"
-                    />
-                  </div>
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setIsRejectDialogOpen(false);
-                        setRejectFeedback('');
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                      onClick={() => {
-                        onAcceptReject(false, rejectFeedback);
-                        setIsRejectDialogOpen(false);
-                        setRejectFeedback('');
-                      }}
-                      disabled={!rejectFeedback.trim()}
-                    >
-                      Confirm Reject
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+              {/* Dialogs for Accept/Reject */}
             </div>
           )
         ) : (
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                {grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                  <div className="flex items-center gap-4">
-                    <Heading type={6} className="text-gray-700">
-                      Change Status
-                    </Heading>
-                    <Select value={status} onValueChange={handleStatusChange}>
-                      <SelectTrigger className="w-[180px] h-9">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      {grievance?.round !== 3 && (
-                        <SelectContent>
-                          <SelectItem value="2">In Progress</SelectItem>
-                          <SelectItem value="3">Awaiting Info</SelectItem>
-                          <SelectItem value="4">Resolved</SelectItem>
-                        </SelectContent>
-                      )}
-                      {grievance?.round === 3 && (
-                        <SelectContent>
-                          <SelectItem value="2">In Progress</SelectItem>
-                          <SelectItem value="5">Closed</SelectItem>
-                        </SelectContent>
-                      )}
-                    </Select>
-                  </div>
-                )}
-
+          <div className="space-y-4">
+            {/* React Quill Editor */}
+            <div className="relative h-[130px]">
+              {' '}
+              {/* Wrapper for React Quill and Attach Button */}
+              {/* React Quill Editor */}
+              <ReactQuill
+                theme="snow"
+                style={{ height: '90px' }} // Adjust height as needed
+                value={commentText}
+                placeholder="Add Comment"
+                onChange={setCommentText}
+                modules={{
+                  toolbar: {
+                    container: [
+                      [{ header: [1, 2, false] }],
+                      ['bold', 'italic', 'underline', 'strike'],
+                      [{ list: 'ordered' }, { list: 'bullet' }],
+                    ],
+                  },
+                }}
+              />
+              {/* Attach Button */}
+              <div className="absolute top-1 right-1 z-10">
+                {' '}
+                {/* Position the button in the top-right corner */}
                 <input type="file" multiple onChange={handleFileChange} className="hidden" id="file-upload" />
                 <label
                   htmlFor="file-upload"
-                  className="cursor-pointer text-white bg-gray-800 hover:bg-gray-700 px-2 py-1.5 rounded-md flex items-center gap-1"
+                  className="cursor-pointer text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-md flex items-center gap-1"
                 >
                   <Paperclip className="w-4 h-4" />
                   <span className="text-sm">Attach</span>
                 </label>
               </div>
-              <div className="h-[150px]">
-                <ReactQuill
-                  theme="snow"
-                  style={{ height: '100px' }}
-                  value={commentText}
-                  placeholder=" Add Comment "
-                  onChange={setCommentText}
-                />
-              </div>
-              <div className="space-y-2">
-                {attachments.length > 0 && (
-                  <div className="space-y-1">
-                    {attachments?.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md">
-                        <span className="text-sm truncate">{file.name}</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeAttachment(index)}
-                          className="text-red-500 hover:text-red-700 h-7 px-2"
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleCommentSubmit}
-                  className="bg-green-600 hover:bg-green-700 text-white h-9 px-4"
-                  disabled={!isCommentValid}
-                >
-                  Submit
-                </Button>
-                {!isNodalOfficer &&
-                  grievance?.round !== 3 &&
-                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                    <Button
-                      onClick={handleTransfer}
-                      className="bg-purple-600 hover:bg-purple-700 text-white h-9 px-4"
-                      disabled={!isCommentValid}
-                    >
-                      Transfer to Nodal Officer
-                    </Button>
-                  )}
-                {isNodalOfficer &&
-                  user?.unitId !== '396' &&
-                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                    <Button
-                      onClick={() => {
-                        if (isCommentValid) {
-                          onTransferToCGM(commentText, attachments);
-                          setCommentText('');
-                          setAttachments([]);
-                        }
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
-                      disabled={!isCommentValid}
-                    >
-                      Transfer to Unit CGM
-                    </Button>
-                  )}
-                {isNodalOfficer &&
-                  user?.unitId === '396' &&
-                  grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                    <Button
-                      onClick={() => setIsHodDialogOpen(true)}
-                      className="bg-orange-600 hover:bg-orange-700 text-white h-9 px-4"
-                      disabled={!isCommentValid}
-                    >
-                      Transfer to HOD Group
-                    </Button>
-                  )}
-                {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                  <Button
-                    onClick={() => {
-                      setIsHodAssignDialogOpen(true);
-                    }}
-                    disabled={!isCommentValid}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white h-9 px-4"
-                  >
-                    Assign To Members
-                  </Button>
-                )}
-                {isUnitCGM && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
-                  <Button
-                    onClick={() => setIsGroupChangeDialogOpen(true)}
-                    disabled={!isCommentValid}
-                    className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4"
-                  >
-                    Change Group
-                  </Button>
-                )}
-              </div>
             </div>
 
-            <Dialog open={isGroupChangeDialogOpen} onOpenChange={setIsGroupChangeDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Change Group</DialogTitle>
-                  <DialogDescription>Please select a unit and group to change</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                  <div>
-                    <Label>Select Unit</Label>
-                    <Select value={selectedUnit} onValueChange={handleUnitChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="396">Corporate Office</SelectItem>
-                        <SelectItem value={user?.unitId?.toString() || ''}>{user?.Unit || 'Current Unit'}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {selectedUnit && (
-                    <div>
-                      <Label>Select Group</Label>
-                      <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select Group" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getFilteredGroups()?.map((group) => (
-                            <SelectItem key={group.id} value={group.id.toString()}>
-                              {group.groupName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+            <div className="mt-1">
+              {/* Attachments Display (Horizontal Scrollable) */}
+              {attachments.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto flex-1">
+                  {attachments.map((file, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md min-w-[120px]"
+                    >
+                      <span className="text-sm truncate">{file.name}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttachment(index)}
+                        className="text-red-500 hover:text-red-700 h-7 px-2 font-bold font-weight-bold"
+                      >
+                        x
+                      </Button>
                     </div>
-                  )}
+                  ))}
                 </div>
-                <DialogFooter>
+              )}
+            </div>
+
+            {/* Buttons Grid */}
+            <div className="grid grid-cols-3  mt-[10px] gap-3">
+              <Button
+                onClick={handleCommentSubmit}
+                className="bg-green-600 hover:bg-green-700 text-white h-9"
+                disabled={!isCommentValid}
+              >
+                Submit
+              </Button>
+              {!isNodalOfficer &&
+                grievance?.round !== 3 &&
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
                   <Button
-                    variant="outline"
+                    onClick={handleTransfer}
+                    className="bg-purple-600 hover:bg-purple-700 text-white h-9"
+                    disabled={!isCommentValid}
+                  >
+                    Transfer to Nodal Officer
+                  </Button>
+                )}
+              {isNodalOfficer &&
+                user?.unitId !== '396' &&
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                  <Button
                     onClick={() => {
-                      setIsGroupChangeDialogOpen(false);
-                      setSelectedUnit('');
-                      setSelectedGroup('');
+                      if (isCommentValid) {
+                        onTransferToCGM(commentText, attachments);
+                        setCommentText('');
+                        setAttachments([]);
+                      }
                     }}
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-9"
+                    disabled={!isCommentValid}
                   >
-                    Cancel
+                    Transfer to Unit CGM
                   </Button>
+                )}
+              {isNodalOfficer &&
+                user?.unitId === '396' &&
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
                   <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                    onClick={handleGroupSubmit}
-                    disabled={!selectedUnit || !selectedGroup}
+                    onClick={() => setIsHodDialogOpen(true)}
+                    className="bg-orange-600 hover:bg-orange-700 text-white h-9"
+                    disabled={!isCommentValid}
                   >
-                    Change Group
+                    Transfer to HOD Group
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                )}
+              {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                <Button
+                  onClick={() => setIsHodAssignDialogOpen(true)}
+                  disabled={!isCommentValid}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white h-9"
+                >
+                  Assign To Members
+                </Button>
+              )}
+              {isUnitCGM && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                <Button
+                  onClick={() => setIsGroupChangeDialogOpen(true)}
+                  disabled={!isCommentValid}
+                  className="bg-blue-600 hover:bg-blue-700 text-white h-9"
+                >
+                  Change Group
+                </Button>
+              )}
+            </div>
           </div>
         )}
 
+        {/* Dialogs for HOD Transfer, Group Change, etc. */}
         <Dialog open={isHodDialogOpen} onOpenChange={setIsHodDialogOpen}>
           <DialogContent>
             <DialogHeader>
@@ -584,62 +459,7 @@ export const GrievanceActions = ({
           </DialogContent>
         </Dialog>
 
-        <Dialog open={isHodAssignDialogOpen} onOpenChange={setIsHodAssignDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Assign to Group Member</DialogTitle>
-              <DialogDescription>Please select a member to assign the grievance</DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              <Select
-                value={selectedMember?.userCode}
-                onValueChange={(value) => {
-                  const member = filteredGroupMembers.find((m) => m.userCode === value);
-                  setSelectedMember(member);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Member" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredGroupMembers?.map((member) => (
-                    <SelectItem key={member.userCode} value={member.userCode}>
-                      {member.userDetails}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsHodAssignDialogOpen(false);
-                  setSelectedMember(null);
-                  setCommentText('');
-                  setAttachments([]);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={() => {
-                  if (selectedMember) {
-                    handleHodAssignToMembers(selectedMember, commentText, attachments);
-                    setIsHodAssignDialogOpen(false);
-                    setSelectedMember(null);
-                    setCommentText('');
-                    setAttachments([]);
-                  }
-                }}
-                disabled={!selectedMember}
-              >
-                Assign
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Other Dialogs */}
       </CardContent>
     </Card>
   );

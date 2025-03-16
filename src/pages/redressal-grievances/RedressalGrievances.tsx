@@ -10,6 +10,8 @@ import TableList from '@/components/ui/data-table';
 import SortingButton from '@/components/ui/SortingButton';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
+import { useNavigate } from 'react-router';
+import toast from 'react-hot-toast';
 
 const FILTER_OPTIONS = {
   OPEN: 'open',
@@ -56,6 +58,7 @@ const MyGrievances = () => {
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee } = useUserRoles();
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const fetchGrievances = async () => {
     setLoading(true);
@@ -69,6 +72,38 @@ const MyGrievances = () => {
   useEffect(() => {
     fetchGrievances();
   }, []);
+  const updateGrievanceStatus = async (rowData: any, user) => {
+    console.log('inside update status func');
+    try {
+      const formData = new FormData();
+
+      // Append all grievance properties to FormData
+      Object.entries(rowData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Update status
+      formData.set('statusId', '2');
+
+      formData.set('grievanceMasterId', rowData.id.toString());
+
+      const response = await axiosInstance.post('/Grievance/AddUpdateGrievance', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance is now in progress');
+      }
+      console.log('this is updated grievance', Object.fromEntries(formData));
+    } catch (error) {
+      console.error('Error updating grievance status:', error);
+      toast.error('Failed to update grievance status');
+    }
+  };
 
   const columns = useMemo(
     () => [
@@ -140,7 +175,9 @@ const MyGrievances = () => {
           </div>
         </CardHeader>
         <div className="flex p-6">
-          {loading ? <Loader /> :
+          {loading ? (
+            <Loader />
+          ) : (
             <Tabs className="w-full" defaultValue={FILTER_OPTIONS.OPEN}>
               <TabsList className="w-[400px]">
                 <TabsTrigger className=" w-full transition" value={FILTER_OPTIONS.OPEN}>
@@ -158,6 +195,16 @@ const MyGrievances = () => {
                   data={filteredGrievances[FILTER_OPTIONS.OPEN]}
                   columns={columns}
                   inputPlaceholder="Search by Title..."
+                  onRowClick={async (rowData) => {
+                    if (
+                      rowData?.assignedUserCode === user?.EmpCode?.toString() &&
+                      rowData?.statusId === 1 &&
+                      rowData?.createdBy?.toString() !== user?.EmpCode?.toString()
+                    ) {
+                      await updateGrievanceStatus(rowData, user);
+                    }
+                    navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
+                  }}
                 />
               </TabsContent>
               <TabsContent value={FILTER_OPTIONS.InProgress}>
@@ -165,6 +212,7 @@ const MyGrievances = () => {
                   data={filteredGrievances[FILTER_OPTIONS.InProgress]}
                   columns={columns}
                   inputPlaceholder="Search by Title..."
+                  onRowClick={(rowData) => navigate(`/redressal-grievances/${rowData.id.toString().trim()}`)}
                 />
               </TabsContent>
               <TabsContent value={FILTER_OPTIONS.Closed}>
@@ -172,10 +220,13 @@ const MyGrievances = () => {
                   data={filteredGrievances[FILTER_OPTIONS.Closed]}
                   columns={columns}
                   inputPlaceholder="Search by Title..."
+                  onRowClick={(rowData) => {
+                    navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
+                  }}
                 />
               </TabsContent>
             </Tabs>
-          }
+          )}
         </div>
       </Card>
     </div>

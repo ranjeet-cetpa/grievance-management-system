@@ -16,7 +16,7 @@ import ManageRoles from '@/pages/ManageRoles';
 import RequestPage from '@/pages/requestPage/RequestPage';
 import RedressalGrievances from '@/pages/redressal-grievances/RedressalGrievances';
 import OrganizationChart from '@/pages/admin/OrganizationChart';
-import NonOrgChart from "@/pages/admin/NonOrgChart";
+import NonOrgChart from '@/pages/admin/NonOrgChart';
 
 const AppRoutes = () => {
   return (
@@ -29,7 +29,7 @@ const AppRoutes = () => {
         <Route path="/manage-roles" element={<ManageRoles />} />
         <Route path="/grievances" element={<MyGrievances />} />
         <Route path="/redressal-grievances" element={<RedressalGrievances />} />
-
+        <Route path="/redressal-grievances/:grievanceId" element={<GrievanceDetails />} />
         <Route path="/grievances/:grievanceId" element={<GrievanceDetails />} />
       </Route>
       <Route element={<AdminPrivateRoute />}>
