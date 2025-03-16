@@ -18,6 +18,7 @@ import NonCorporateDepartmentCard from '@/components/org-chart/NonCorporateDepar
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { extractUniqueUnits } from '@/lib/helperFunction';
+import { Checkbox } from './ui/checkbox';
 
 interface UserDetails {
   userCode: string;
@@ -59,6 +60,8 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
   const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [flattenedData, setFlattenedData] = React.useState<OrgNode[]>([]);
+  const [nominateFromOtherUnits, setNominateFromOtherUnits] = React.useState(false);
+  const [selectedNominationUnit, setSelectedNominationUnit] = React.useState<number | null>(null);
 
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -291,15 +294,57 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{isEditMode ? 'Edit Users' : 'Add Users'}</DialogTitle>
+
             <DialogDescription>
               {isEditMode
                 ? `Edit users for ${selectedNode?.description || selectedNode?.groupName}`
                 : `Add users for ${selectedNode?.description || selectedNode?.groupName}`}
             </DialogDescription>
           </DialogHeader>
+
           <div className="grid gap-4 py-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="nominate"
+                checked={nominateFromOtherUnits}
+                onCheckedChange={(checked) => {
+                  setNominateFromOtherUnits(checked as boolean);
+                  if (!checked) {
+                    setSelectedNominationUnit(null);
+                  }
+                }}
+              />
+              <label
+                htmlFor="nominate"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Nominate from other units
+              </label>
+            </div>
+
+            {nominateFromOtherUnits && (
+              <select
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                value={selectedNominationUnit || ''}
+                onChange={(e) => setSelectedNominationUnit(Number(e.target.value))}
+              >
+                <option value="">Select Unit</option>
+                {unitsDD
+                  ?.filter((unit) => unit.unitId !== Number(unitId))
+                  .map((unit) => (
+                    <option key={unit.unitId} value={unit.unitId}>
+                      {unit.unitName}
+                    </option>
+                  ))}
+              </select>
+            )}
+
             <UserSelect
-              employees={employeeList}
+              employees={
+                nominateFromOtherUnits && selectedNominationUnit
+                  ? employeeList.filter((emp) => emp.unitId === selectedNominationUnit)
+                  : employeeList.filter((emp) => emp.unitId === Number(unitId))
+              }
               value={selectedUsers}
               onChange={(users) =>
                 setSelectedUsers(
@@ -310,13 +355,21 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                   }))
                 )
               }
-              isMulti={!(selectedNode?.groupName === 'CGM' || selectedNode?.groupName === 'Nodal Officer')}
+              isMulti={selectedNode?.groupName === 'CGM' || selectedNode?.groupName === 'Nodal Officer'}
               label="Select Users"
             />
             {selectedUsers.length === 0 && <div className="text-red-500 text-xs">Please select at least one user</div>}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAddUserDialogOpen(false)} disabled={isSubmitting}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAddUserDialogOpen(false);
+                setSelectedNominationUnit(null);
+                setNominateFromOtherUnits(false);
+              }}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button onClick={handleAddUser} disabled={selectedUsers.length === 0 || isSubmitting}>

@@ -21,6 +21,8 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axios from 'axios';
 import { useOrgChart } from '@/hooks/useOrgChart';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { extractUniqueUnits } from '@/lib/helperFunction';
 
 interface DepartmentCardProps {
   departmentName: string;
@@ -42,6 +44,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({ departmentName, hod, ca
     unitId: '396',
     unitName: 'Corporate Office',
   });
+  const unitsDD = extractUniqueUnits(employeeList);
   const handleAddCategory = async () => {
     if (!hod || !newCategoryName || selectedUsers.length === 0) return;
 

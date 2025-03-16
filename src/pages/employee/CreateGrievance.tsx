@@ -21,36 +21,16 @@ import { findEmployeeDetails } from '@/lib/helperFunction';
 interface GroupMaster {
   id: number;
   groupName: string;
-  description: string;
-  remark: string | null;
-  createdBy: number;
-  createdDate: string;
-  modifyBy: number;
-  modifyDate: string;
+  parentGroupId: number | null;
   isActive: boolean;
-}
-
-interface ServiceCategory {
-  id: number;
-  serviceName: string;
-  serviceDescription: string;
-  parentServiceId: number | null;
-  parentService: ServiceCategory | null;
-  groupMasterId: number | null;
-  groupMaster: GroupMaster | null;
-  remark: string | null;
-  createdBy: number;
-  createdDate: string;
-  modifyBy: number | null;
-  modifyDate: string | null;
-  isActive: boolean;
-  children?: ServiceCategory[];
+  isServiceCategory: boolean;
+  childGroup: GroupMaster[];
 }
 
 interface ServiceResponse {
   statusCode: number;
   message: string;
-  data: ServiceCategory[];
+  data: GroupMaster[];
   dataLength: number;
   totalRecords: number;
   error: boolean;
@@ -71,7 +51,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [services, setServices] = useState<ServiceCategory[]>([]);
+  const [services, setServices] = useState<GroupMaster[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
@@ -79,21 +59,14 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        //console.log(user, 'this is user');
-        const response = await axiosInstance.get('/Admin/GetServiceMasterList');
-        //console.log('Raw API Response:', response);
-        //console.log('API Response Data:', response.data);
-        //console.log('API Services:', response.data.data);
+        const isCorporate = user?.unitId === '396' ? true : false;
+        const response = await axiosInstance.get(`/Admin/GetServiceMaster?isCorporate=${isCorporate}`);
 
         if (response.data.error) {
           throw new Error(response.data.errorDetail || 'Failed to fetch services');
         }
 
-        const organizedServices = organizeServices(response.data.data);
-
-        //console.log('Organized Services:', organizedServices);
-
-        setServices(organizedServices);
+        setServices(response.data.data);
       } catch (error) {
         console.error('Error fetching services:', error);
         toast.error('Failed to fetch services');
@@ -101,48 +74,23 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
     };
 
     fetchServices();
-  }, [open]); // Only fetch when dialog opens
+  }, [open, user?.unitId]); // Added user?.unitId as dependency
 
-  // Function to organize services into a hierarchical structure
-  const organizeServices = (flatServices) => {
-    //console.log('Organizing services from:', flatServices);
-    const serviceMap = new Map();
-    const rootServices = [];
+  // Get services for a specific level based on selected parent
+  const getServicesForLevel = (level: number): GroupMaster[] => {
+    let currentServices = services;
 
-    // First pass: Create map of all services
-    flatServices.forEach((service) => {
-      // Only include active services
-      if (service.isActive) {
-        //console.log('Adding active service to map:', service);
-        serviceMap.set(service.id, { ...service, children: [] });
-      }
-    });
-
-    // Second pass: Organize into hierarchy
-    flatServices.forEach((service) => {
-      if (!service.isActive) {
-        //console.log('Skipping inactive service:', service);
-        return;
-      }
-
-      const currentService = serviceMap.get(service.id);
-      if (service.parentServiceId === null) {
-        //console.log('Adding root service:', service);
-        rootServices.push(currentService);
+    for (let i = 0; i < level; i++) {
+      const selectedId = selectedCategories[i];
+      const selectedService = currentServices.find((s) => s.id === selectedId);
+      if (selectedService?.childGroup?.length) {
+        currentServices = selectedService.childGroup;
       } else {
-        const parentService = serviceMap.get(service.parentServiceId);
-        if (parentService) {
-          //console.log('Adding child service:', service, 'to parent:', parentService);
-          parentService.children = parentService.children || [];
-          parentService.children.push(currentService);
-        } else {
-          //console.log('Parent service not found for:', service);
-        }
+        return [];
       }
-    });
+    }
 
-    //console.log('Final root services:', rootServices);
-    return rootServices;
+    return currentServices;
   };
 
   const form = useForm<FormValues>({
@@ -154,24 +102,6 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
       attachment: [],
     },
   });
-
-  // Get services for a specific level based on selected parent
-  const getServicesForLevel = (level: number): ServiceCategory[] => {
-    let currentServices = services;
-    //console.log('Getting services for level:', level, 'Current services:', currentServices);
-
-    for (let i = 0; i < level; i++) {
-      const selectedId = selectedCategories[i];
-      const selectedService = currentServices.find((s) => s.id === selectedId);
-      if (selectedService?.children?.length) {
-        currentServices = selectedService.children;
-      } else {
-        return [];
-      }
-    }
-
-    return currentServices;
-  };
 
   // Handle category selection
   const handleCategorySelect = (value: string, level: number) => {
@@ -303,7 +233,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                               {services && services.length > 0 ? (
                                 services.map((service) => (
                                   <SelectItem key={service.id} value={service.id.toString()}>
-                                    {service.serviceName}
+                                    {service.groupName}
                                   </SelectItem>
                                 ))
                               ) : (
@@ -323,7 +253,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                     if (!servicesForLevel || servicesForLevel.length === 0) return null;
 
                     return (
-                      <FormItem key={index + 1} className="col-span-2 md:col-span-1">
+                      <FormItem key={index + 1} className="col-span-2">
                         <FormLabel className="text-sm font-medium mb-0">
                           {index === 0 ? 'Sub Category' : `Sub Category ${index + 1}`}
                         </FormLabel>
@@ -339,7 +269,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                           <SelectContent className="max-h-[200px]">
                             {servicesForLevel.map((service) => (
                               <SelectItem key={service.id} value={service.id.toString()}>
-                                {service.serviceName}
+                                {service.groupName}
                               </SelectItem>
                             ))}
                           </SelectContent>
