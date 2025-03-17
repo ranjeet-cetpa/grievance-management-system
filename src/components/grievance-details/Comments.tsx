@@ -118,53 +118,59 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
             {comments.length === 0 ? (
               <div className="text-center text-gray-500 py-8 col-span-2">No comments found</div>
             ) : (
-              [...comments]?.map((comment, index) => (
-                <div
-                  key={index}
-                  className="group animate-fadeIn hover:bg-blue-100/100 p-3 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
-                >
-                  <div className="flex items-start gap-3">
-                    <Avatar
-                      className="h-8 w-8 ring-2 ring-primary/10 shrink-0 
-                                 shadow-sm group-hover:ring-primary/20 transition-all"
+              [...comments]?.map((comment, index) => {
+                if (comment)
+                  return (
+                    <div
+                      key={index}
+                      className="group animate-fadeIn hover:bg-blue-100/100 p-3 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
                     >
-                      <AvatarImage
-                        src={`/avatars/${comment?.commentedByName?.toLowerCase().replace(/\s+/g, '-')}.png`}
-                        alt={comment?.commentedByName}
-                      />
-                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
-                        {comment?.commentedByName?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                          <span className="font-semibold text-gray-900 text-xs">{comment?.commentedByName}</span>
-                          <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {formatTimestamp(comment?.commentedDate)}
-                          </span>
+                      <div className="flex items-start gap-3">
+                        <Avatar
+                          className="h-8 w-8 ring-2 ring-primary/10 shrink-0 
+                                 shadow-sm group-hover:ring-primary/20 transition-all"
+                        >
+                          <AvatarImage
+                            src={`/avatars/${comment?.commentedByName?.toLowerCase().replace(/\s+/g, '-')}.png`}
+                            alt={comment?.commentedByName}
+                          />
+                          <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary text-xs">
+                            {comment?.commentedByName?.[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                              <span className="font-semibold text-gray-900 text-xs">{comment?.commentedByName}</span>
+                              <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {formatTimestamp(comment?.commentedDate)}
+                              </span>
+                            </div>
+                            {comment?.attachment && comment?.attachment.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-primary p-1 h-auto"
+                                onClick={() => setSelectedAttachments(comment.attachment)}
+                              >
+                                <Paperclip className="w-3 h-3" />
+                                <span>({comment.attachment.length})</span>
+                              </Button>
+                            )}
+                          </div>
+                          <p
+                            className="mt-2 text-xs text-gray-600 whitespace-pre-wrap break-words leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: comment?.comment }}
+                          />
                         </div>
-                        {comment?.attachment && comment?.attachment.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-primary p-1 h-auto"
-                            onClick={() => setSelectedAttachments(comment.attachment)}
-                          >
-                            <Paperclip className="w-3 h-3" />
-                            <span>({comment.attachment.length})</span>
-                          </Button>
-                        )}
                       </div>
-                      <p
-                        className="mt-2 text-xs text-gray-600 whitespace-pre-wrap break-words leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: comment?.comment }}
-                      />
                     </div>
-                  </div>
-                </div>
-              ))
+                  );
+                else {
+                  return null;
+                }
+              })
             )}
           </div>
         </CardContent>

@@ -168,6 +168,8 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
         });
 
       // Make API call
+      console.log(formData);
+
       const response = await axiosInstance.post('/Grievance/AddUpdateGrievance', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

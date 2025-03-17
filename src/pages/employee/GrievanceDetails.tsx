@@ -94,6 +94,7 @@ const GrievanceDetails = () => {
         );
         if (response.data.statusCode === 200) {
           setGrievance(response.data.data);
+          console.log(response.data.data, 'this is grievance from grievance details');
           setStatus(response.data.data.statusId.toString());
         } else {
           toast.error('Failed to fetch grievance details');
@@ -109,8 +110,8 @@ const GrievanceDetails = () => {
     const fetchRoleDetails = async () => {
       try {
         const [nodalResponse, cgmResponse] = await Promise.all([
-          axiosInstance.get('/Admin/GetRoleDetail?roleId=1'),
-          isNodalOfficer ? axiosInstance.get('/Admin/GetRoleDetail?roleId=2') : Promise.resolve(null),
+          axiosInstance.get('/Admin/GetRoleDetail?roleId=4'),
+          isNodalOfficer ? axiosInstance.get('/Admin/GetRoleDetail?roleId=5') : Promise.resolve(null),
         ]);
 
         if (nodalResponse.data.statusCode === 200) {
@@ -173,7 +174,7 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-        'statusId',
+
         'userCode',
         'userDetails',
         'grievanceProcessId',
@@ -191,30 +192,20 @@ const GrievanceDetails = () => {
       // Update specific fields for transfer
       formData.set('assignedUserCode', unitNodalOfficer.userCode);
       formData.set('assignedUserDetails', unitNodalOfficer.userDetails);
-      formData.set('statusId', grievance?.statusId);
+      formData.set(
+        'TDepartment',
+        findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString())?.employee?.department
+      );
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
 
       attachments.forEach((file) => {
         formData.append('attachments', file);
       });
-      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
 
-      if (response.data.statusCode === 200) {
-        toast.success('Grievance transferred to nodal officer successfully');
-        // Refresh grievance details
-        const updatedResponse = await axiosInstance.get(
-          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
-        );
-        if (updatedResponse.data.statusCode === 200) {
-          setGrievance(updatedResponse.data.data);
-        }
-      } else {
-        toast.error('Failed to transfer grievance');
+      // Log each key-value pair in FormData
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
       }
     } catch (error) {
       console.error('Error transferring grievance:', error);
@@ -477,9 +468,7 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-        'statusId',
-        'userCode',
-        'userDetails',
+
         'grievanceProcessId',
         'createdBy',
         'createdDate',
@@ -495,26 +484,27 @@ const GrievanceDetails = () => {
 
       // Update comment and status
       formData.set('CommentText', comment);
-
-      formData.set('StatusId', status);
-      formData.set('userCode', user?.EmpCode.toString());
-      formData.set('assignedUserCode', user?.EmpCode);
       formData.set(
-        'assignedUserDetails',
-        `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
-          user?.Designation ? `- ${user?.Designation}` : ''
-        } ${user?.Department ? `| ${user?.Department}` : ''}`
+        'TUnitId',
+        findEmployeeDetails(employeeList, grievance?.assignedUserCode.toString())?.employee?.unitId
       );
-
-      // Add baseUrl if status is 4
-      if (status === '4') {
-        formData.set('baseUrl', environment.baseUrl + '/grievance');
-      }
+      formData.set('userCode', user?.EmpCode?.toString() || '');
+      // formData.set('assignedUserCode', user?.EmpCode || '');
+      // formData.set('assignedUserDetails',
+      //   `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
+      //     user?.Designation ? `- ${user?.Designation}` : ''
+      //   } ${user?.Department ? `| ${user?.Department}` : ''}`
+      // );
 
       // Append attachments
       attachments.forEach((file) => {
         formData.append('attachments', file);
       });
+
+      // Log each key-value pair in FormData
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
