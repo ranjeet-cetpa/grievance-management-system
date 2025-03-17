@@ -1,7 +1,7 @@
 import { AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@radix-ui/react-avatar';
-import { Group, Plus, UserPlus, Users, User, Pencil, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import React, { useEffect } from 'react';
 import { Tree, TreeNode } from 'react-organizational-chart';
@@ -35,13 +35,14 @@ interface OrgNode {
   id: number;
   groupName: string;
   description: string;
-  isCommitee: boolean;
-  isHOD: boolean;
+  isRoleGroup: boolean;
+  roleId: number | null;
   isServiceCategory: boolean;
   unitId?: string;
   parentGroupId?: number | null;
   childGroups: OrgNode[];
   mappedUser: UserDetails[];
+  isCommitee?: boolean;
 }
 
 const OrgChart2 = () => {
@@ -196,8 +197,8 @@ const OrgChart2 = () => {
           id: Math.max(...node.childGroups.map((g) => g.id)) + 1,
           groupName: newGroupName,
           description: newGroupDescription || 'Group',
-          isCommitee: false,
-          isHOD: isHOD,
+          isRoleGroup: false,
+          roleId: null,
           isServiceCategory: isServiceCategory,
           parentGroupId: node.id,
           unitId: node.unitId,
@@ -238,8 +239,8 @@ const OrgChart2 = () => {
         id: 0,
         groupName: newGroupName,
         description: newGroupDescription || '',
-        isCommitee: false,
-        isHOD: false,
+        isRoleGroup: true,
+        roleId: null,
         isServiceCategory: true,
         parentGroupId: selectedNode.id,
         unitId: selectedNode.unitId || '396',
@@ -269,8 +270,8 @@ const OrgChart2 = () => {
             id: 0,
             groupName: newGroupName,
             description: newGroupDescription || 'Category',
-            isCommitee: true,
-            isHOD: false,
+            isRoleGroup: true,
+            roleId: null,
             isServiceCategory: true,
             parentGroupId: node.id,
             unitId: node.unitId,
@@ -323,8 +324,8 @@ const OrgChart2 = () => {
           id: 0,
           groupName: departmentName,
           description: addressalName,
-          isCommitee: false,
-          isHOD: false,
+          isRoleGroup: false,
+          roleId: null,
           isServiceCategory: false,
           parentGroupId: node.id,
           unitId: node.unitId,
@@ -358,6 +359,7 @@ const OrgChart2 = () => {
     const hasMember = node.mappedUser && node.mappedUser.length > 0;
     const isSingleMemberRole = level === 0 || level === 2;
     const isHOD = node.description.includes('HOD');
+    const isCommitteeNode = node.isRoleGroup && node.description === 'Committee Group ';
     const canAddGroup = isHOD && node.groupName !== '';
 
     // Function to check if parent nodes have required data
@@ -393,123 +395,20 @@ const OrgChart2 = () => {
     const isParentValid = checkParentNodes(node);
 
     return (
-      <StyledNode isCommittee={node.isCommitee} role={node.description}>
+      <StyledNode role={node.description}>
         <div className="flex flex-row gap-2">
           <Avatar className="w-10 h-10">
             <AvatarFallback>{node.groupName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-1 items-center">
             {level !== 5 && level !== 1 && (
-              <NodeLabel role={node.description}>{node?.mappedUser?.[0]?.userDetail}</NodeLabel>
+              <NodeLabel role={node.description}>{node?.mappedUser?.[0]?.userDetail || node.groupName}</NodeLabel>
             )}
             {(level === 5 || level === 1) && <NodeLabel role={node.description}>{node?.groupName}</NodeLabel>}
-            {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
+            {node.description !== 'Committee Group ' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
-          {(!node.isCommitee || (node.isCommitee && node.description !== 'Committee Member')) && (
+          {(!isCommitteeNode || (isCommitteeNode && node.description !== 'Committee Member')) && (
             <div className="flex gap-2">
-              {/* For MD and Nodal Officer only */}
-              {isSingleMemberRole ? (
-                hasMember ? (
-                  <Button
-                    variant="outline"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setIsEditMode(true);
-                      setNewUserName(node.mappedUser?.[0]?.userDetail || '');
-                      setNewUserCode(node.mappedUser?.[0]?.userCode || '');
-                      setAddUserDialogOpen(true);
-                    }}
-                    disabled={!isParentValid}
-                  >
-                    <div className="flex gap-0 items-center">
-                      <Pencil className="w-4 h-4" />
-                    </div>
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setIsEditMode(false);
-                      setNewUserName('');
-                      setNewUserCode('');
-                      setAddUserDialogOpen(true);
-                    }}
-                    disabled={!isParentValid}
-                  >
-                    <div className="flex gap-0 items-center">
-                      <User className="w-4 h-4 " />+
-                    </div>
-                  </Button>
-                )
-              ) : (
-                // Allow adding users to Committee level and other levels except 3 and 4
-
-                level !== 3 &&
-                level !== 4 &&
-                level !== 5 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setIsEditMode(false);
-                      setNewUserName('');
-                      setNewUserCode('');
-                      setAddUserDialogOpen(true);
-                    }}
-                    disabled={!isParentValid}
-                  >
-                    <div className="flex gap-0 items-center">
-                      <User className="w-4 h-4" />+
-                    </div>
-                  </Button>
-                )
-              )}
-              {level === 4 && (
-                <>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setIsEditMode(false);
-                      setNewUserName('');
-                      setNewUserCode('');
-                      setAddUserDialogOpen(true);
-                    }}
-                    disabled={!isParentValid}
-                  >
-                    <div className="flex gap-0 items-center">
-                      <User className="w-4 h-4" />+
-                    </div>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto px-1 p-2"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedNode(node);
-                      setAddCategoryDialogOpen(true);
-                    }}
-                    disabled={!isParentValid}
-                  >
-                    <div className="flex gap-0.5 items-center">
-                      <Users /> <Plus className="w-4 h-4" />
-                    </div>
-                  </Button>
-                </>
-              )}
               {level === 5 && (
                 <Button
                   variant="outline"
@@ -531,7 +430,10 @@ const OrgChart2 = () => {
   };
 
   const RenderTree = ({ data, level = 0 }: { data: OrgNode; level?: number }) => {
-    if (data.isCommitee && data.mappedUser && data.mappedUser.length > 0) {
+    // Check if this is a committee node based on isRoleGroup and description
+    const isCommitteeNode = data.isRoleGroup && data.description.trim() === 'Committee Group';
+
+    if (isCommitteeNode && data.mappedUser && data.mappedUser.length > 0) {
       const midPoint = Math.ceil(data.mappedUser.length / 2);
       const leftMembers = data.mappedUser.slice(0, midPoint);
       const rightMembers = data.mappedUser.slice(midPoint);
@@ -542,7 +444,7 @@ const OrgChart2 = () => {
             <CommitteeLayout>
               <MembersList style={{ alignItems: 'flex-end' }}>
                 {leftMembers.map((member, index) => (
-                  <StyledNode key={`left-${index}`} isCommittee={true} role="Committee Member">
+                  <StyledNode key={`left-${index}`} role="Committee Member">
                     <div className="flex flex-row gap-2">
                       <Avatar className="w-10 h-10">
                         <AvatarFallback>{member.userDetail.charAt(0)}</AvatarFallback>
@@ -556,11 +458,11 @@ const OrgChart2 = () => {
                 ))}
               </MembersList>
 
-              <RenderNode node={data} level={level} />
+              <RenderNode node={{ ...data, isCommitee: true }} level={level} />
 
               <MembersList style={{ alignItems: 'flex-start' }}>
                 {rightMembers.map((member, index) => (
-                  <StyledNode key={`right-${index}`} isCommittee={true} role="Committee Member">
+                  <StyledNode key={`right-${index}`} role="Committee Member">
                     <div className="flex flex-row gap-2">
                       <Avatar className="w-10 h-10">
                         <AvatarFallback>{member.userDetail.charAt(0)}</AvatarFallback>

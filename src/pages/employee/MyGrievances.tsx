@@ -88,9 +88,9 @@ const MyGrievances = () => {
   };
 
   // const openGrievances = grievances.filter((grievance) => grievance.statusId === 1 || 2 || 3 || 4);
-  const openGrievances = grievances.filter((grievance) => [1, 2, 3, 4].includes(grievance.statusId));
+  const openGrievances = grievances.filter((grievance) => [1, 2, 4].includes(grievance.statusId));
 
-  const closedGrievances = grievances.filter((grievance) => grievance.statusId === 5);
+  const closedGrievances = grievances.filter((grievance) => [3, 5].includes(grievance.statusId));
 
   const columns = [
     {

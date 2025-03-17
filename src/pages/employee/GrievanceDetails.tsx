@@ -207,6 +207,24 @@ const GrievanceDetails = () => {
       for (const pair of formData.entries()) {
         console.log(pair[0], pair[1]);
       }
+      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance transferred to nodal officer successfully');
+        // Refresh grievance details
+        const updatedResponse = await axiosInstance.get(
+          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+        );
+        if (updatedResponse.data.statusCode === 200) {
+          setGrievance(updatedResponse.data.data);
+        }
+      } else {
+        toast.error('Failed to transfer grievance');
+      }
     } catch (error) {
       console.error('Error transferring grievance:', error);
       toast.error('Failed to transfer grievance');
