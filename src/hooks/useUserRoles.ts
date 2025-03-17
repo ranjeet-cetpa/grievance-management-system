@@ -46,7 +46,7 @@ const useUserRoles = () => {
   const isUnitCGM = roles.includes('unitcgm');
   const isHOD = roles.includes('hod');
   const isUser = roles.includes('user');
-  const isAddressal = roles.includes('addressal');
+  const isAddressal = roles.includes('redressal');
   const isCommittee = roles.includes('committee');
 
   return {
