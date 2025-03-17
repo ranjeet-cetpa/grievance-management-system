@@ -9,6 +9,9 @@ export default defineConfig({
   //   },
   // },
   plugins: [react()],
+  optimizeDeps: {
+    include: ['zod'],
+  },
   server: {
     port: 3001,
   },
