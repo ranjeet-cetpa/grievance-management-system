@@ -47,22 +47,16 @@ interface GrievanceDetails {
 }
 
 interface RoleDetail {
-  roleDetail: {
-    id: number;
+  unitId: string;
+  mappedUser: Array<{
+    roleId: number;
     roleName: string;
-    description: string;
-    remark: string | null;
-    createdBy: number;
-    createdDate: string;
-    modifyBy: number | null;
-    modifyDate: string | null;
-    isActive: boolean;
-  };
-  mappedUsers: Array<{
     userCode: string;
     userDetails: string;
-    unitId: string;
-    unitName: string;
+    group: {
+      groupId: number;
+      groupName: string;
+    };
   }>;
 }
 
@@ -109,9 +103,16 @@ const GrievanceDetails = () => {
 
     const fetchRoleDetails = async () => {
       try {
+        if (!user?.unitId) {
+          console.error('User unit ID is not available');
+          return;
+        }
+
         const [nodalResponse, cgmResponse] = await Promise.all([
-          axiosInstance.get('/Admin/GetRoleDetail?roleId=4'),
-          isNodalOfficer ? axiosInstance.get('/Admin/GetRoleDetail?roleId=5') : Promise.resolve(null),
+          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user.unitId}&roleId=4`),
+          isNodalOfficer
+            ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user.unitId}&roleId=5`)
+            : Promise.resolve(null),
         ]);
 
         if (nodalResponse.data.statusCode === 200) {
@@ -129,7 +130,7 @@ const GrievanceDetails = () => {
 
     fetchGrievanceDetails();
     fetchRoleDetails();
-  }, [grievanceId, isNodalOfficer]);
+  }, [grievanceId, isNodalOfficer, user?.unitId]);
 
   // Example comments data - replace with actual data from your backend
 
@@ -161,7 +162,7 @@ const GrievanceDetails = () => {
       }
 
       // Find the nodal officer for the current unit
-      const unitNodalOfficer = roleDetails?.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
+      const unitNodalOfficer = roleDetails?.mappedUser?.[0];
 
       if (!unitNodalOfficer) {
         toast.error('No nodal officer found for your unit');
@@ -243,7 +244,7 @@ const GrievanceDetails = () => {
       }
 
       // Find the CGM for the current unit
-      const unitCGM = unitCGMDetails?.mappedUsers.find((user) => user.unitId === addressalUnit.toString());
+      const unitCGM = unitCGMDetails?.mappedUser?.[0];
 
       if (!unitCGM) {
         toast.error('No CGM found for your unit');
@@ -317,7 +318,9 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-        'statusId',
+        'tUnitId',
+        'tDepartment',
+        'tGroupId',
         'userCode',
         'userDetails',
         'assignedUserCode',
@@ -335,14 +338,16 @@ const GrievanceDetails = () => {
       });
 
       // Update status and user code
-      formData.set('statusId', grievance?.statusId);
-      formData.set('userCode', user?.EmpCode.toString());
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+      // Log all FormData fields
+      for (const pair of formData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
 
       if (response.data.statusCode === 200) {
         toast.success('Grievance transferred to HOD successfully');
@@ -373,7 +378,7 @@ const GrievanceDetails = () => {
     }
   };
 
-  const handleStatusChange = async (status: number) => {
+  const handleStatusChange = async (status: number, commentText?: string) => {
     try {
       setLoading(true);
       const formData = new FormData();
@@ -386,8 +391,13 @@ const GrievanceDetails = () => {
       });
 
       // Update status
-      formData.set('StatusId', status.toString());
+      formData.set('statusId', status.toString());
       formData.set('userCode', user?.EmpCode.toString());
+
+      // Add comment if provided
+      if (commentText) {
+        formData.set('CommentText', commentText);
+      }
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
@@ -396,7 +406,7 @@ const GrievanceDetails = () => {
       });
 
       if (response.data.statusCode === 200) {
-        toast.success('Status updated successfully');
+        toast.success('Grievance closed successfully');
         // Refresh grievance details
         const updatedResponse = await axiosInstance.get(
           `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
@@ -564,7 +574,11 @@ const GrievanceDetails = () => {
         ) : (
           <>
             <div className="flex w-full flex-col">
-              <GrievanceHeader title={grievance?.title || ''} statusId={Number(grievance?.statusId) || 0} />
+              <GrievanceHeader
+                assignedUserCode={grievance?.assignedUserCode || ''}
+                title={grievance?.title || ''}
+                statusId={Number(grievance?.statusId) || 0}
+              />
               <GrievanceInfo
                 assignedUserCode={grievance.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}

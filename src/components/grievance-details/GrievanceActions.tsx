@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'react-hot-toast';
 import { environment } from '@/config';
 import { useParams } from 'react-router';
+import { findEmployeeDetails } from '@/lib/helperFunction';
 
 interface GroupMaster {
   id: number;
@@ -41,7 +42,7 @@ interface GrievanceActionsProps {
   onTransferToCGM?: (commentText: string, attachments: File[]) => void;
   onTransferToHOD?: (formData: FormData) => void;
   onCommentSubmit: (comment: string, attachments: File[]) => void;
-  onStatusChange?: (status: number) => void;
+  onStatusChange?: (status: number, commentText?: string) => void;
   status: string;
   setStatus: (status: string) => void;
   handleHodAssignToMembers: (selectedMember: any, commentText: string, attachments: File[]) => void;
@@ -86,13 +87,15 @@ export const GrievanceActions = ({
   const user = useSelector((state: RootState) => state.user);
   const { isHOD, isUnitCGM, isCommittee } = useUserRoles();
   const { grievanceId } = useParams();
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
   useEffect(() => {
     const fetchHodGroups = async () => {
       try {
         const response = await axiosInstance.get('/Admin/GetGroupMasterList');
         setGroupMasterList(response.data.data);
         if (response.data.statusCode === 200) {
-          const hodGroupsList = response.data.data.filter((group: GroupMaster) => group.isHOD);
+          const hodGroupsList = response.data.data.filter((group: GroupMaster) => group.roleId === 6);
+          console.log('this is hod groups list ', hodGroupsList);
           setHodGroups(hodGroupsList);
         }
       } catch (error) {
@@ -160,6 +163,7 @@ export const GrievanceActions = ({
         const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${selectedHodGroup}`);
 
         if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+          console.log('this is response hod group ', response.data.data);
           const firstUser = response.data.data.groupMapping[0][0];
 
           // Create form data for transfer
@@ -168,6 +172,12 @@ export const GrievanceActions = ({
           // Set assigned user details from the group
           formData.set('assignedUserCode', firstUser.userCode);
           formData.set('assignedUserDetails', firstUser.userDetails);
+          formData.set('TUnitId', findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.unitId);
+          formData.set(
+            'TDepartment',
+            findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
+          );
+          formData.set('TGroupId', selectedHodGroup);
           formData.set('CommentText', commentText);
           formData.set('isInternal', 'true');
 
@@ -360,7 +370,7 @@ export const GrievanceActions = ({
                 className="bg-green-600 hover:bg-green-700 text-white h-9"
                 disabled={!isCommentValid}
               >
-                Submit
+                Comment
               </Button>
               {!isNodalOfficer &&
                 grievance?.round !== 3 &&
@@ -419,6 +429,13 @@ export const GrievanceActions = ({
                   Change Group
                 </Button>
               )}
+              <Button
+                onClick={() => onStatusChange?.(3, commentText)}
+                className="bg-red-600 hover:bg-red-700 text-white h-9"
+                disabled={!isCommentValid}
+              >
+                Close Grievance
+              </Button>
             </div>
           </div>
         )}
@@ -438,7 +455,7 @@ export const GrievanceActions = ({
                 <SelectContent>
                   {hodGroups?.map((group) => (
                     <SelectItem key={group.id} value={group.id.toString()}>
-                      {group.groupName}
+                      {group.description}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -15,7 +15,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import axiosInstance from '@/services/axiosInstance';
 import { findEmployeeDetails } from '@/lib/helperFunction';
-import { z } from "zod";
+import { z } from 'zod';
 
 interface GroupMaster {
   id: number;
@@ -211,11 +211,11 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
         <DialogContent
           onPointerDownOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
-          className="w-[95vw] sm:w-[600px] h-[calc(100vh-12rem)] p-3 max-w-none overflow-y-auto"
+          className="w-[95vw] sm:w-[600px] h-[calc(100vh-12rem)] p-3 max-w-none overflow-y-auto "
         >
           <Form {...form}>
             <form id="grievanceForm" onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
-              <div className="space-y-2 pb-14">
+              <div className="space-y-2 pb-0">
                 {/* Dynamic Category Selectors */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {/* First Level Category */}
@@ -224,14 +224,14 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                     name="serviceId"
                     render={({ field }) => (
                       <FormItem className="col-span-2">
-                        <FormLabel className="text-sm font-medium mb-0">Primary Category</FormLabel>
+                        <FormLabel className="text-sm font-medium mb-0">Department Pertaining To</FormLabel>
                         <FormControl>
                           <Select
                             onValueChange={(value) => handleCategorySelect(value, 0)}
                             value={selectedCategories[0]?.toString()}
                           >
                             <SelectTrigger className="h-8">
-                              <SelectValue placeholder="Select Primary Category" />
+                              <SelectValue placeholder="Select Relevant Department" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[200px]">
                               {services && services.length > 0 ? (
@@ -259,7 +259,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                     return (
                       <FormItem key={index + 1} className="col-span-2">
                         <FormLabel className="text-sm font-medium mb-0">
-                          {index === 0 ? 'Sub Category' : `Sub Category ${index + 1}`}
+                          {index === 0 ? 'Sub Section' : `Sub Category ${index + 1}`}
                         </FormLabel>
                         <Select
                           onValueChange={(value) => handleCategorySelect(value, index + 1)}
@@ -267,7 +267,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                         >
                           <SelectTrigger className="h-8">
                             <SelectValue
-                              placeholder={`Select ${index === 0 ? 'Sub Category' : `Sub Category ${index + 1}`}`}
+                              placeholder={`Select ${index === 0 ? 'Sub Section' : `Sub Section ${index + 1}`}`}
                             />
                           </SelectTrigger>
                           <SelectContent className="max-h-[200px]">

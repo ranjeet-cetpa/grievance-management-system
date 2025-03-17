@@ -22,7 +22,7 @@ const FILTER_OPTIONS = {
 const STATUS_IDS = {
   OPEN: 1,
   IN_PROGRESS: 2,
-  CLOSED: 5,
+  CLOSED: 3,
 } as const;
 
 interface GrievanceResponse {
@@ -140,24 +140,39 @@ const MyGrievances = () => {
         header: 'Unit',
         cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
       },
-      {
-        id: 'statusId',
-        accessorKey: 'statusId',
-        header: 'Status',
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <StatusBadge statusId={row.original.statusId} />
-          </div>
-        ),
-      },
+      // {
+      //   id: 'statusId',
+      //   accessorKey: 'statusId',
+      //   header: 'Status',
+      //   cell: ({ row }) => (
+      //     <div className="flex items-center gap-2">
+      //       <StatusBadge statusId={row.original.statusId} />
+      //     </div>
+      //   ),
+      // },
     ],
     []
   );
 
   const filteredGrievances = useMemo(() => {
+    console.log('grievances', grievances);
     return {
-      [FILTER_OPTIONS.OPEN]: grievances?.filter((g) => g.statusId === STATUS_IDS.OPEN),
-      [FILTER_OPTIONS.InProgress]: grievances?.filter((g) => g.statusId === STATUS_IDS.IN_PROGRESS),
+      [FILTER_OPTIONS.OPEN]: grievances?.filter((g) => {
+        if (g.assignedUserCode?.toString() === user?.EmpCode?.toString()) {
+          if (g.statusId !== 3) {
+            return true;
+          }
+        }
+        return false;
+      }),
+      [FILTER_OPTIONS.InProgress]: grievances?.filter((g) => {
+        if (g.assignedUserCode?.toString() !== user?.EmpCode?.toString()) {
+          if (g.statusId !== 3) {
+            return true;
+          }
+        }
+        return false;
+      }),
       [FILTER_OPTIONS.Closed]: grievances?.filter((g) => g.statusId === STATUS_IDS.CLOSED),
     };
   }, [grievances]);
@@ -180,13 +195,22 @@ const MyGrievances = () => {
           ) : (
             <Tabs className="w-full" defaultValue={FILTER_OPTIONS.OPEN}>
               <TabsList className="w-[400px]">
-                <TabsTrigger className=" w-full transition" value={FILTER_OPTIONS.OPEN}>
+                <TabsTrigger
+                  className="w-full transition data-[state=active]:bg-primary/90 data-[state=active]:text-white"
+                  value={FILTER_OPTIONS.OPEN}
+                >
                   Open
                 </TabsTrigger>
-                <TabsTrigger className=" w-full transition" value={FILTER_OPTIONS.InProgress}>
+                <TabsTrigger
+                  className="w-full transition data-[state=active]:bg-yellow-600 data-[state=active]:text-white"
+                  value={FILTER_OPTIONS.InProgress}
+                >
                   In Progress
                 </TabsTrigger>
-                <TabsTrigger className="w-full transition" value={FILTER_OPTIONS.Closed}>
+                <TabsTrigger
+                  className="w-full transition data-[state=active]:bg-red-500 data-[state=active]:text-white"
+                  value={FILTER_OPTIONS.Closed}
+                >
                   Closed
                 </TabsTrigger>
               </TabsList>

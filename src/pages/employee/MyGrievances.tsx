@@ -149,7 +149,12 @@ const MyGrievances = () => {
                   />
                 </TabsContent>
                 <TabsContent value="closed" className="mt-6">
-                  <TableList data={closedGrievances} columns={columns} inputPlaceholder="Search by Title..." />
+                  <TableList
+                    data={closedGrievances}
+                    columns={columns}
+                    inputPlaceholder="Search by Title..."
+                    onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
+                  />
                 </TabsContent>
               </Tabs>
             </div>

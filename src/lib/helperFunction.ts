@@ -102,8 +102,9 @@ export const getStatusColor = (status?: string): string => {
     completed: 'bg-green-600 text-white text-xs font-bold',
     'in progress': 'bg-yellow-600 text-white text-xs font-bold',
     'awaiting info': 'bg-purple-600 text-white text-xs font-bold',
-    created: 'bg-gray-600 text-white text-xs font-bold',
+    created: 'bg-blue-600 text-white text-xs font-bold',
     resolved: 'bg-blue-600 text-white text-xs font-bold',
+    closed: 'bg-red-600 text-white text-xs font-bold',
   };
   return colors[status?.toLowerCase()] || 'bg-gray-500 text-gray-300 text-xs font-bold';
 };
@@ -164,10 +165,9 @@ export const getStatusText = (statusId: number): string => {
     case 2:
       return 'In Progress';
     case 3:
-      return 'Awaiting Info';
-    case 4:
-      return 'Resolved';
-    default:
       return 'Closed';
+
+    default:
+      return 'Undefined';
   }
 };

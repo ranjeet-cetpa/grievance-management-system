@@ -5,11 +5,16 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import AdminLayout from '@/components/layout/AdminLayout';
 import useUserRoles from '@/hooks/useUserRoles';
+import Loader from '@/components/ui/loader';
 
 const AdminPrivateRoute: React.FC = () => {
   const isAuthenticated = true;
-  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isLoading } = useUserRoles();
   const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+
+  if (isLoading) {
+    return <Loader />;
+  }
 
   return isAuthenticated && hasAccess ? (
     <AdminLayout>

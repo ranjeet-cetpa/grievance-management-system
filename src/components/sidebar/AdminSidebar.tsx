@@ -63,11 +63,11 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
       //   url: '/admin-grievances',
       //   icon: BadgeAlert,
       // },
-      {
-        title: 'Manage Services',
-        url: '/admin-manage-services',
-        icon: Users,
-      },
+      // {
+      //   title: 'Manage Services',
+      //   url: '/admin-manage-services',
+      //   icon: Users,
+      // },
       {
         title: 'Organization Charts',
         url: '/admin-org',

@@ -34,7 +34,8 @@ const updateGrievanceStatus = async (rowData: any, user) => {
     formData.set('assignedUserCode', user?.EmpCode?.toString());
     formData.set(
       'assignedUserDetails',
-      `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${user?.Designation ? `- ${user?.Designation}` : ''
+      `${user?.unique_name ?? 'Unnamed'} ${user?.EmpCode ? `(${user?.EmpCode})` : ''} ${
+        user?.Designation ? `- ${user?.Designation}` : ''
       } ${user?.Department ? `| ${user?.Department}` : ''}`
     );
     formData.set('grievanceMasterId', rowData.id.toString());
@@ -46,7 +47,7 @@ const updateGrievanceStatus = async (rowData: any, user) => {
     });
 
     if (response.data.statusCode === 200) {
-      toast.success('Grievance is now in progress');
+      return;
     }
     console.log('this is updated grievance', Object.fromEntries(formData));
   } catch (error) {
@@ -80,11 +81,7 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
             <SortingButton headerText="Submission Date" column={column} />
           </div>
         ),
-        cell: ({ row }) => (
-          <span>
-            {format(new Date(row.original.createdDate), "dd MMM, yyyy")}
-          </span>
-        ),
+        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
       },
       {
         id: 'title',
@@ -119,7 +116,6 @@ const GrievanceTable: React.FC<GrievanceTableProps> = ({ grievances = [], rightE
     ],
     [employeeList]
   )?.filter(Boolean);
-
 
   return (
     <TableList
