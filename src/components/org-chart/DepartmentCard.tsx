@@ -225,10 +225,10 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
                   )
                 }
                 isMulti={true}
-                label="Select Redressals"
+                label="Select Complaint Handlers"
               />
               {selectedUsers.length === 0 && (
-                <Label className="text-red-500 text-xs">Minimum one redressal is required</Label>
+                <Label className="text-red-500 text-xs">Minimum one complaint handler is required</Label>
               )}
             </div>
           </div>

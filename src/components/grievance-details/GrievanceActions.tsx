@@ -365,13 +365,13 @@ export const GrievanceActions = ({
 
             {/* Buttons Grid */}
             <div className="grid grid-cols-3  mt-[10px] gap-3">
-              <Button
+              {/* <Button
                 onClick={handleCommentSubmit}
                 className="bg-green-600 hover:bg-green-700 text-white h-9"
                 disabled={!isCommentValid}
               >
                 Comment
-              </Button>
+              </Button> */}
               {!isNodalOfficer &&
                 grievance?.round !== 3 &&
                 grievance?.createdBy.toString() !== user?.EmpCode.toString() && (

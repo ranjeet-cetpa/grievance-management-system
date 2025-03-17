@@ -18,6 +18,7 @@ import toast from 'react-hot-toast';
 import { extractUniqueDepartments } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -201,30 +202,48 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                       <li key={idx} className="flex items-center justify-between">
                         <span>{capitalizeWords(user.userDetail)}</span>
                         <div className="flex items-center space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              fetchUserMappedDepartments(user.userCode!);
-                              setMappedDepartmentsDialogOpen(true);
-                            }}
-                          >
-                            <Info className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setSelectedCategory(node);
-                              setMapUserDialogOpen(true);
-                            }}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    fetchUserMappedDepartments(user.userCode!);
+                                    setMappedDepartmentsDialogOpen(true);
+                                  }}
+                                >
+                                  <Info className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View mapped departments</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => {
+                                    setSelectedUser(user);
+                                    setSelectedCategory(node);
+                                    setMapUserDialogOpen(true);
+                                  }}
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Map user to departments he will be responsible for </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </div>
                       </li>
                     ))}
