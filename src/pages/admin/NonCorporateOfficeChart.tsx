@@ -269,61 +269,6 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
             {node.description !== 'Committee' && <RoleText role={node.description}>{node.description}</RoleText>}
           </div>
           <div className="flex gap-2">
-            {level !== 2 &&
-              (hasMember ? (
-                <Button
-                  variant="outline"
-                  className="ml-auto px-1 p-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setIsEditMode(true);
-                    setNewUserName(node.mappedUser?.[0]?.userDetail || '');
-                    setNewUserCode(node.mappedUser?.[0]?.userCode || '');
-                    setAddUserDialogOpen(true);
-                  }}
-                >
-                  <div className="flex gap-0 items-center">
-                    <Pencil className="w-4 h-4" />
-                  </div>
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto px-1 p-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setIsEditMode(false);
-                    setNewUserName('');
-                    setNewUserCode('');
-                    setAddUserDialogOpen(true);
-                  }}
-                >
-                  <div className="flex gap-0 items-center">
-                    <User className="w-4 h-4 " />+
-                  </div>
-                </Button>
-              ))}
-            {level === 1 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto px-1 p-2"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedNode(node);
-                    setAddCategoryDialogOpen(true);
-                  }}
-                >
-                  <div className="flex gap-0.5 items-center">
-                    <Users /> <Plus className="w-4 h-4" />
-                  </div>
-                </Button>
-              </>
-            )}
             {level === 2 && (
               <Button
                 variant="outline"

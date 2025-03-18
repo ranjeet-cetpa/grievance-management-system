@@ -109,13 +109,13 @@ const OrganizationChart = () => {
         <CardContent className="p-0">
           {isTableView ? (
             <div className="p-4">
-              {selectedUnit === '396' ? (
+              {selectedUnit == '396' ? (
                 <TableViewCorporateOffice />
               ) : (
                 <TableViewNonCorporateOffice unitId={selectedUnit} />
               )}
             </div>
-          ) : selectedUnit === '396' ? (
+          ) : selectedUnit == '396' ? (
             <OrgChart2 />
           ) : (
             <NonCorporateOfficeChart unitId={Number(selectedUnit)} />
