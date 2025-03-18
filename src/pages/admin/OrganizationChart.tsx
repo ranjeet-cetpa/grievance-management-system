@@ -18,58 +18,60 @@ import {
 } from '@/components/ui/select';
 import TableViewCorporateOffice from '@/components/TableViewCorporateOffice';
 import TableViewNonCorporateOffice from '@/components/TableViewNonCorporateOffice';
+import { extractUniqueUnits } from '@/lib/helperFunction';
 
-const unitsDD = [
-  {
-    unitId: '396',
-    unitName: 'Corporate office',
-  },
-  {
-    unitId: '395',
-    unitName: 'Ahmedabad',
-  },
-  {
-    unitId: '397',
-    unitName: 'Ambala',
-  },
-  {
-    unitId: '390',
-    unitName: 'Tundla',
-  },
-  {
-    unitId: '402',
-    unitName: 'Prayagraj(W)',
-  },
-  {
-    unitId: '391',
-    unitName: 'Jaipur',
-  },
-  {
-    unitId: '401',
-    unitName: 'Ajmer',
-  },
-  {
-    unitId: '399',
-    unitName: 'Noida',
-  },
-  {
-    unitId: '392',
-    unitName: 'Prayagraj(E)',
-  },
-  {
-    unitId: '398',
-    unitName: 'Meerut',
-  },
-  {
-    unitId: '400',
-    unitName: 'Kolkatta',
-  },
-];
-
+// const unitsDD = [
+//   {
+//     unitId: '396',
+//     unitName: 'Corporate office',
+//   },
+//   {
+//     unitId: '395',
+//     unitName: 'Ahmedabad',
+//   },
+//   {
+//     unitId: '397',
+//     unitName: 'Ambala',
+//   },
+//   {
+//     unitId: '390',
+//     unitName: 'Tundla',
+//   },
+//   {
+//     unitId: '402',
+//     unitName: 'Prayagraj(W)',
+//   },
+//   {
+//     unitId: '391',
+//     unitName: 'Jaipur',
+//   },
+//   {
+//     unitId: '401',
+//     unitName: 'Ajmer',
+//   },
+//   {
+//     unitId: '399',
+//     unitName: 'Noida',
+//   },
+//   {
+//     unitId: '392',
+//     unitName: 'Prayagraj(E)',
+//   },
+//   {
+//     unitId: '398',
+//     unitName: 'Meerut',
+//   },
+//   {
+//     unitId: '400',
+//     unitName: 'Kolkatta',
+//   },
+// ];
 const OrganizationChart = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
+
   const [selectedUnit, setSelectedUnit] = useState('396');
   const [isTableView, setIsTableView] = useState(true);
+  const unitsDD = extractUniqueUnits(employeeList);
 
   return (
     <div className="p-2">

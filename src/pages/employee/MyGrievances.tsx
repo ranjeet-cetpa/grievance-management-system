@@ -119,6 +119,12 @@ const MyGrievances = () => {
       header: 'Subject',
       cell: ({ row }) => <div className="max-w-[300px] text-sm truncate">{row.original.title}</div>,
     },
+    {
+      id: 'assignedUserDetails',
+      accessorKey: 'assignedUserDetails',
+      header: 'Currently With',
+      cell: ({ row }) => <div className="max-w-[300px] text-sm ">{row.original.assignedUserDetails}</div>,
+    },
   ];
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSelector } from 'react-redux';
@@ -59,6 +59,7 @@ const MyGrievances = () => {
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState(FILTER_OPTIONS.OPEN); // Track selected tab
 
   const fetchGrievances = async () => {
     setLoading(true);
@@ -72,21 +73,17 @@ const MyGrievances = () => {
   useEffect(() => {
     fetchGrievances();
   }, []);
+
   const updateGrievanceStatus = async (rowData: any, user) => {
-    console.log('inside update status func');
     try {
       const formData = new FormData();
-
-      // Append all grievance properties to FormData
       Object.entries(rowData).forEach(([key, value]) => {
         if (value !== null && value !== undefined) {
           formData.append(key, value.toString());
         }
       });
 
-      // Update status
       formData.set('statusId', '2');
-
       formData.set('grievanceMasterId', rowData.id.toString());
 
       const response = await axiosInstance.post('/Grievance/AddUpdateGrievance', formData, {
@@ -98,7 +95,6 @@ const MyGrievances = () => {
       if (response.data.statusCode === 200) {
         toast.success('Grievance is now in progress');
       }
-      console.log('this is updated grievance', Object.fromEntries(formData));
     } catch (error) {
       console.error('Error updating grievance status:', error);
       toast.error('Failed to update grievance status');
@@ -106,56 +102,53 @@ const MyGrievances = () => {
   };
 
   const columns = useMemo(
-    () => [
-      {
-        id: 'id',
-        accessorKey: 'id',
-        header: () => <div className="text-nowrap">ID</div>,
-        cell: ({ row }) => (
-          <div className="flex font-semibold text-sm">
-            {'GR-' + (row.original?.id < 1000 ? ('000' + row.original?.id).slice(-4) : row.original?.id)}
-          </div>
-        ),
-      },
-      {
-        id: 'createdDate',
-        accessorKey: 'createdDate',
-        header: ({ column }) => (
-          <div className="flex justify-start pl-8">
-            <SortingButton headerText="Submission Date" column={column} />
-          </div>
-        ),
-        cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
-      },
-      {
-        id: 'title',
-        accessorKey: 'title',
-        header: 'Subject',
-        cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
-      },
+    () =>
+      [
+        {
+          id: 'id',
+          accessorKey: 'id',
+          header: () => <div className="text-nowrap">ID</div>,
+          cell: ({ row }) => (
+            <div className="flex font-semibold text-sm">
+              {'GR-' + (row.original?.id < 1000 ? ('000' + row.original?.id).slice(-4) : row.original?.id)}
+            </div>
+          ),
+        },
+        {
+          id: 'createdDate',
+          accessorKey: 'createdDate',
+          header: ({ column }) => (
+            <div className="flex justify-start pl-8">
+              <SortingButton headerText="Submission Date" column={column} />
+            </div>
+          ),
+          cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
+        },
+        {
+          id: 'title',
+          accessorKey: 'title',
+          header: 'Subject',
+          cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
+        },
 
-      {
-        id: 'unitName',
-        accessorKey: 'unitName',
-        header: 'Unit',
-        cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
-      },
-      // {
-      //   id: 'statusId',
-      //   accessorKey: 'statusId',
-      //   header: 'Status',
-      //   cell: ({ row }) => (
-      //     <div className="flex items-center gap-2">
-      //       <StatusBadge statusId={row.original.statusId} />
-      //     </div>
-      //   ),
-      // },
-    ],
-    []
+        {
+          id: 'unitName',
+          accessorKey: 'unitName',
+          header: 'Unit',
+          cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
+        },
+        // Conditionally show "Currently With" column
+        selectedTab !== FILTER_OPTIONS.OPEN && {
+          id: 'assignedUserDetails',
+          accessorKey: 'assignedUserDetails',
+          header: 'Currently With',
+          cell: ({ row }) => <div className="max-w-[300px] text-sm ">{row.original.assignedUserDetails}</div>,
+        },
+      ].filter(Boolean), // Remove undefined columns
+    [selectedTab] // Recalculate when selectedTab changes
   );
 
   const filteredGrievances = useMemo(() => {
-    console.log('grievances', grievances);
     return {
       [FILTER_OPTIONS.OPEN]: grievances?.filter((g) => {
         if (g.assignedUserCode?.toString() === user?.EmpCode?.toString()) {
@@ -177,8 +170,6 @@ const MyGrievances = () => {
     };
   }, [grievances]);
 
-  console.log('grievances', grievances);
-
   return (
     <div className="p-2">
       <Card className="rounded-md mt-2 mx-2">
@@ -193,7 +184,12 @@ const MyGrievances = () => {
           {loading ? (
             <Loader />
           ) : (
-            <Tabs className="w-full" defaultValue={FILTER_OPTIONS.OPEN}>
+            <Tabs
+              className="w-full"
+              defaultValue={FILTER_OPTIONS.OPEN}
+              value={selectedTab} // Bind the selectedTab state to the Tabs component
+              onValueChange={setSelectedTab} // Update selectedTab when tab changes
+            >
               <TabsList className="w-[400px]">
                 <TabsTrigger
                   className="w-full transition data-[state=active]:bg-primary/90 data-[state=active]:text-white"
