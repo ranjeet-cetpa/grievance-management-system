@@ -412,7 +412,9 @@ export const GrievanceActions = ({
               {!isNodalOfficer &&
                 !isUnitCGM &&
                 grievance?.round !== 3 &&
-                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() &&
+                grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
+                grievance?.statusId !== 3 && (
                   <Button
                     onClick={handleTransfer}
                     className="bg-purple-600 hover:bg-purple-700 text-white h-9"
@@ -423,7 +425,9 @@ export const GrievanceActions = ({
                 )}
               {isNodalOfficer &&
                 user?.unitId !== '396' &&
-                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() &&
+                grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
+                grievance?.statusId !== 3 && (
                   <Button
                     onClick={() => {
                       if (isCommentValid) {
@@ -440,7 +444,9 @@ export const GrievanceActions = ({
                 )}
               {isNodalOfficer &&
                 user?.unitId === '396' &&
-                grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() &&
+                grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
+                grievance?.statusId !== 3 && (
                   <Button
                     onClick={() => setIsHodDialogOpen(true)}
                     className="bg-orange-600 hover:bg-orange-700 text-white h-9"
@@ -449,31 +455,39 @@ export const GrievanceActions = ({
                     Transfer to HOD Group
                   </Button>
                 )}
-              {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && user?.unitId === '396' && (
+              {isHOD &&
+                grievance?.createdBy.toString() !== user?.EmpCode.toString() &&
+                user?.unitId === '396' &&
+                grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
+                grievance?.statusId !== 3 && (
+                  <Button
+                    onClick={() => setIsHodAssignDialogOpen(true)}
+                    disabled={!isCommentValid}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white h-9"
+                  >
+                    Assign To Members
+                  </Button>
+                )}
+              {isUnitCGM &&
+                grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
+                grievance?.statusId !== 3 && (
+                  <Button
+                    onClick={() => setIsGroupChangeDialogOpen(true)}
+                    disabled={!isCommentValid}
+                    className="bg-blue-600 hover:bg-blue-700 text-white h-9"
+                  >
+                    Change Group
+                  </Button>
+                )}
+              {grievance?.statusId !== 3 && (
                 <Button
-                  onClick={() => setIsHodAssignDialogOpen(true)}
+                  onClick={() => onStatusChange?.(3, commentText)}
+                  className="bg-red-600 hover:bg-red-700 text-white h-9"
                   disabled={!isCommentValid}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white h-9"
                 >
-                  Assign To Members
+                  Close Grievance
                 </Button>
               )}
-              {isUnitCGM && (
-                <Button
-                  onClick={() => setIsGroupChangeDialogOpen(true)}
-                  disabled={!isCommentValid}
-                  className="bg-blue-600 hover:bg-blue-700 text-white h-9"
-                >
-                  Change Group
-                </Button>
-              )}
-              <Button
-                onClick={() => onStatusChange?.(3, commentText)}
-                className="bg-red-600 hover:bg-red-700 text-white h-9"
-                disabled={!isCommentValid}
-              >
-                Close Grievance
-              </Button>
             </div>
           </div>
         )}

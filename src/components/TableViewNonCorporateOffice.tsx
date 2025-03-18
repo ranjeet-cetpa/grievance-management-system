@@ -19,6 +19,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { extractUniqueUnits } from '@/lib/helperFunction';
 import { Checkbox } from './ui/checkbox';
+import { Label } from '@radix-ui/react-label';
 
 interface UserDetails {
   userCode: string;
@@ -169,6 +170,12 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
   useEffect(() => {
     dataFetcher();
   }, [unitId]);
+
+  useEffect(() => {
+    if (nominateFromOtherUnits) {
+      setSelectedUsers([]);
+    }
+  }, [nominateFromOtherUnits]);
 
   if (loading) return <Loader />;
   if (error) return <div>{error}</div>;
@@ -323,20 +330,22 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
             </div>
 
             {nominateFromOtherUnits && (
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                value={selectedNominationUnit || ''}
-                onChange={(e) => setSelectedNominationUnit(Number(e.target.value))}
-              >
-                <option value="">Select Unit</option>
-                {unitsDD
-                  ?.filter((unit) => unit.unitId !== Number(unitId))
-                  .map((unit) => (
-                    <option key={unit.unitId} value={unit.unitId}>
-                      {unit.unitName}
-                    </option>
-                  ))}
-              </select>
+              <div className="flex flex-col  gap-2">
+                <Label>Select Unit</Label>
+                <select
+                  className="flex h-10 w-full rounded-md border border-input bg-yellow-700 text-white px-3  py-2 text-sm ring-offset-background"
+                  value={selectedNominationUnit || ''}
+                  onChange={(e) => setSelectedNominationUnit(Number(e.target.value))}
+                >
+                  {unitsDD
+                    ?.filter((unit) => unit.unitId !== Number(unitId))
+                    .map((unit) => (
+                      <option key={unit.unitId} value={unit.unitId}>
+                        {unit.unitName}
+                      </option>
+                    ))}
+                </select>
+              </div>
             )}
 
             <UserSelect
@@ -355,7 +364,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                   }))
                 )
               }
-              isMulti={selectedNode?.groupName === 'CGM' || selectedNode?.groupName === 'Nodal Officer'}
+              isMulti={false}
               label="Select Users"
             />
             {selectedUsers.length === 0 && <div className="text-red-500 text-xs">Please select at least one user</div>}
