@@ -87,6 +87,7 @@ export const GrievanceActions = ({
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
   const [hodChildrenGroups, setHodChildrenGroups] = useState<any[]>([]);
+  const [filteredGroupsForTransferByCGM, setFilteredGroupsForTransferByCGM] = useState<any[]>([]);
   const user = useSelector((state: RootState) => state.user);
   const { isHOD, isUnitCGM, isCommittee } = useUserRoles();
   const { grievanceId } = useParams();
@@ -135,8 +136,15 @@ export const GrievanceActions = ({
         console.error('Error fetching HOD group members:', error);
       }
     };
+    const getFilteredGroupsForCGM = async () => {
+      // code completion ,
+      const response = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user?.unitId}&roleId=7`);
+      console.log(response.data.mappedUser, 'this is response from unit role users');
+      setFilteredGroupsForTransferByCGM(response.data.mappedUser);
+    };
 
     fetchHodGroups();
+    getFilteredGroupsForCGM();
     fetchHodGroupMembers(); // Call the function to fetch members
   }, [grievance?.tGroupId]);
 
@@ -226,15 +234,7 @@ export const GrievanceActions = ({
     setSelectedGroup('');
   };
 
-  const getFilteredGroups = () => {
-    if (selectedUnit === '396') {
-      return groupMasterList.filter((group) => group.isHOD === true);
-    } else {
-      return groupMasterList.filter((group) => !group.isHOD && !group.isCommitee);
-    }
-  };
-
-  const handleGroupSubmit = async () => {
+  const handleGroupSubmitbyCGM = async () => {
     try {
       if (!selectedGroup) return;
 
@@ -271,6 +271,13 @@ export const GrievanceActions = ({
         formData.set('userCode', user?.EmpCode.toString());
         formData.set('statusId', grievance?.statusId);
         formData.set('isInternal', 'true');
+        formData.set('TUnitId', findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.unitId);
+        formData.set(
+          'TDepartment',
+          findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
+        );
+        formData.set('CommentText', commentText);
+        formData.set('TGroupId', selectedGroup);
 
         // Make the API call to transfer
         const transferResponse = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
@@ -391,6 +398,7 @@ export const GrievanceActions = ({
                 Comment
               </Button> */}
               {!isNodalOfficer &&
+                !isUnitCGM &&
                 grievance?.round !== 3 &&
                 grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
                   <Button
@@ -429,7 +437,7 @@ export const GrievanceActions = ({
                     Transfer to HOD Group
                   </Button>
                 )}
-              {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+              {isHOD && grievance?.createdBy.toString() !== user?.EmpCode.toString() && user?.unitId === '396' && (
                 <Button
                   onClick={() => setIsHodAssignDialogOpen(true)}
                   disabled={!isCommentValid}
@@ -537,6 +545,94 @@ export const GrievanceActions = ({
                 className="bg-orange-600 hover:bg-orange-700 text-white"
                 onClick={handleHodTransfer}
                 disabled={!selectedHodGroup}
+              >
+                Transfer
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isGroupChangeDialogOpen} onOpenChange={setIsGroupChangeDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Change Group</DialogTitle>
+              <DialogDescription>Select an option to transfer this grievance</DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <Label htmlFor="transfer-option" className="font-medium">
+                    Select Transfer Option
+                  </Label>
+                  <Select value={selectedUnit} onValueChange={handleUnitChange}>
+                    <SelectTrigger className="w-full mt-2">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="396">Send to HOD Group (Corporate Office)</SelectItem>
+                      <SelectItem value="change-department">Change Department</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {selectedUnit === '396' && (
+                  <div>
+                    <Label htmlFor="hod-group" className="font-medium">
+                      Select HOD Group
+                    </Label>
+                    <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                      <SelectTrigger className="w-full mt-2">
+                        <SelectValue placeholder="Select HOD Group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {hodGroups?.map((group) => (
+                          <SelectItem key={group.id} value={group.id.toString()}>
+                            {group.description}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {selectedUnit === 'change-department' && (
+                  <div>
+                    <Label htmlFor="department-group" className="font-medium">
+                      Select Department
+                    </Label>
+                    <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                      <SelectTrigger className="w-full mt-2">
+                        <SelectValue placeholder="Select Department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredGroupsForTransferByCGM.map((group) => (
+                          <SelectItem key={group.group.groupId} value={group.group.groupId.toString()}>
+                            {group.userDetails.toString() + '    ( ' + group.group.groupName + ' Department )'}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <DialogFooter className="sm:justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsGroupChangeDialogOpen(false);
+                  setSelectedUnit('');
+                  setSelectedGroup('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleGroupSubmitbyCGM}
+                disabled={!selectedGroup}
               >
                 Transfer
               </Button>

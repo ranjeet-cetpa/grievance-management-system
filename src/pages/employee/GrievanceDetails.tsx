@@ -102,6 +102,7 @@ const GrievanceDetails = () => {
     };
 
     const fetchRoleDetails = async () => {
+      console.log('inside fetch role details');
       try {
         if (!user?.unitId) {
           console.error('User unit ID is not available');
@@ -114,13 +115,14 @@ const GrievanceDetails = () => {
             ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user.unitId}&roleId=5`)
             : Promise.resolve(null),
         ]);
-
-        if (nodalResponse.data.statusCode === 200) {
-          setRoleDetails(nodalResponse.data.data);
+        if (nodalResponse.data.mappedUser.length > 0) {
+          console.log(nodalResponse.data, 'this is nodal response');
+          setRoleDetails(nodalResponse.data);
         }
 
-        if (cgmResponse && cgmResponse.data.statusCode === 200) {
-          setUnitCGMDetails(cgmResponse.data.data);
+        if (cgmResponse && cgmResponse.data.mappedUser.length > 0) {
+          console.log(cgmResponse.data, 'this is cgm response');
+          setUnitCGMDetails(cgmResponse.data);
         }
       } catch (error) {
         console.error('Error fetching role details:', error);
@@ -193,6 +195,12 @@ const GrievanceDetails = () => {
       // Update specific fields for transfer
       formData.set('assignedUserCode', unitNodalOfficer.userCode);
       formData.set('assignedUserDetails', unitNodalOfficer.userDetails);
+      formData.set('tUnitId', findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString()).employee?.unitId);
+      formData.set(
+        'tDepartment',
+        findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString()).employee?.department
+      );
+      formData.set('tGroupId', roleDetails?.mappedUser?.[0]?.group?.groupId.toString());
       formData.set(
         'TDepartment',
         findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString())?.employee?.department
@@ -257,7 +265,7 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-        'statusId',
+
         'userCode',
         'userDetails',
         'grievanceProcessId',
@@ -279,6 +287,9 @@ const GrievanceDetails = () => {
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
       formData.set('isInternal', 'true');
+      formData.set('tUnitId', findEmployeeDetails(employeeList, unitCGM.userCode.toString()).employee?.unitId);
+      formData.set('tDepartment', findEmployeeDetails(employeeList, unitCGM.userCode.toString()).employee?.department);
+      formData.set('tGroupId', unitCGMDetails?.mappedUser?.[0]?.group?.groupId.toString());
 
       // Append attachments if any
       attachments.forEach((file) => {
