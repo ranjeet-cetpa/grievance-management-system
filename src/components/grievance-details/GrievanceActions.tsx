@@ -28,6 +28,7 @@ interface GroupMaster {
   id: number;
   groupName: string;
   isHOD: boolean;
+  parentGroupId: number;
 }
 
 interface GrievanceActionsProps {
@@ -80,10 +81,12 @@ export const GrievanceActions = ({
   const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
 
   const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
+
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isGroupChangeDialogOpen, setIsGroupChangeDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<string>('');
   const [selectedGroup, setSelectedGroup] = useState<string>('');
+  const [hodChildrenGroups, setHodChildrenGroups] = useState<any[]>([]);
   const user = useSelector((state: RootState) => state.user);
   const { isHOD, isUnitCGM, isCommittee } = useUserRoles();
   const { grievanceId } = useParams();
@@ -93,9 +96,12 @@ export const GrievanceActions = ({
       try {
         const response = await axiosInstance.get('/Admin/GetGroupMasterList');
         setGroupMasterList(response.data.data);
+        setHodChildrenGroups(
+          response.data.data.filter((group: GroupMaster) => Number(group.parentGroupId) === Number(grievance?.tGroupId))
+        );
+
         if (response.data.statusCode === 200) {
           const hodGroupsList = response.data.data.filter((group: GroupMaster) => group.roleId === 6);
-          console.log('this is hod groups list ', hodGroupsList);
           setHodGroups(hodGroupsList);
         }
       } catch (error) {
@@ -104,24 +110,35 @@ export const GrievanceActions = ({
     };
 
     const fetchHodGroupMembers = async () => {
-      const response = await axiosInstance.get(`/Admin/GetAddressalList?unitId=396`);
-      const filteredGroups = response.data?.data
-        ?.flatMap((a) => a?.mappedUserCode)
-        ?.filter((b) => b.groupDetails?.isHOD && b.userCode === user?.EmpCode?.toString());
-      var arr = [];
-      for (let group of filteredGroups) {
-        const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.groupDetails.hoDofGroupId}`);
-        const filteredGroupMembers = response.data.data.groupMapping
-          ?.flatMap((mapping) => mapping)
-          ?.filter((member) => member.unitId === '396');
-        arr.push(filteredGroupMembers);
+      try {
+        const members: any[] = [];
+
+        for (const group of hodChildrenGroups) {
+          const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.id}`);
+
+          if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+            const groupMembers = response.data.data.groupMapping.flat();
+            const simplifiedMembers = groupMembers.map((member: any) => ({
+              groupId: group.id,
+              id: member.id,
+              userCode: member.userCode,
+              userDetails: member.userDetails,
+              unitId: member.unitId,
+              unitName: member.unitName,
+            }));
+            members.push(...simplifiedMembers);
+          }
+        }
+
+        setFilteredGroupMembers(members);
+      } catch (error) {
+        console.error('Error fetching HOD group members:', error);
       }
-      setFilteredGroupMembers(...arr);
     };
 
     fetchHodGroups();
-    fetchHodGroupMembers();
-  }, []);
+    fetchHodGroupMembers(); // Call the function to fetch members
+  }, [grievance?.tGroupId]);
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
@@ -177,6 +194,7 @@ export const GrievanceActions = ({
             'TDepartment',
             findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
           );
+          formData.set('userCode', user?.EmpCode.toString());
           formData.set('TGroupId', selectedHodGroup);
           formData.set('CommentText', commentText);
           formData.set('isInternal', 'true');
@@ -439,6 +457,56 @@ export const GrievanceActions = ({
             </div>
           </div>
         )}
+        <Dialog open={isHodAssignDialogOpen} onOpenChange={setIsHodAssignDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Assign To Members</DialogTitle>
+              <DialogDescription>Select a member to assign this grievance</DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Select
+                value={selectedMember?.userCode} // Use userCode as the value
+                onValueChange={(value) => {
+                  // Find the member by userCode
+                  const member = filteredGroupMembers.find((m) => m.userCode.toString() === value);
+                  setSelectedMember(member); // Set the selected member
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select Member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredGroupMembers.map((member) => (
+                    <SelectItem key={member.userCode} value={member.userCode.toString()}>
+                      {member.userDetails}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsHodAssignDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => {
+                  if (selectedMember && isCommentValid) {
+                    console.log('Selected Member:', selectedMember); // Log the selected member
+                    handleHodAssignToMembers(selectedMember, commentText, attachments);
+                    // setCommentText('');
+                    setAttachments([]);
+                    setIsHodAssignDialogOpen(false);
+                    setSelectedMember(null);
+                  }
+                }}
+                disabled={!selectedMember || !isCommentValid} // Disable if no member is selected or comment is invalid
+              >
+                Assign
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Dialogs for HOD Transfer, Group Change, etc. */}
         <Dialog open={isHodDialogOpen} onOpenChange={setIsHodDialogOpen}>

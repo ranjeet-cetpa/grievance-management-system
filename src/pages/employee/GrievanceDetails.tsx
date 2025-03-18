@@ -451,6 +451,12 @@ const GrievanceDetails = () => {
       // Update specific fields for assignment
       formData.set('assignedUserCode', selectedMember.userCode);
       formData.set('assignedUserDetails', selectedMember.userDetails);
+      formData.set('tGroupId', selectedMember.groupId);
+      formData.set(
+        'tDepartment',
+        findEmployeeDetails(employeeList, selectedMember.userCode.toString()).employee?.department
+      );
+      formData.set('tUnitId', findEmployeeDetails(employeeList, selectedMember.userCode.toString()).employee?.unitId);
       formData.set('statusId', grievance?.statusId);
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
