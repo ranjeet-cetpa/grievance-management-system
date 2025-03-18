@@ -241,8 +241,20 @@ export const GrievanceActions = ({
       const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${selectedGroup}`);
 
       if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+        let firstUser: any;
         // Get the first user from the first array in groupMapping
-        const firstUser = response.data.data.groupMapping[0][0];
+        if (selectedUnit === '396') {
+          firstUser = response.data.data.groupMapping[0][0];
+        } else {
+          for (const group of response.data.data.groupMapping) {
+            if (group[0].unitId.toString() === user?.unitId.toString()) {
+              firstUser = group[0];
+              console.log(firstUser, 'this is first user of non corporate office');
+            }
+          }
+        }
+        console.log(response.data.data.groupMapping, 'this is group mapping');
+        console.log(firstUser, 'this is first user of non corporate office');
 
         // Create form data for transfer
         const formData = new FormData();
@@ -446,7 +458,7 @@ export const GrievanceActions = ({
                   Assign To Members
                 </Button>
               )}
-              {isUnitCGM && grievance?.createdBy.toString() !== user?.EmpCode.toString() && (
+              {isUnitCGM && (
                 <Button
                   onClick={() => setIsGroupChangeDialogOpen(true)}
                   disabled={!isCommentValid}
