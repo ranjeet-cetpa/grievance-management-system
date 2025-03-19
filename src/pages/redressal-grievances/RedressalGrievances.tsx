@@ -93,7 +93,7 @@ const MyGrievances = () => {
       });
 
       if (response.data.statusCode === 200) {
-        toast.success('Grievance is now in progress');
+        console.log('Grievance is now in progress');
       }
     } catch (error) {
       console.error('Error updating grievance status:', error);

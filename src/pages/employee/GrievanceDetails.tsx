@@ -404,6 +404,7 @@ const GrievanceDetails = () => {
       // Update status
       formData.set('statusId', status.toString());
       formData.set('userCode', user?.EmpCode.toString());
+      formData.set('BaseUrl', environment.baseUrl + '/grievance');
 
       // Add comment if provided
       if (commentText) {
@@ -612,8 +613,7 @@ const GrievanceDetails = () => {
                   (grievance?.assignedUserCode === user?.EmpCode ||
                     grievance?.assignedUserCode === '' ||
                     grievance?.createdBy.toString() === user?.EmpCode.toString()) &&
-                  grievance?.statusId?.toString() !== '5' &&
-                  grievance?.statusId?.toString() !== '4' &&
+                  grievance?.statusId?.toString() !== '3' &&
                   (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee || isUser)
                     ? 'w-1/2'
                     : 'w-full'
@@ -626,8 +626,7 @@ const GrievanceDetails = () => {
               {(grievance?.assignedUserCode === user?.EmpCode ||
                 grievance?.assignedUserCode === '' ||
                 grievance?.createdBy.toString() === user?.EmpCode.toString()) &&
-                grievance?.statusId?.toString() !== '5' &&
-                grievance?.statusId?.toString() !== '4' &&
+                grievance?.statusId?.toString() !== '3' &&
                 (isNodalOfficer || isUnitCGM || isHOD || isAddressal || isCommittee || isUser) && (
                   <div className="space-y-6 w-1/2 h-full">
                     <GrievanceActions
