@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
 import GrievanceResolutionDialog from '@/components/GrievanceResolutionDialog';
+import { set } from 'date-fns';
 
 interface GrievanceDetails {
   grievanceId: number;
@@ -74,7 +75,7 @@ const GrievanceDetails = () => {
   const [activeTab, setActiveTab] = useState('info');
   const [commentText, setCommentText] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
-
+  const [resolutionData, setResolutionData] = useState<any>(null);
   const [resolutionText, setResolutionText] = useState('');
   const [showResolutionInput, setShowResolutionInput] = useState(false);
   const [roleDetails, setRoleDetails] = useState<RoleDetail | null>(null);
@@ -111,6 +112,14 @@ const GrievanceDetails = () => {
     }
   };
   console.log(isNodalOfficer);
+
+  useEffect(() => {
+    const fetchResolutionData = async () => {
+      const response = await axiosInstance.get(`/Grievance/GetResolutionData?grievanceMasterId=${grievanceId}`);
+      setResolutionData(response.data.data);
+    };
+    fetchResolutionData();
+  }, []);
   useEffect(() => {
     const fetchGrievanceDetails = async () => {
       try {
@@ -693,6 +702,7 @@ const GrievanceDetails = () => {
             )}
             <Comments grievanceId={Number(grievanceId)} />
             <GrievanceResolutionDialog
+              resolutionData={resolutionData}
               isOpen={isResolutionDialogOpen}
               onClose={() => setIsResolutionDialogOpen(false)}
               grievanceId={grievanceId}

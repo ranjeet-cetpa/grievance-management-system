@@ -131,13 +131,21 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
       setIsSubmitting(false);
     }
   };
+  const deptColors = {
+    IT: 'bg-red-100',
+    HR: 'bg-green-100',
+    Finance: 'bg-yellow-100',
+    Others: 'bg-gray-100',
+  };
+  const deptBgColor = deptColors[departmentName] || 'bg-white';
 
   return (
-    <div className="border rounded-lg p-4">
+    <div className={`border rounded-lg p-4 ${deptBgColor}`}>
+      {' '}
       <div className="flex gap-1 items-center justify-between mb-4">
         <h3 className="font-semibold text-lg">{departmentName}</h3>
         <Button variant="outline" size="sm" className="p-2" onClick={() => setAddCategoryDialogOpen(true)}>
-          Category +
+          Sub Section +
         </Button>
       </div>
       {/* HOD Section */}
@@ -150,13 +158,12 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
         <h4 className="font-medium bg-blue-100 text-center mb-3 text-blue-600">Categories</h4>
         <CategoriesSection categories={categories} onEdit={onEdit} onAdd={onAdd} onFetchData={onFetchData} />
       </div>
-
       {/* Add Category Dialog */}
       <Dialog open={addCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
-            <DialogDescription>Add a new category for {departmentName}</DialogDescription>
+            <DialogTitle>Add New Sub Section</DialogTitle>
+            <DialogDescription>Add a new sub section for {departmentName}</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">

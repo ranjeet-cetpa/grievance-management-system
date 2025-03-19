@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -24,6 +24,7 @@ const GrievanceResolutionDialog = ({
   isAccepted = true,
   resolutionLink,
   onResolutionSubmitted,
+  resolutionData,
 }) => {
   const [rejectionReason, setRejectionReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,23 +37,23 @@ const GrievanceResolutionDialog = ({
     try {
       setIsSubmitting(true);
 
-      //   const verificationResponse = await axiosInstance.get(
-      //     `/Grievance/VerifyResolutionLink?resolutionLink=${resolutionLink}&comment=${''}`
-      //   );
+      const verificationResponse = await axiosInstance.get(
+        `/Grievance/VerifyResolutionLink?resolutionLink=${resolutionData?.acceptLink}&comment=${''}`
+      );
 
-      //   if (verificationResponse.data.statusCode === 200) {
-      //     toast.success('Resolution verified and accepted successfully!');
-      //     setSubmitStatus({
-      //       type: 'success',
-      //       message: 'Resolution verified and accepted successfully!',
-      //     });
-      //     onResolutionSubmitted(true);
-      //     setTimeout(() => onClose(), 1500);
-      //   } else {
-      //     throw new Error('Verification failed');
-      //   }
+      if (verificationResponse.data.statusCode === 200) {
+        toast.success('Resolution verified and accepted successfully!');
+        setSubmitStatus({
+          type: 'success',
+          message: 'Resolution verified and accepted successfully!',
+        });
+        onResolutionSubmitted(true);
+        setTimeout(() => onClose(), 1500);
+      } else {
+        throw new Error('Verification failed');
+      }
 
-      console.log(resolutionLink);
+      console.log(resolutionData?.acceptLink);
       console.log(grievanceId);
       console.log(isAccepted);
     } catch (error) {
@@ -79,25 +80,25 @@ const GrievanceResolutionDialog = ({
     try {
       setIsSubmitting(true);
 
-      //   const verificationResponse = await axiosInstance.get(
-      //     `/Grievance/VerifyResolutionLink?resolutionLink=${resolutionLink}&comment=${encodeURIComponent(
-      //       rejectionReason
-      //     )}`
-      //   );
+      const verificationResponse = await axiosInstance.get(
+        `/Grievance/VerifyResolutionLink?resolutionLink=${resolutionData?.rejectLink}&comment=${encodeURIComponent(
+          rejectionReason
+        )}`
+      );
 
-      //   if (verificationResponse.data.statusCode === 200) {
-      //     toast.success('Resolution rejected successfully!');
-      //     setSubmitStatus({
-      //       type: 'success',
-      //       message: 'Resolution rejected successfully!',
-      //     });
-      //     onResolutionSubmitted(false, rejectionReason);
-      //     setTimeout(() => onClose(), 1500);
-      //   } else {
-      //     throw new Error('Verification failed');
-      //   }
+      if (verificationResponse.data.statusCode === 200) {
+        toast.success('Resolution rejected successfully!');
+        setSubmitStatus({
+          type: 'success',
+          message: 'Resolution rejected successfully!',
+        });
+        onResolutionSubmitted(false, rejectionReason);
+        setTimeout(() => onClose(), 1500);
+      } else {
+        throw new Error('Verification failed');
+      }
 
-      console.log(resolutionLink);
+      console.log(resolutionData?.rejectLink);
       console.log(grievanceId);
       console.log(isAccepted);
       console.log(rejectionReason);

@@ -51,6 +51,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
   const [mappedDepartmentsDialogOpen, setMappedDepartmentsDialogOpen] = React.useState(false);
   const [userMappedDepartments, setUserMappedDepartments] = React.useState<string[]>([]);
   const [isLoadingDepartments, setIsLoadingDepartments] = React.useState(false);
+  const [editCategoryDialogOpen, setEditCategoryDialogOpen] = React.useState(false);
   const { fetchData } = useOrgChart({
     unitId: '396',
     unitName: 'Corporate Office',
@@ -178,6 +179,17 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                     }}
                   >
                     <Trash2 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => {
+                      setSelectedCategory(node);
+                      setEditCategoryDialogOpen(true);
+                    }}
+                  >
+                    <Pencil className="w-4 h-4" />
                   </Button>
                 </div>
               </div>

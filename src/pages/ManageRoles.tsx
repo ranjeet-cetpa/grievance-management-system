@@ -10,6 +10,8 @@ import axiosInstance from '@/services/axiosInstance';
 import { Pencil } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import Loader from '@/components/ui/loader';
+import toast from 'react-hot-toast';
 
 interface Admin {
   userCode: string;
@@ -37,7 +39,7 @@ const ManageRoles = () => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editAdmin, setEditAdmin] = useState<Admin | null>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
-
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   // Fetch existing admins
   useEffect(() => {
     fetchAdmins();
@@ -45,10 +47,12 @@ const ManageRoles = () => {
 
   const fetchAdmins = async () => {
     try {
+      setIsLoading(true);
       const response = await axiosInstance.get('/Admin/GetRoleDetail?roleId=1');
       if (response.data.statusCode === 200) {
         setUnitwiseAdminData(response.data.data.mappedUsers);
       }
+      setIsLoading(false);
     } catch (error) {
       console.error('Failed to fetch admins:', error);
     }
@@ -57,7 +61,7 @@ const ManageRoles = () => {
   // Handle adding/editing an admin
   const handleAddOrEditAdmin = async () => {
     if (!selectedUnit || selectedUser.length === 0) {
-      alert('Please select a unit and a user');
+      toast.error('Please select a unit and a user');
       return;
     }
 
@@ -70,21 +74,23 @@ const ManageRoles = () => {
     };
 
     try {
+      setIsLoading(true);
       const response = await axiosInstance.post('/Admin/UpdateUserRoleMapping', payload);
       if (response.data.statusCode === 200) {
-        alert(isEditing ? 'Admin updated successfully' : 'Admin added successfully');
+        toast.success(isEditing ? 'Admin updated successfully' : 'Admin added successfully');
         // Refresh the admin list
         await fetchAdmins();
         // Reset form
         resetForm();
         setDialogOpen(false);
       } else {
-        alert('Failed to update admin: ' + response.data.message);
+        toast.error('Failed to update admin: ' + response.data?.message);
       }
     } catch (error) {
       console.error('Error updating admin:', error);
-      alert('Failed to update admin');
+      toast.error('Failed to update admin');
     }
+    setIsLoading(false);
   };
 
   // Handle editing an existing admin
@@ -110,6 +116,7 @@ const ManageRoles = () => {
 
   return (
     <div className="p-4">
+      {isLoading && <Loader />}
       <Card className="rounded-lg shadow-md">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
@@ -120,7 +127,7 @@ const ManageRoles = () => {
 
         <CardContent>
           {/* Display existing admins in a shadcn table */}
-          <div className="mb-6">
+          <div className="mb-6 mt-6">
             <Table>
               <TableHeader>
                 <TableRow>
