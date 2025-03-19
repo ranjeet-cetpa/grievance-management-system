@@ -19,6 +19,9 @@ import { extractUniqueDepartments } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Label } from '../ui/label';
+import { Textarea } from '../ui/textarea';
+import UserSelect from './UserSelect';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -44,6 +47,8 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
     userCode?: string;
     userId?: string;
   } | null>(null);
+  const [editCategoryDescription, setEditCategoryDescription] = React.useState('');
+  const [editCategoryUsers, setEditCategoryUsers] = React.useState<any[]>([]);
   const [isDeleting, setIsDeleting] = React.useState(false);
   const [openAccordion, setOpenAccordion] = React.useState<string | undefined>(undefined);
   const [selectedDepartments, setSelectedDepartments] = React.useState<string[]>([]);
@@ -56,10 +61,52 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
     unitId: '396',
     unitName: 'Corporate Office',
   });
+  const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const departmentsDD = extractUniqueDepartments(employeeList);
   console.log('departmentsDD', departmentsDD);
 
+  const handleUpdateCategory = async () => {
+    if (!selectedCategory) return;
+
+    try {
+      const requestBody = {
+        id: selectedCategory.id,
+        groupName: selectedCategory.groupName,
+        description: editCategoryDescription,
+        isRoleGroup: true,
+        roleId: 7,
+        isServiceCategory: true,
+        parentGroupId: selectedCategory.parentGroupId,
+        unitId: '396',
+        unitName: 'Corporate Office',
+        createdBy: user?.EmpCode,
+        childGroup: null,
+        mappedUser: editCategoryUsers.map((user) => ({
+          userCode: user.userCode,
+          userDetail: user.userDetail,
+          departments: user.departments || [],
+        })),
+      };
+
+      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
+
+      // Reset form state first
+      setEditCategoryDialogOpen(false);
+      setEditCategoryDescription('');
+      setEditCategoryUsers([]);
+
+      // Then show success message
+      toast.success('Category updated successfully');
+
+      // Finally refresh the data
+      await onFetchData();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Failed to update category');
+    } finally {
+    }
+  };
   const handleDelete = async () => {
     if (!selectedCategory) return;
 
@@ -198,15 +245,23 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
               <div className="pl-2">
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-semibold text-sm">Complaint Handlers</h4>
-                  {node.mappedUser && node.mappedUser.length > 0 ? (
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onEdit(node)}>
+                  {/* {node.mappedUser && node.mappedUser.length > 0 ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => {
+                        onEdit(node);
+                        console.log(node, 'incoming node ');
+                      }}
+                    >
                       <Pencil className="w-4 h-4" />
                     </Button>
                   ) : (
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onAdd(node)}>
                       <User className="w-4 h-4" />
                     </Button>
-                  )}
+                  )} */}
                 </div>
                 {node.mappedUser && node.mappedUser.length > 0 ? (
                   <ul className="text-sm text-gray-600 space-y-1 list-none pl-0">
@@ -374,6 +429,50 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
           <DialogFooter>
             <Button variant="outline" onClick={() => setMappedDepartmentsDialogOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={editCategoryDialogOpen} onOpenChange={setEditCategoryDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>Edit the category details</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editCategoryDescription}
+                onChange={(e) => setEditCategoryDescription(e.target.value)}
+                placeholder="Enter category description"
+              />
+            </div>
+            <div className="grid gap-2">
+              <UserSelect
+                employees={employeeList}
+                value={editCategoryUsers}
+                onChange={(users) =>
+                  setEditCategoryUsers(
+                    users.map((user) => ({
+                      userCode: user.userCode,
+                      userDetail: user.userDetail,
+                      departments: [],
+                    }))
+                  )
+                }
+                isMulti={true}
+                label="Select Complaint Handlers"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditCategoryDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateCategory} disabled={editCategoryUsers.length === 0}>
+              Update Sub Section
             </Button>
           </DialogFooter>
         </DialogContent>
