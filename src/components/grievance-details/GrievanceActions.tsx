@@ -479,7 +479,7 @@ export const GrievanceActions = ({
                     Change Group
                   </Button>
                 )}
-              {grievance?.statusId !== 3 && (
+              {grievance?.statusId !== 3 && grievance?.assignedUserCode.toString() === user?.EmpCode.toString() && (
                 <Button
                   onClick={() => onStatusChange?.(3, commentText)}
                   className="bg-red-600 hover:bg-red-700 text-white h-9"

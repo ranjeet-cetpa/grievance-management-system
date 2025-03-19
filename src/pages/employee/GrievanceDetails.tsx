@@ -21,6 +21,7 @@ import { findEmployeeDetails, getStatusText } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
+import GrievanceResolutionDialog from '@/components/GrievanceResolutionDialog';
 
 interface GrievanceDetails {
   grievanceId: number;
@@ -78,7 +79,37 @@ const GrievanceDetails = () => {
   const [showResolutionInput, setShowResolutionInput] = useState(false);
   const [roleDetails, setRoleDetails] = useState<RoleDetail | null>(null);
   const [unitCGMDetails, setUnitCGMDetails] = useState<RoleDetail | null>(null);
+  const [isResolutionDialogOpen, setIsResolutionDialogOpen] = useState(false);
+  const [resolutionAction, setResolutionAction] = useState('accept'); // 'accept' or 'reject'
+  const [resolutionLink, setResolutionLink] = useState('');
 
+  const generateResolutionLink = (isAccepted = true) => {
+    // This function should generate the resolution link based on your backend requirements
+    // For example, you might want to include the grievance ID, user ID, and a marker for accept/reject
+    const baseLink = `${grievanceId}-${user?.EmpCode}`;
+    return isAccepted ? `${baseLink}$` : baseLink; // Add $ for accept links as in your original code
+  };
+  const handleOpenResolutionDialog = (action) => {
+    setResolutionAction(action);
+    setResolutionLink(generateResolutionLink(action === 'accept'));
+    setIsResolutionDialogOpen(true);
+  };
+
+  const handleResolutionSubmitted = async (isAccepted, rejectionReason) => {
+    try {
+      // Refresh grievance details after resolution is submitted
+      const updatedResponse = await axiosInstance.get(
+        `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+      );
+
+      if (updatedResponse.data.statusCode === 200) {
+        setGrievance(updatedResponse.data.data);
+        toast.success(`Resolution ${isAccepted ? 'accepted' : 'rejected'} successfully!`);
+      }
+    } catch (error) {
+      console.error('Error refreshing grievance details:', error);
+    }
+  };
   console.log(isNodalOfficer);
   useEffect(() => {
     const fetchGrievanceDetails = async () => {
@@ -650,7 +681,25 @@ const GrievanceDetails = () => {
                   </div>
                 )}
             </div>
+            {grievance?.statusId?.toString() === '3' && (grievance?.round === 1 || grievance?.round === 2) && (
+              <div className="flex justify-end gap-2 mt-4">
+                <Button onClick={() => handleOpenResolutionDialog('accept')} variant="default">
+                  Accept Resolution
+                </Button>
+                <Button onClick={() => handleOpenResolutionDialog('reject')} variant="destructive">
+                  Reject Resolution
+                </Button>
+              </div>
+            )}
             <Comments grievanceId={Number(grievanceId)} />
+            <GrievanceResolutionDialog
+              isOpen={isResolutionDialogOpen}
+              onClose={() => setIsResolutionDialogOpen(false)}
+              grievanceId={grievanceId}
+              isAccepted={resolutionAction === 'accept'}
+              resolutionLink={resolutionLink}
+              onResolutionSubmitted={handleResolutionSubmitted}
+            />
           </>
         )}
       </Card>

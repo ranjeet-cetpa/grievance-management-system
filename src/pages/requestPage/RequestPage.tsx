@@ -138,8 +138,8 @@ const RequestPage = () => {
                   className={`h-32 ${!rejectionReason.trim() && 'border-red-500'}`}
                 />
                 {/* {!rejectionReason.trim() && (
-                  <p className="text-sm text-red-500">Please provide a reason for rejection</p>
-                )} */}
+                    <p className="text-sm text-red-500">Please provide a reason for rejection</p>
+                  )} */}
               </div>
             )}
 
