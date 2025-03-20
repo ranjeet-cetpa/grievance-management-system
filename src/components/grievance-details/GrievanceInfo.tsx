@@ -59,7 +59,7 @@ export const GrievanceInfo = ({
       }`}
     >
       {user?.EmpCode?.toString() !== createdBy?.toString() && (
-        <InfoCard label="Created By" value={userDetails} icon={UserCircle} />
+        <InfoCard label="Requested By" value={userDetails} icon={UserCircle} />
       )}
       <InfoCard label="Initiated On" value={formatDate(createdDate)} icon={Calendar} />
       <InfoCard label="Currently With" value={assignedUserDetails || 'Not Assigned'} icon={UserCog} />
