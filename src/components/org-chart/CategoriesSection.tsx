@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Pencil, User, Info, ChevronDown, Trash, Trash2, Plus } from 'lucide-react';
+import Select from 'react-select';
 import { FlattenedNode } from '@/types/orgChart';
 import ReactSelect from 'react-select';
 import {
@@ -15,13 +16,14 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { useOrgChart } from '@/hooks/useOrgChart';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { extractUniqueDepartments } from '@/lib/helperFunction';
+import { extractUniqueDepartments, extractUniqueUnits } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import UserSelect from './UserSelect';
+import { Checkbox } from '../ui/checkbox';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -39,6 +41,7 @@ interface CategoriesSectionProps {
 
 const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdit, onAdd, onFetchData }) => {
   const [selectedCategory, setSelectedCategory] = React.useState<FlattenedNode | null>(null);
+  const [selectedUnits, setSelectedUnits] = React.useState<string[]>(['396']);
   const [infoDialogOpen, setInfoDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [mapUserDialogOpen, setMapUserDialogOpen] = React.useState(false);
@@ -47,6 +50,8 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
     userCode?: string;
     userId?: string;
   } | null>(null);
+  const [nominateFromOtherUnits, setNominateFromOtherUnits] = React.useState(false);
+
   const [editCategoryDescription, setEditCategoryDescription] = React.useState('');
   const [editCategoryUsers, setEditCategoryUsers] = React.useState<any[]>([]);
   const [isDeleting, setIsDeleting] = React.useState(false);
@@ -65,6 +70,35 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const departmentsDD = extractUniqueDepartments(employeeList);
   console.log('departmentsDD', departmentsDD);
+  const unitsDD = extractUniqueUnits(employeeList);
+  console.log('unitsDD', unitsDD);
+  // Filter employees based on selected units
+  const filteredEmployees = React.useMemo(() => {
+    if (!nominateFromOtherUnits) {
+      // When checkbox is unchecked, show only Corporate Office employees
+      return employeeList.filter((emp) => emp.unitId === 396);
+    }
+    // When checkbox is checked, show only employees from selected units
+    return employeeList.filter((emp) => selectedUnits.includes(emp.unitId.toString()));
+  }, [employeeList, nominateFromOtherUnits, selectedUnits]);
+
+  // Filter out Corporate Office and prepare options for react-select
+  const unitOptions = React.useMemo(
+    () =>
+      unitsDD
+        .filter((unit) => unit.unitId !== 396) // Remove Corporate Office
+        .map((unit) => ({
+          value: unit.unitId.toString(),
+          label: unit.unitName,
+        })),
+    [unitsDD]
+  );
+
+  // Convert selectedUnits to format needed by react-select
+  const selectedUnitOptions = React.useMemo(
+    () => unitOptions.filter((option) => selectedUnits.includes(option.value)),
+    [unitOptions, selectedUnits]
+  );
 
   const handleUpdateCategory = async () => {
     if (!selectedCategory) return;
@@ -233,6 +267,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                     className="h-6 w-6 p-0"
                     onClick={() => {
                       setSelectedCategory(node);
+                      setEditCategoryUsers(node.mappedUser);
                       setEditCategoryDialogOpen(true);
                     }}
                   >
@@ -448,10 +483,41 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                 onChange={(e) => setEditCategoryDescription(e.target.value)}
                 placeholder="Enter category description"
               />
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="nominateOtherUnits"
+                  checked={nominateFromOtherUnits}
+                  onCheckedChange={(checked) => {
+                    setNominateFromOtherUnits(checked as boolean);
+                    if (!checked) {
+                      setSelectedUnits(['396']);
+                    }
+                  }}
+                />
+                <Label htmlFor="nominateOtherUnits">Nominate from other units</Label>
+              </div>
+
+              {nominateFromOtherUnits && (
+                <div className="grid gap-2">
+                  <Label>Select Units</Label>
+                  <Select
+                    isMulti
+                    value={selectedUnitOptions}
+                    onChange={(newValue) => {
+                      const selectedValues = (newValue as { value: string; label: string }[]).map((v) => v.value);
+                      setSelectedUnits(selectedValues.length ? selectedValues : []); // Don't include Corporate Office
+                    }}
+                    options={unitOptions}
+                    className="w-full"
+                    classNamePrefix="react-select"
+                    placeholder="Select units"
+                  />
+                </div>
+              )}
             </div>
             <div className="grid gap-2">
               <UserSelect
-                employees={employeeList}
+                employees={filteredEmployees}
                 value={editCategoryUsers}
                 onChange={(users) =>
                   setEditCategoryUsers(
