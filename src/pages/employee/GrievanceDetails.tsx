@@ -121,35 +121,17 @@ const GrievanceDetails = () => {
     };
     fetchResolutionData();
   }, []);
-  useEffect(() => {
-    const fetchGrievanceDetails = async () => {
-      try {
-        const response = await axiosInstance.get(
-          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
-        );
-        if (response.data.statusCode === 200) {
-          setGrievance(response.data.data);
-          console.log(response.data.data, 'this is grievance from grievance details');
-          setStatus(response.data.data.statusId.toString());
-        } else {
-          toast.error('Failed to fetch grievance details');
-        }
-      } catch (error) {
-        console.error('Error fetching grievance details:', error);
-        toast.error('Something went wrong while fetching grievance details');
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    const fetchRoleDetails = async () => {
+  useEffect(() => {
+    const fetchRoleAndGrievanceDetails = async () => {
       console.log('inside fetch role details');
       try {
         if (!user?.unitId) {
           console.error('User unit ID is not available');
           return;
         }
-
+        const res = await axiosInstance.get(`/Grievance/GrievanceDetails?grievanceId=${grievanceId}`);
+        const grievance = res.data.data;
         console.log(grievance, 'this is grievance from grievance details second time');
         console.log(grievance?.tUnitId, 'this is grievance from grievance details third time');
         // const [nodalResponse, cgmResponse] = await Promise.all([
@@ -169,14 +151,14 @@ const GrievanceDetails = () => {
           console.log(cgmResponse.data, 'this is cgm response');
           setUnitCGMDetails(cgmResponse.data);
         }
+        setGrievance(grievance);
       } catch (error) {
         console.error('Error fetching role details:', error);
         toast.error('Failed to fetch role details');
       }
     };
 
-    fetchGrievanceDetails();
-    fetchRoleDetails();
+    fetchRoleAndGrievanceDetails();
   }, [grievanceId, isNodalOfficer, user?.unitId]);
 
   // Example comments data - replace with actual data from your backend
