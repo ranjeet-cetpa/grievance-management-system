@@ -62,7 +62,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [flattenedData, setFlattenedData] = React.useState<OrgNode[]>([]);
   const [nominateFromOtherUnits, setNominateFromOtherUnits] = React.useState(false);
-  const [selectedNominationUnit, setSelectedNominationUnit] = React.useState<number | null>(null);
+  const [selectedNominationUnit, setSelectedNominationUnit] = React.useState<number | null>(396);
 
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -316,9 +316,6 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                 checked={nominateFromOtherUnits}
                 onCheckedChange={(checked) => {
                   setNominateFromOtherUnits(checked as boolean);
-                  if (!checked) {
-                    setSelectedNominationUnit(null);
-                  }
                 }}
               />
               <label
@@ -333,7 +330,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
               <div className="flex flex-col  gap-2">
                 <Label>Select Unit</Label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-input bg-yellow-700 text-white px-3  py-2 text-sm ring-offset-background"
+                  className="flex h-10 w-full rounded-md border border-input bg-blue-50 text-black px-3  py-2 text-sm ring-offset-background"
                   value={selectedNominationUnit || ''}
                   onChange={(e) => setSelectedNominationUnit(Number(e.target.value))}
                 >
