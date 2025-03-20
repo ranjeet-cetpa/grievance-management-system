@@ -32,7 +32,9 @@ const GrievanceResolutionDialog = ({
     type: null,
     message: '',
   });
-
+  useEffect(() => {
+    console.log(resolutionData, 'this is resolution data');
+  }, [resolutionData]);
   const handleAccept = async () => {
     try {
       setIsSubmitting(true);

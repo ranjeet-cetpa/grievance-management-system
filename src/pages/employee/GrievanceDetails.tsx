@@ -120,7 +120,7 @@ const GrievanceDetails = () => {
       setResolutionData(response.data.data);
     };
     fetchResolutionData();
-  }, []);
+  }, [grievanceId]);
   useEffect(() => {
     const fetchGrievanceDetails = async () => {
       try {
@@ -142,7 +142,7 @@ const GrievanceDetails = () => {
     };
 
     fetchGrievanceDetails();
-  }, []);
+  }, [grievanceId]);
   useEffect(() => {
     const fetchRoleDetails = async () => {
       console.log('inside fetch role details');
@@ -181,7 +181,7 @@ const GrievanceDetails = () => {
     };
 
     fetchRoleDetails();
-  }, []);
+  }, [grievanceId]);
 
   // Example comments data - replace with actual data from your backend
 
