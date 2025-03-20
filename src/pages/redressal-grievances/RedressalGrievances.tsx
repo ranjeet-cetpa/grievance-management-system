@@ -82,6 +82,10 @@ const MyGrievances = () => {
           formData.append(key, value.toString());
         }
       });
+      console.log(rowData, 'this is row data .........in progress setter ');
+      formData.set('TUnitId', rowData.tUnit);
+      formData.set('TDepartment', rowData.tDepartment);
+      formData.set('TGroupId', rowData.tGroupId);
 
       formData.set('statusId', '2');
       formData.set('grievanceMasterId', rowData.id.toString());
@@ -118,8 +122,8 @@ const MyGrievances = () => {
           id: 'createdDate',
           accessorKey: 'createdDate',
           header: ({ column }) => (
-            <div className="flex justify-start pl-8">
-              <SortingButton headerText="Submission Date" column={column} />
+            <div className="flex justify-start text-left pl-6">
+              <SortingButton headerText="Initiated On" column={column} />
             </div>
           ),
           cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,

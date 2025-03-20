@@ -151,7 +151,7 @@ const GrievanceDetails = () => {
         }
 
         const [nodalResponse, cgmResponse] = await Promise.all([
-          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitIt}&roleId=4`),
+          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=4`),
           isNodalOfficer
             ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`)
             : Promise.resolve(null),
@@ -638,7 +638,7 @@ const GrievanceDetails = () => {
                 title={grievance?.title || ''}
                 statusId={Number(grievance?.statusId) || 0}
               />
-              {/* <GrievanceTrajectory grievanceId={grievanceId} /> */}
+              <GrievanceTrajectory grievanceId={grievanceId} />
               <GrievanceInfo
                 assignedUserCode={grievance.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}

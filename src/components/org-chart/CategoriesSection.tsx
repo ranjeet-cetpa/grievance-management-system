@@ -483,7 +483,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                 onChange={(e) => setEditCategoryDescription(e.target.value)}
                 placeholder="Enter category description"
               />
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center mt-2 space-x-2">
                 <Checkbox
                   id="nominateOtherUnits"
                   checked={nominateFromOtherUnits}
