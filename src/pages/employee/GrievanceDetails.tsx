@@ -150,12 +150,16 @@ const GrievanceDetails = () => {
           return;
         }
 
-        const [nodalResponse, cgmResponse] = await Promise.all([
-          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=4`),
-          isNodalOfficer
-            ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`)
-            : Promise.resolve(null),
-        ]);
+        console.log(grievance, 'this is grievance from grievance details second time');
+        console.log(grievance?.tUnitId, 'this is grievance from grievance details third time');
+        // const [nodalResponse, cgmResponse] = await Promise.all([
+        //   axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=4`),
+        //   isNodalOfficer
+        //     ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`)
+        //     : Promise.resolve(null),
+        // ]);
+        const nodalResponse = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=4`);
+        const cgmResponse = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`);
         if (nodalResponse.data.mappedUser.length > 0) {
           console.log(nodalResponse.data, 'this is nodal response');
           setRoleDetails(nodalResponse.data);
@@ -253,24 +257,24 @@ const GrievanceDetails = () => {
       for (const pair of formData.entries()) {
         console.log(pair[0], pair[1]);
       }
-      // const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data',
-      //   },
-      // });
+      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
-      // if (response.data.statusCode === 200) {
-      //   toast.success('Grievance transferred to nodal officer successfully');
-      //   // Refresh grievance details
-      //   const updatedResponse = await axiosInstance.get(
-      //     `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
-      //   );
-      //   if (updatedResponse.data.statusCode === 200) {
-      //     setGrievance(updatedResponse.data.data);
-      //   }
-      // } else {
-      //   toast.error('Failed to transfer grievance');
-      // }
+      if (response.data.statusCode === 200) {
+        toast.success('Grievance transferred to nodal officer successfully');
+        // Refresh grievance details
+        const updatedResponse = await axiosInstance.get(
+          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+        );
+        if (updatedResponse.data.statusCode === 200) {
+          setGrievance(updatedResponse.data.data);
+        }
+      } else {
+        toast.error('Failed to transfer grievance');
+      }
     } catch (error) {
       console.error('Error transferring grievance:', error);
       toast.error('Failed to transfer grievance');
