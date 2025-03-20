@@ -648,7 +648,7 @@ const GrievanceDetails = () => {
               />
               {/* <GrievanceTrajectory grievanceId={grievanceId} /> */}
               <GrievanceInfo
-                assignedUserCode={grievance.assignedUserCode || ''}
+                assignedUserCode={grievance?.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}
                 userDetails={grievance?.userDetails || ''}
                 createdDate={grievance?.createdDate || ''}
