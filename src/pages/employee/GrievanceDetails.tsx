@@ -700,16 +700,18 @@ const GrievanceDetails = () => {
                   </div>
                 )}
             </div>
-            {grievance?.statusId?.toString() === '3' && (grievance?.round === 1 || grievance?.round === 2) && (
-              <div className="flex justify-end gap-2 mt-4">
-                <Button onClick={() => handleOpenResolutionDialog('accept')} variant="default">
-                  Accept Resolution
-                </Button>
-                <Button onClick={() => handleOpenResolutionDialog('reject')} variant="destructive">
-                  Reject Resolution
-                </Button>
-              </div>
-            )}
+            {grievance?.statusId?.toString() === '3' &&
+              (grievance?.round === 1 || grievance?.round === 2) &&
+              grievance?.createdBy === user?.EmpCode.toString() && (
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button onClick={() => handleOpenResolutionDialog('accept')} variant="default">
+                    Accept Resolution
+                  </Button>
+                  <Button onClick={() => handleOpenResolutionDialog('reject')} variant="destructive">
+                    Reject Resolution
+                  </Button>
+                </div>
+              )}
             <Comments grievanceId={Number(grievanceId)} />
             <GrievanceResolutionDialog
               resolutionData={resolutionData}
