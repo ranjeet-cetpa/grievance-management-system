@@ -197,15 +197,17 @@ export const GrievanceActions = ({
           // Set assigned user details from the group
           formData.set('assignedUserCode', firstUser.userCode);
           formData.set('assignedUserDetails', firstUser.userDetails);
-          formData.set('TUnitId', findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.unitId);
-          formData.set(
-            'TDepartment',
-            findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
-          );
+
+          // formData.set(
+          //   'TDepartment',
+          //   findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
+          // );
           formData.set('userCode', user?.EmpCode.toString());
           formData.set('TGroupId', selectedHodGroup);
           formData.set('CommentText', commentText);
           formData.set('isInternal', 'true');
+          formData.set('TUnitId', grievance?.tUnitId);
+          formData.set('TDepartment', grievance?.tDepartment);
 
           // Append attachments if any
           attachments.forEach((file) => {
@@ -242,6 +244,7 @@ export const GrievanceActions = ({
 
       if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
         let firstUser: any;
+        const groupDetails = response.data.data;
         // Get the first user from the first array in groupMapping
         if (selectedUnit === '396') {
           firstUser = response.data.data.groupMapping[0][0];
@@ -283,11 +286,12 @@ export const GrievanceActions = ({
         formData.set('userCode', user?.EmpCode.toString());
         formData.set('statusId', grievance?.statusId);
         formData.set('isInternal', 'true');
-        formData.set('TUnitId', findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.unitId);
-        formData.set(
-          'TDepartment',
-          findEmployeeDetails(employeeList, firstUser?.userCode.toString())?.employee?.department
-        );
+        if (selectedUnit === '396') {
+          formData.set('TUnitId', '396');
+        } else {
+          formData.set('TUnitId', grievance?.tUnitId);
+        }
+        formData.set('TDepartment', grievance?.tDepartment);
         formData.set('CommentText', commentText);
         formData.set('TGroupId', selectedGroup);
 

@@ -23,6 +23,7 @@ import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
 import GrievanceResolutionDialog from '@/components/GrievanceResolutionDialog';
 import { set } from 'date-fns';
+import GrievanceTrajectory from '@/components/GrievanceTrajectory';
 
 interface GrievanceDetails {
   grievanceId: number;
@@ -150,9 +151,9 @@ const GrievanceDetails = () => {
         }
 
         const [nodalResponse, cgmResponse] = await Promise.all([
-          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user.unitId}&roleId=4`),
+          axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitIt}&roleId=4`),
           isNodalOfficer
-            ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user.unitId}&roleId=5`)
+            ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`)
             : Promise.resolve(null),
         ]);
         if (nodalResponse.data.mappedUser.length > 0) {
@@ -196,12 +197,12 @@ const GrievanceDetails = () => {
 
   const handleTransfer = async (commentText, attachments) => {
     try {
-      const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
+      // const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
-      if (!addressalUnit) {
-        toast.error('Unit information or role details not available');
-        return;
-      }
+      // if (!addressalUnit) {
+      //   toast.error('Unit information or role details not available');
+      //   return;
+      // }
 
       // Find the nodal officer for the current unit
       const unitNodalOfficer = roleDetails?.mappedUser?.[0];
@@ -217,7 +218,9 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-
+        'tUnitId',
+        'tDepartment',
+        'tGroupId',
         'userCode',
         'userDetails',
         'grievanceProcessId',
@@ -235,16 +238,10 @@ const GrievanceDetails = () => {
       // Update specific fields for transfer
       formData.set('assignedUserCode', unitNodalOfficer.userCode);
       formData.set('assignedUserDetails', unitNodalOfficer.userDetails);
-      formData.set('tUnitId', findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString()).employee?.unitId);
-      formData.set(
-        'tDepartment',
-        findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString()).employee?.department
-      );
-      formData.set('tGroupId', roleDetails?.mappedUser?.[0]?.group?.groupId.toString());
-      formData.set(
-        'TDepartment',
-        findEmployeeDetails(employeeList, unitNodalOfficer.userCode.toString())?.employee?.department
-      );
+      formData.set('TUnitId', grievance?.tUnitId);
+      formData.set('TDepartment', grievance?.tDepartment);
+      formData.set('TGroupId', roleDetails?.mappedUser?.[0]?.group?.groupId.toString());
+
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
 
@@ -256,24 +253,24 @@ const GrievanceDetails = () => {
       for (const pair of formData.entries()) {
         console.log(pair[0], pair[1]);
       }
-      const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data',
+      //   },
+      // });
 
-      if (response.data.statusCode === 200) {
-        toast.success('Grievance transferred to nodal officer successfully');
-        // Refresh grievance details
-        const updatedResponse = await axiosInstance.get(
-          `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
-        );
-        if (updatedResponse.data.statusCode === 200) {
-          setGrievance(updatedResponse.data.data);
-        }
-      } else {
-        toast.error('Failed to transfer grievance');
-      }
+      // if (response.data.statusCode === 200) {
+      //   toast.success('Grievance transferred to nodal officer successfully');
+      //   // Refresh grievance details
+      //   const updatedResponse = await axiosInstance.get(
+      //     `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
+      //   );
+      //   if (updatedResponse.data.statusCode === 200) {
+      //     setGrievance(updatedResponse.data.data);
+      //   }
+      // } else {
+      //   toast.error('Failed to transfer grievance');
+      // }
     } catch (error) {
       console.error('Error transferring grievance:', error);
       toast.error('Failed to transfer grievance');
@@ -284,12 +281,12 @@ const GrievanceDetails = () => {
 
   const handleTransferToCGM = async (commentText: string, attachments: File[]) => {
     try {
-      const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
+      // const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
-      if (!addressalUnit || !unitCGMDetails) {
-        toast.error('Unit information or CGM details not available');
-        return;
-      }
+      // if (!addressalUnit || !unitCGMDetails) {
+      //   toast.error('Unit information or CGM details not available');
+      //   return;
+      // }
 
       // Find the CGM for the current unit
       const unitCGM = unitCGMDetails?.mappedUser?.[0];
@@ -305,7 +302,9 @@ const GrievanceDetails = () => {
       // Append all grievance properties to FormData
       const excludedFields = [
         'attachments',
-
+        'tUnitId',
+        'tDepartment',
+        'tGroupId',
         'userCode',
         'userDetails',
         'grievanceProcessId',
@@ -327,9 +326,9 @@ const GrievanceDetails = () => {
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
       formData.set('isInternal', 'true');
-      formData.set('tUnitId', findEmployeeDetails(employeeList, unitCGM.userCode.toString()).employee?.unitId);
-      formData.set('tDepartment', findEmployeeDetails(employeeList, unitCGM.userCode.toString()).employee?.department);
-      formData.set('tGroupId', unitCGMDetails?.mappedUser?.[0]?.group?.groupId.toString());
+      formData.set('TUnitId', grievance?.tUnitId);
+      formData.set('TDepartment', grievance?.tDepartment);
+      formData.set('TGroupId', unitCGMDetails?.mappedUser?.[0]?.group?.groupId.toString());
 
       // Append attachments if any
       attachments.forEach((file) => {
@@ -382,6 +381,8 @@ const GrievanceDetails = () => {
         'modifiedBy',
         'modifiedDate',
       ];
+
+      formData.set('TUnitId', grievance?.tUnitId);
       Object.entries(grievance || {}).forEach(([key, value]) => {
         if (value !== null && value !== undefined && !excludedFields.includes(key)) {
           formData.append(key, value.toString());
@@ -445,6 +446,9 @@ const GrievanceDetails = () => {
       formData.set('statusId', status.toString());
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('BaseUrl', environment.baseUrl + '/grievance');
+      formData.set('TUnitId', grievance?.tUnitId);
+      formData.set('TDepartment', grievance?.tDepartment);
+      formData.set('TGroupId', grievance?.tGroupId);
 
       // Add comment if provided
       if (commentText) {
@@ -503,12 +507,9 @@ const GrievanceDetails = () => {
       // Update specific fields for assignment
       formData.set('assignedUserCode', selectedMember.userCode);
       formData.set('assignedUserDetails', selectedMember.userDetails);
-      formData.set('tGroupId', selectedMember.groupId);
-      formData.set(
-        'tDepartment',
-        findEmployeeDetails(employeeList, selectedMember.userCode.toString()).employee?.department
-      );
-      formData.set('tUnitId', findEmployeeDetails(employeeList, selectedMember.userCode.toString()).employee?.unitId);
+      formData.set('TGroupId', selectedMember.groupId);
+      formData.set('TDepartment', grievance?.tDepartment);
+      formData.set('TUnitId', grievance?.tUnitId);
       formData.set('statusId', grievance?.statusId);
       formData.set('userCode', user?.EmpCode.toString());
       formData.set('CommentText', commentText);
@@ -637,6 +638,7 @@ const GrievanceDetails = () => {
                 title={grievance?.title || ''}
                 statusId={Number(grievance?.statusId) || 0}
               />
+              {/* <GrievanceTrajectory grievanceId={grievanceId} /> */}
               <GrievanceInfo
                 assignedUserCode={grievance.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}
