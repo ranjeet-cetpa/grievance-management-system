@@ -110,7 +110,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
       setIsSubmitting(true);
       const requestBody = {
         groupMasterId: selectedNode.id,
-        unitId: unitId,
+        unitId: unitId?.toString(),
 
         unitName: unitsDD.find((unit) => unit.unitId === Number(unitId))?.unitName,
         userCodes: selectedUsers.map((user) => ({
