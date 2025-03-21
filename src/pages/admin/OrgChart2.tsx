@@ -73,9 +73,7 @@ const OrgChart2 = () => {
   const dataFetcher = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        'https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=396'
-      );
+      const response = await axiosInstance.get('/Admin/GetOrgGroupHierarchy?unitId=396');
       const result = await response.data;
       console.log(result.data);
       setChartData(result.data);
@@ -117,7 +115,7 @@ const OrgChart2 = () => {
       };
 
       // Make the API call
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserGroupMapping', requestBody);
+      await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
       toast.success('User mapping updated successfully');
 
       // Update local state
@@ -254,7 +252,7 @@ const OrgChart2 = () => {
         })),
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
+      await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
       toast.success('Category added successfully');
 
       // Update local state

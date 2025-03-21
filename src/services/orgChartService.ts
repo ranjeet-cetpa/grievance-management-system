@@ -1,12 +1,11 @@
 import axios from 'axios';
 import { UserDetails, FlattenedNode } from '@/types/orgChart';
-
-const API_BASE_URL = 'https://uat.grivance.dfccil.cetpainfotech.com/api';
+import axiosInstance from './axiosInstance';
 
 export const orgChartService = {
   async fetchOrgHierarchy(unitId: string) {
     try {
-      const response = await axios.get(`${API_BASE_URL}/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
+      const response = await axiosInstance.get(`/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
       return response.data.data;
     } catch (error) {
       console.error('Error fetching organization hierarchy:', error);
@@ -21,7 +20,7 @@ export const orgChartService = {
     userCodes: { userCode: string; userDetails: string }[]
   ) {
     try {
-      const response = await axios.post(`${API_BASE_URL}/Admin/UpdateUserGroupMapping`, {
+      const response = await axiosInstance.post(`/Admin/UpdateUserGroupMapping`, {
         groupMasterId,
         unitId,
         unitName,

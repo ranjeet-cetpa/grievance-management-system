@@ -24,6 +24,7 @@ import { useOrgChart } from '@/hooks/useOrgChart';
 import Select from 'react-select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { extractUniqueUnits } from '@/lib/helperFunction';
+import axiosInstance from '@/services/axiosInstance';
 
 interface DepartmentCardProps {
   departmentName: string;
@@ -109,7 +110,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
         })),
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
+      await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
 
       // Reset form state first
       setAddCategoryDialogOpen(false);

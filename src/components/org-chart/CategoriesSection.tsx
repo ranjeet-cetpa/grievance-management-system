@@ -24,6 +24,7 @@ import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import UserSelect from './UserSelect';
 import { Checkbox } from '../ui/checkbox';
+import axiosInstance from '@/services/axiosInstance';
 
 const capitalizeWords = (str: string) => {
   return str
@@ -123,7 +124,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
         })),
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
+      await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
 
       // Reset form state first
       setEditCategoryDialogOpen(false);
@@ -146,9 +147,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
 
     try {
       setIsDeleting(true);
-      await axios.get(
-        `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/ActiveInactiveGroup?groupId=${selectedCategory.id}&isActive=false`
-      );
+      await axiosInstance.get(`/Admin/ActiveInactiveGroup?groupId=${selectedCategory.id}&isActive=false`);
       await onFetchData();
 
       // First close the dialog and reset state
@@ -174,7 +173,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
 
     try {
       setIsMapping(true);
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserDepartmentMapping', {
+      await axiosInstance.post('/Admin/UpdateUserDepartmentMapping', {
         department: selectedDepartments,
         unitId: '396', // Corporate Office ID
         unitName: 'Corporate Office',
@@ -207,9 +206,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
   const fetchUserMappedDepartments = async (userCode: string) => {
     try {
       setIsLoadingDepartments(true);
-      const response = await axios.get(
-        'https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetDepartmentMappingList'
-      );
+      const response = await axiosInstance.get('/Admin/GetDepartmentMappingList');
 
       if (response.data.statusCode === 200) {
         // Filter departments where the user is mapped

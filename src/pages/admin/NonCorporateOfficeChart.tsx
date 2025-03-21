@@ -22,6 +22,7 @@ import { RootState } from '@/app/store';
 import UserSelect from '@/components/org-chart/UserSelect';
 import Loader from '@/components/ui/loader';
 import axios from 'axios';
+import axiosInstance from '@/services/axiosInstance';
 
 // Define the type for our org chart data
 interface UserDetails {
@@ -70,9 +71,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
   const dataFetcher = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=${unitId}`
-      );
+      const response = await axiosInstance.get(`/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
       const result = await response.data;
       console.log(result.data);
       setChartData(result.data);
@@ -113,7 +112,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
             ],
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserGroupMapping', requestBody);
+      await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
       toast.success('User mapping updated successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
@@ -198,7 +197,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
         })),
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/AddUpdateGroupNew', requestBody);
+      await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
       toast.success('Category added successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
