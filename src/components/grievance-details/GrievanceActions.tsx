@@ -278,6 +278,9 @@ export const GrievanceActions = ({
           'createdDate',
           'modifiedBy',
           'modifiedDate',
+          'tGroupId',
+          'tUnitId',
+          'tDepartment',
         ];
         Object.entries(grievance || {}).forEach(([key, value]) => {
           if (value !== null && value !== undefined && !excludedFields.includes(key)) {
@@ -300,7 +303,10 @@ export const GrievanceActions = ({
         formData.set('CommentText', commentText);
         formData.set('TGroupId', selectedGroup);
 
-        // Make the API call to transfer
+        // formData.forEach((value, key) => {
+        //   console.log(`${key}:`, value);
+        // });
+
         const transferResponse = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
