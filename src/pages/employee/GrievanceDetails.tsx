@@ -128,6 +128,7 @@ const GrievanceDetails = () => {
           `/Grievance/GrievanceDetails?grievanceId=${grievanceId}&baseUrl=${environment.baseUrl}`
         );
         if (response.data.statusCode === 200) {
+          setGrievance(response.data.data);
           console.log(response.data.data, 'this is grievance from grievance details');
           setStatus(response.data.data.statusId.toString());
         } else {
@@ -151,9 +152,7 @@ const GrievanceDetails = () => {
           console.error('User unit ID is not available');
           return;
         }
-        const res = await axiosInstance.get(`/Grievance/GrievanceDetails?grievanceId=${grievanceId}`);
-        const grievance = res.data.data;
-        setGrievance(grievance);
+
         console.log(grievance, 'this is grievance from grievance details second time');
         console.log(grievance?.tUnitId, 'this is grievance from grievance details third time');
         // const [nodalResponse, cgmResponse] = await Promise.all([
@@ -162,6 +161,7 @@ const GrievanceDetails = () => {
         //     ? axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`)
         //     : Promise.resolve(null),
         // ]);
+
         const nodalResponse = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=4`);
         const cgmResponse = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${grievance?.tUnitId}&roleId=5`);
         if (nodalResponse.data.mappedUser.length > 0) {
@@ -173,7 +173,6 @@ const GrievanceDetails = () => {
           console.log(cgmResponse.data, 'this is cgm response');
           setUnitCGMDetails(cgmResponse.data);
         }
-        setGrievance(grievance);
       } catch (error) {
         console.error('Error fetching role details:', error);
         toast.error('Failed to fetch role details');
@@ -181,7 +180,7 @@ const GrievanceDetails = () => {
     };
 
     fetchRoleDetails();
-  }, [grievanceId]);
+  }, [grievanceId, grievance]);
 
   // Example comments data - replace with actual data from your backend
 
@@ -205,6 +204,7 @@ const GrievanceDetails = () => {
 
   const handleTransfer = async (commentText, attachments) => {
     try {
+      console.log(attachments, 'this is attachments');
       // const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
       // if (!addressalUnit) {
@@ -225,7 +225,6 @@ const GrievanceDetails = () => {
 
       // Append all grievance properties to FormData
       const excludedFields = [
-        'attachments',
         'tUnitId',
         'tDepartment',
         'tGroupId',
@@ -259,8 +258,9 @@ const GrievanceDetails = () => {
 
       // Log each key-value pair in FormData
       for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
+        console.log(pair[0], pair[1], 'testing 101');
       }
+
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -375,7 +375,6 @@ const GrievanceDetails = () => {
 
       // Append all grievance properties to FormData
       const excludedFields = [
-        'attachments',
         'tUnitId',
         'tDepartment',
         'tGroupId',
@@ -646,7 +645,6 @@ const GrievanceDetails = () => {
                 title={grievance?.title || ''}
                 statusId={Number(grievance?.statusId) || 0}
               />
-              <GrievanceTrajectory grievanceId={grievanceId} />
               <GrievanceInfo
                 assignedUserCode={grievance?.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}
@@ -655,6 +653,7 @@ const GrievanceDetails = () => {
                 assignedUserDetails={grievance?.assignedUserDetails || ''}
                 modifiedDate={grievance?.modifiedDate || ''}
               />
+              <GrievanceTrajectory grievanceId={grievanceId} grievance={grievance} />
             </div>
             <div className="flex  w-full justify-between h-full gap-2 min-h-[200px]">
               {/* Left Column - Info and Description */}
@@ -702,7 +701,8 @@ const GrievanceDetails = () => {
             </div>
             {grievance?.statusId?.toString() === '3' &&
               (grievance?.round === 1 || grievance?.round === 2) &&
-              grievance?.createdBy === user?.EmpCode.toString() && (
+              grievance?.createdBy === user?.EmpCode.toString() &&
+              resolutionData && (
                 <div className="flex justify-end gap-2 mt-4">
                   <Button onClick={() => handleOpenResolutionDialog('accept')} variant="default">
                     Accept Resolution

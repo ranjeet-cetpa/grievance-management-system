@@ -108,7 +108,13 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                 <MessageSquare className="w-5 h-5 text-primary" />
               </div>
               <Heading type={6} className="text-gray-800">
-                Discussion ({comments.length})
+                Discussion (
+                {
+                  comments?.filter((comment) => {
+                    if (comment) return true;
+                  })?.length
+                }
+                )
               </Heading>
             </div>
           </div>

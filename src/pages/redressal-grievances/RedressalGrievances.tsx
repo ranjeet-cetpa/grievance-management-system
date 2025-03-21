@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
+import { findEmployeeDetails } from '@/lib/helperFunction';
 
 const FILTER_OPTIONS = {
   OPEN: 'open',
@@ -60,6 +61,7 @@ const MyGrievances = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState(FILTER_OPTIONS.OPEN); // Track selected tab
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
 
   const fetchGrievances = async () => {
     setLoading(true);
@@ -141,12 +143,36 @@ const MyGrievances = () => {
           header: 'Unit',
           cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
         },
+
+        {
+          id: 'createdBy',
+          accessorKey: 'createdBy',
+          header: 'Created By',
+          cell: ({ row }) => (
+            <div className="max-w-[300px] text-sm ">
+              {' '}
+              {findEmployeeDetails(employeeList, row.original?.createdBy?.toString())?.employee?.empName}
+            </div>
+          ),
+        },
         // Conditionally show "Currently With" column
-        selectedTab !== FILTER_OPTIONS.OPEN && {
-          id: 'assignedUserDetails',
-          accessorKey: 'assignedUserDetails',
-          header: 'Currently With',
-          cell: ({ row }) => <div className="max-w-[300px] text-sm ">{row.original.assignedUserDetails}</div>,
+        selectedTab !== FILTER_OPTIONS.OPEN &&
+          selectedTab !== FILTER_OPTIONS.Closed && {
+            id: 'assignedUserDetails',
+            accessorKey: 'assignedUserDetails',
+            header: 'Currently With',
+            cell: ({ row }) => <div className="max-w-[300px] text-sm ">{row.original.assignedUserDetails}</div>,
+          },
+
+        selectedTab === FILTER_OPTIONS.Closed && {
+          id: 'modifiedBy',
+          accessorKey: 'modifiedBy',
+          header: 'Closed By',
+          cell: ({ row }) => (
+            <div className="max-w-[300px] text-sm ">
+              {findEmployeeDetails(employeeList, row.original?.modifiedBy?.toString())?.employee?.empName}
+            </div>
+          ),
         },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes

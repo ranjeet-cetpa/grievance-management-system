@@ -15,6 +15,7 @@ import TableList from '@/components/ui/data-table';
 import SortingButton from '@/components/ui/SortingButton';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router';
+import { findEmployeeDetails } from '@/lib/helperFunction';
 
 interface GrievanceResponse {
   totalRecords: number;
@@ -49,6 +50,7 @@ const MyGrievances = () => {
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const [activeTab, setActiveTab] = useState('open');
   const navigate = useNavigate();
 
   // Function to Fetch Grievances from API
@@ -92,6 +94,8 @@ const MyGrievances = () => {
 
   const closedGrievances = grievances.filter((grievance) => [3, 5].includes(grievance.statusId));
 
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+
   const columns = [
     {
       id: 'id',
@@ -119,13 +123,23 @@ const MyGrievances = () => {
       header: 'Subject',
       cell: ({ row }) => <div className="max-w-[400px] text-sm text-wrap">{row.original.title}</div>,
     },
-    {
+    activeTab === 'open' && {
       id: 'assignedUserDetails',
       accessorKey: 'assignedUserDetails',
       header: 'Currently With',
       cell: ({ row }) => <div className="max-w-[300px] text-sm ">{row.original.assignedUserDetails}</div>,
     },
-  ];
+    activeTab === 'closed' && {
+      id: 'modifiedBy',
+      accessorKey: 'modifiedBy',
+      header: 'Closed By',
+      cell: ({ row }) => (
+        <div className="max-w-[300px] text-sm ">
+          {findEmployeeDetails(employeeList, row.original?.modifiedBy?.toString())?.employee?.empName}
+        </div>
+      ),
+    },
+  ].filter(Boolean);
 
   return (
     <div className="p-2">
@@ -143,8 +157,16 @@ const MyGrievances = () => {
             <div>
               <Tabs defaultValue="open">
                 <TabsList className="grid w-[300px] grid-cols-2">
-                  <TabsTrigger value="open">Open</TabsTrigger>
-                  <TabsTrigger value="closed">Closed</TabsTrigger>
+                  <TabsTrigger value="open" onClick={() => setActiveTab('open')}>
+                    Open
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="closed"
+                    className="w-full transition data-[state=active]:bg-red-500 data-[state=active]:text-white"
+                    onClick={() => setActiveTab('closed')}
+                  >
+                    Closed
+                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="open" className="mt-6">
                   <TableList

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 
-const GrievanceTrajectory = ({ grievanceId }) => {
+const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
 
   useEffect(() => {
@@ -10,9 +10,8 @@ const GrievanceTrajectory = ({ grievanceId }) => {
         const response = await axiosInstance.get(`/Grievance/GrievanceHistory?grievanceId=${grievanceId}`);
         if (response.data.statusCode === 200) {
           console.log('response.data.data for trajectory', response.data.data);
-          let processedData = response.data.data
-            .filter((process) => process.changeList.length > 0) // Filter out processes without changes
-            .slice(1);
+          let processedData = response.data.data.filter((process) => process.changeList.length > 0); // Filter out processes without changes
+
           // Remove the first process
 
           // Filter data to only include changes related to user assignments
@@ -36,24 +35,42 @@ const GrievanceTrajectory = ({ grievanceId }) => {
   }, [grievanceId]);
 
   return (
-    <div className="flex items-center space-x-4 overflow-x-auto p-4">
-      {trajectory.map((process, index) => {
-        const assignedUserChange = process.changeList.find((change) => change.column === 'AssignedUserCode');
-        const assignedUserDetailsChange = process.changeList.find((change) => change.column === 'AssignedUserDetails');
-        const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
-
-        return (
-          <div key={process.grievanceProcessId} className="flex items-center">
-            <div className="text-sm font-medium bg-gray-200 px-2 py-1 rounded">
-              {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '}
-              {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
+    <div>
+      {trajectory[0] && (
+        <div className="flex items-center space-x-4 overflow-x-auto p-4">
+          <div className="flex items-center">
+            <div className="text-xs  min-w-[200px] font-medium bg-gray-200 px-2 py-1 rounded">
+              {/* {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '} */}
+              {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue} (
+              {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserCode')?.oldValue})
               <br />
-              <span className="text-xs text-gray-500">{new Date(createdDateChange?.newValue).toLocaleString()}</span>
+              <span className="text-xs text-gray-500">{new Date(grievance?.createdDate).toLocaleString()}</span>
             </div>
-            {index < trajectory.length - 1 && <span className="text-2xl font-bold text-gray-500 px-4">→</span>}
+            {<span className="text-2xl font-bold text-gray-500 px-2">→</span>}
           </div>
-        );
-      })}
+          {trajectory.map((process, index) => {
+            const assignedUserChange = process.changeList.find((change) => change.column === 'AssignedUserCode');
+            const assignedUserDetailsChange = process.changeList.find(
+              (change) => change.column === 'AssignedUserDetails'
+            );
+            const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
+
+            return (
+              <div key={process.grievanceProcessId} className="flex items-center">
+                <div className="text-xs font-medium  min-w-[200px] bg-gray-200 px-2 py-1 rounded">
+                  {/* {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '} */}
+                  {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
+                  <br />
+                  <span className="text-xs text-gray-500">
+                    {new Date(createdDateChange?.newValue).toLocaleString()}
+                  </span>
+                </div>
+                {index < trajectory.length - 1 && <span className="text-2xl font-bold text-gray-500 px-2">→</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
