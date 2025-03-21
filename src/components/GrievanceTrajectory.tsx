@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import axiosInstance from '@/services/axiosInstance';
 
 const GrievanceTrajectory = ({ grievanceId }) => {
@@ -12,26 +11,21 @@ const GrievanceTrajectory = ({ grievanceId }) => {
         if (response.data.statusCode === 200) {
           console.log('response.data.data for trajectory', response.data.data);
           let processedData = response.data.data
-
-            //.reverse() // Reverse the array
             .filter((process) => process.changeList.length > 0) // Filter out processes without changes
-            .slice(1); // Remove the first process
-          // Skip the first object and filter based on the next object's 'AssignedUserCode' and 'AssignedUserCode' in the current 'changeList'
-          const filteredData = processedData.filter((current, index, array) => {
-            // Check if the current object has 'AssignedUserCode' in its 'changeList'
-            const currentAssignedUserCode = current.changeList.some((change) => change.column === 'AssignedUserCode');
+            .slice(1);
+          // Remove the first process
 
-            // If 'AssignedUserCode' exists in the current changeList and the next object exists, compare its 'AssignedUserCode'
+          // Filter data to only include changes related to user assignments
+          const filteredData = processedData.filter((current, index, array) => {
+            const currentAssignedUserCode = current.changeList.some((change) => change.column === 'AssignedUserCode');
             const nextAssignedUserCode = array[index + 1]?.changeList.find(
               (change) => change.column === 'AssignedUserCode'
             )?.newValue;
-
-            // Only include objects that have 'AssignedUserCode' and do not have the same 'AssignedUserCode' as the next object
             return currentAssignedUserCode && currentAssignedUserCode !== nextAssignedUserCode;
           });
 
-          console.log('filtered tragictory data ', filteredData);
-          setTrajectory(processedData);
+          console.log('filtered trajectory data ', filteredData);
+          setTrajectory(filteredData.reverse());
         }
       } catch (error) {
         console.error('Error fetching grievance history:', error);
@@ -43,19 +37,23 @@ const GrievanceTrajectory = ({ grievanceId }) => {
 
   return (
     <div className="flex items-center space-x-4 overflow-x-auto p-4">
-      {trajectory.map((process, index) => (
-        <div key={process.grievanceProcessId} className="flex items-center">
-          {process.changeList.map((change, idx) => (
-            <div key={idx} className="flex items-center space-x-2">
-              <div className="text-sm font-medium bg-gray-200 px-2 py-1 rounded">
-                {change.oldValue} → {change.newValue}
-              </div>
-              {idx < process.changeList.length - 1 && <span className="text-lg">→</span>}
+      {trajectory.map((process, index) => {
+        const assignedUserChange = process.changeList.find((change) => change.column === 'AssignedUserCode');
+        const assignedUserDetailsChange = process.changeList.find((change) => change.column === 'AssignedUserDetails');
+        const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
+
+        return (
+          <div key={process.grievanceProcessId} className="flex items-center">
+            <div className="text-sm font-medium bg-gray-200 px-2 py-1 rounded">
+              {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '}
+              {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
+              <br />
+              <span className="text-xs text-gray-500">{new Date(createdDateChange?.newValue).toLocaleString()}</span>
             </div>
-          ))}
-          {index < trajectory.length - 1 && <span className="text-2xl font-bold text-gray-500 px-4">→</span>}
-        </div>
-      ))}
+            {index < trajectory.length - 1 && <span className="text-2xl font-bold text-gray-500 px-4">→</span>}
+          </div>
+        );
+      })}
     </div>
   );
 };

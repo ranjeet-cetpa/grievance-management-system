@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import { extractUniqueUnits } from '@/lib/helperFunction';
 import { Checkbox } from './ui/checkbox';
 import { Label } from '@radix-ui/react-label';
+import axiosInstance from '@/services/axiosInstance';
 
 interface UserDetails {
   userCode: string;
@@ -87,9 +88,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
   const dataFetcher = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/GetOrgGroupHierarchy?unitId=${unitId}`
-      );
+      const response = await axiosInstance.get(`Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
       const result = await response.data;
       setChartData(result.data);
       setFlattenedData(flattenOrgData(result.data));
@@ -120,7 +119,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
         })),
       };
 
-      await axios.post('https://uat.grivance.dfccil.cetpainfotech.com/api/Admin/UpdateUserGroupMapping', requestBody);
+      await axiosInstance.post('/Admin/UpdateUserGroupMapping', requestBody);
       toast.success('User mapping updated successfully');
       dataFetcher();
       setAddUserDialogOpen(false);
