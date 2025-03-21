@@ -504,6 +504,9 @@ const GrievanceDetails = () => {
         'createdDate',
         'modifiedBy',
         'modifiedDate',
+        'tUnitId',
+        'tDepartment',
+        'tGroupId',
       ];
       Object.entries(grievance || {}).forEach(([key, value]) => {
         if (value !== null && value !== undefined && !excludedFields.includes(key)) {
@@ -646,6 +649,7 @@ const GrievanceDetails = () => {
                 statusId={Number(grievance?.statusId) || 0}
               />
               <GrievanceInfo
+                currentgroup={grievance?.tGroupId || ''}
                 assignedUserCode={grievance?.assignedUserCode || ''}
                 createdBy={grievance?.createdBy || ''}
                 userDetails={grievance?.userDetails || ''}

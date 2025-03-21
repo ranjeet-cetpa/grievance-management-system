@@ -3,9 +3,14 @@ import { Card } from '@/components/ui/card';
 import { UserCircle, Calendar, UserCog, Clock } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import { useEffect, useState } from 'react';
+import axiosInstance from '@/services/axiosInstance';
+import { findEmployeeDetails } from '@/lib/helperFunction';
 
 interface GrievanceInfoProps {
+  currentgroup: string;
   userDetails: string;
+  assignedUserCode: string;
   createdDate: string;
   assignedUserDetails: string;
   modifiedDate: string;
@@ -13,14 +18,45 @@ interface GrievanceInfoProps {
 }
 
 export const GrievanceInfo = ({
+  currentgroup,
   userDetails,
   createdDate,
   assignedUserDetails,
+  assignedUserCode,
   modifiedDate,
   createdBy,
 }: GrievanceInfoProps) => {
+  console.log(currentgroup, 'this is current group');
   const user = useSelector((state: RootState) => state.user);
   console.log('assignedUserDetails', assignedUserDetails);
+  const [roleName, setRoleName] = useState<string | null>(null);
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
+  useEffect(() => {
+    const fetchGroupDetails = async () => {
+      try {
+        const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${currentgroup}`);
+
+        const roleId = response.data?.data?.group?.roleId;
+        const roles = [
+          { id: 1, roleName: 'Admin' },
+          { id: 2, roleName: 'Managing Director' },
+          { id: 3, roleName: 'Committee' },
+          { id: 4, roleName: 'Nodal Officer' },
+          { id: 5, roleName: 'Unit CGM' },
+          { id: 6, roleName: 'HOD' },
+          { id: 7, roleName: 'Redressal' },
+        ];
+        const role = roles.find((r) => r.id === roleId);
+        setRoleName(role?.roleName || null);
+      } catch (error) {
+        console.error('Error fetching group details:', error);
+      }
+    };
+
+    if (currentgroup) {
+      fetchGroupDetails();
+    }
+  }, [currentgroup]);
 
   const InfoCard = ({ label, value, icon: Icon }: { label: string; value: string; icon: any }) => (
     <Card
@@ -62,7 +98,18 @@ export const GrievanceInfo = ({
         <InfoCard label="Requested By" value={userDetails} icon={UserCircle} />
       )}
       <InfoCard label="Initiated On" value={formatDate(createdDate)} icon={Calendar} />
-      <InfoCard label="Currently With" value={assignedUserDetails || 'Not Assigned'} icon={UserCog} />
+      <InfoCard
+        label="Currently With"
+        value={
+          <>
+            <div className="flex gap-1 items-center">
+              <div>{assignedUserDetails || 'Not Assigned'}</div>
+              <div className="text-xs">{roleName ? `(${roleName})` : ''}</div>
+            </div>
+          </>
+        }
+        icon={UserCog}
+      />
       <InfoCard label="Pending Since" value={modifiedDate ? formatDate(modifiedDate) : 'Not Modified'} icon={Clock} />
     </div>
   );
