@@ -185,6 +185,8 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
         if (refreshGrievances) refreshGrievances();
       } else if (response?.data?.statusCode === 400) {
         toast.error(response?.data?.message);
+      } else if (response?.data?.statusCode === 208) {
+        toast.error('Grievance for this department/ sub section already exists.');
       }
     } catch (error) {
       console.error('Error submitting form:', error);
