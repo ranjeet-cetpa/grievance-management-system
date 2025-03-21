@@ -93,7 +93,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
       setChartData(result.data);
       setFlattenedData(flattenOrgData(result.data));
     } catch (err) {
-      console.error('Error fetching data:', err);
+      console.error('Error fetching data :', err);
       setError('Failed to fetch organization data');
       toast.error('Failed to fetch organization data');
     } finally {
