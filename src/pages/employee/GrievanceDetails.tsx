@@ -653,6 +653,7 @@ const GrievanceDetails = () => {
                 assignedUserDetails={grievance?.assignedUserDetails || ''}
                 modifiedDate={grievance?.modifiedDate || ''}
               />
+
               <GrievanceTrajectory grievanceId={grievanceId} grievance={grievance} />
             </div>
             <div className="flex  w-full justify-between h-full gap-2 min-h-[200px]">

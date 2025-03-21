@@ -490,7 +490,7 @@ export const GrievanceActions = ({
                       disabled={!isCommentValid}
                       className="bg-blue-600 hover:bg-blue-700 text-white h-9"
                     >
-                      Change Group
+                      Transfer
                     </Button>
                   )}
                 {grievance?.statusId !== 3 && (
@@ -595,7 +595,7 @@ export const GrievanceActions = ({
           <Dialog open={isGroupChangeDialogOpen} onOpenChange={setIsGroupChangeDialogOpen}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Change Group</DialogTitle>
+                <DialogTitle>Transfer</DialogTitle>
                 <DialogDescription>Select an option to transfer this grievance</DialogDescription>
               </DialogHeader>
 

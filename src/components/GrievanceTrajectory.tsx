@@ -1,8 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axiosInstance from '@/services/axiosInstance';
+import { Label } from './ui/label';
+import Heading from './ui/heading';
 
 const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
+  const [nodeColors, setNodeColors] = useState({});
+  const containerRef = useRef(null); // Reference for the container
+
+  const generateRandomColor = () => {
+    const r = Math.floor(Math.random() * 156) + 200; // Ensure light colors (100-255)
+    const g = Math.floor(Math.random() * 156) + 100;
+    const b = Math.floor(Math.random() * 156) + 100;
+    return `rgb(${r}, ${g}, ${b})`;
+  };
 
   useEffect(() => {
     const fetchGrievanceHistory = async () => {
@@ -25,6 +36,13 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
 
           console.log('filtered trajectory data ', filteredData);
           setTrajectory(filteredData.reverse());
+
+          // Generate random colors for each node
+          const colors = {};
+          filteredData.forEach((process) => {
+            colors[process.grievanceProcessId] = generateRandomColor();
+          });
+          setNodeColors(colors);
         }
       } catch (error) {
         console.error('Error fetching grievance history:', error);
@@ -34,41 +52,59 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
     fetchGrievanceHistory();
   }, [grievanceId]);
 
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.scrollLeft = containerRef.current.scrollWidth; // Scroll to the right
+    }
+  }, [trajectory]); // Trigger scrolling when trajectory updates
+
   return (
     <div>
       {trajectory[0] && (
-        <div className="flex items-center space-x-4 overflow-x-auto p-4">
-          <div className="flex items-center">
-            <div className="text-xs  min-w-[200px] font-medium bg-gray-200 px-2 py-1 rounded">
-              {/* {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '} */}
-              {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue} (
-              {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserCode')?.oldValue})
-              <br />
-              <span className="text-xs text-gray-500">{new Date(grievance?.createdDate).toLocaleString()}</span>
-            </div>
-            {<span className="text-2xl font-bold text-gray-500 px-2">→</span>}
-          </div>
-          {trajectory.map((process, index) => {
-            const assignedUserChange = process.changeList.find((change) => change.column === 'AssignedUserCode');
-            const assignedUserDetailsChange = process.changeList.find(
-              (change) => change.column === 'AssignedUserDetails'
-            );
-            const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
-
-            return (
-              <div key={process.grievanceProcessId} className="flex items-center">
-                <div className="text-xs font-medium  min-w-[200px] bg-gray-200 px-2 py-1 rounded">
-                  {/* {assignedUserDetailsChange?.oldValue} ({assignedUserChange?.oldValue}) →{' '} */}
-                  {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
-                  <br />
-                  <span className="text-xs text-gray-500">
-                    {new Date(createdDateChange?.newValue).toLocaleString()}
-                  </span>
-                </div>
-                {index < trajectory.length - 1 && <span className="text-2xl font-bold text-gray-500 px-2">→</span>}
+        <div className="flex flex-col gap-2 my-2">
+          <Heading type={6} className="px-4">
+            Grievance Flow History
+          </Heading>
+          <div
+            ref={containerRef} // Attach the ref to the container
+            className="flex items-center space-x-6 overflow-x-auto p-6 bg-gray-50 rounded-lg shadow-md"
+          >
+            <div className="flex items-center">
+              <div
+                className="text-sm min-w-[220px] font-semibold px-3 py-2 rounded-lg shadow"
+                style={{ backgroundColor: 'lightblue' }}
+              >
+                {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue} (
+                {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserCode')?.oldValue})
+                <br />
+                <span className="text-xs text-gray-600">{new Date(grievance?.createdDate).toLocaleString()}</span>
               </div>
-            );
-          })}
+              <span className="text-3xl font-bold text-gray-400 px-3">→</span>
+            </div>
+            {trajectory.map((process, index) => {
+              const assignedUserChange = process.changeList.find((change) => change.column === 'AssignedUserCode');
+              const assignedUserDetailsChange = process.changeList.find(
+                (change) => change.column === 'AssignedUserDetails'
+              );
+              const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
+
+              return (
+                <div key={process.grievanceProcessId} className="flex items-center">
+                  <div
+                    className="text-sm font-semibold min-w-[220px] px-3 py-2 rounded-lg shadow"
+                    style={{ backgroundColor: nodeColors[process.grievanceProcessId] || '#E5E7EB', color: '#000' }}
+                  >
+                    {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
+                    <br />
+                    <span className="text-xs text-gray-600">
+                      {new Date(createdDateChange?.newValue).toLocaleString()}
+                    </span>
+                  </div>
+                  {index < trajectory.length - 1 && <span className="text-3xl font-bold text-gray-400 px-3">→</span>}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>
