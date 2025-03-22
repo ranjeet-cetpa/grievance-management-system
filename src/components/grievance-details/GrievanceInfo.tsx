@@ -44,7 +44,7 @@ export const GrievanceInfo = ({
           { id: 4, roleName: 'Nodal Officer' },
           { id: 5, roleName: 'Unit CGM' },
           { id: 6, roleName: 'HOD' },
-          { id: 7, roleName: 'Redressal' },
+          { id: 7, roleName: 'Complaint Handler' },
         ];
         const role = roles.find((r) => r.id === roleId);
         setRoleName(role?.roleName || null);

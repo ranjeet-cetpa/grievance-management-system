@@ -14,6 +14,16 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
     const b = Math.floor(Math.random() * 156) + 100;
     return `rgb(${r}, ${g}, ${b})`;
   };
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+  const formatTime = (date: string) => {
+    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   useEffect(() => {
     const fetchGrievanceHistory = async () => {
@@ -71,13 +81,25 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
           >
             <div className="flex items-center">
               <div
-                className="text-sm min-w-[220px] font-semibold px-3 py-2 rounded-lg shadow"
-                style={{ backgroundColor: 'lightblue' }}
+                className="text-sm font-semibold min-w-[220px] h-[80px] px-3 py-2 rounded-lg shadow flex flex-col justify-between"
+                style={{
+                  backgroundColor: 'lightblue',
+                }}
               >
-                {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue} (
-                {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserCode')?.oldValue})
-                <br />
-                <span className="text-xs text-gray-600">{new Date(grievance?.createdDate).toLocaleString()}</span>
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{formatDate(grievance?.createdDate)}</span>
+                  <span>{formatTime(grievance?.createdDate)}</span>
+                </div>
+                <div className="text-center">
+                  <div>
+                    {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue}
+                  </div>
+                  <div className="text-xs">
+                    {trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue === 'Redressal'
+                      ? 'Complaint Handler'
+                      : trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue}
+                  </div>
+                </div>
               </div>
               <span className="text-3xl font-bold text-gray-400 px-3">→</span>
             </div>
@@ -86,19 +108,30 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
               const assignedUserDetailsChange = process.changeList.find(
                 (change) => change.column === 'AssignedUserDetails'
               );
+              const assignedUserRoleDetails = process.changeList.find((change) => change.column === 'RoleName');
               const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
 
               return (
                 <div key={process.grievanceProcessId} className="flex items-center">
                   <div
-                    className="text-sm font-semibold min-w-[220px] px-3 py-2 rounded-lg shadow"
-                    style={{ backgroundColor: nodeColors[process.grievanceProcessId] || '#E5E7EB', color: '#000' }}
+                    className="text-sm font-semibold min-w-[220px] h-[80px] px-3 py-2 rounded-lg shadow flex flex-col justify-between"
+                    style={{
+                      backgroundColor: nodeColors[process.grievanceProcessId] || '#E5E7EB',
+                      color: '#000',
+                    }}
                   >
-                    {assignedUserDetailsChange?.newValue} ({assignedUserChange?.newValue})
-                    <br />
-                    <span className="text-xs text-gray-600">
-                      {new Date(createdDateChange?.newValue).toLocaleString()}
-                    </span>
+                    <div className="flex justify-between text-xs text-gray-600">
+                      <span>{formatDate(createdDateChange?.newValue)}</span>
+                      <span>{formatTime(createdDateChange?.newValue)}</span>
+                    </div>
+                    <div className="text-center">
+                      <div>{assignedUserDetailsChange?.newValue}</div>
+                      <div className="text-xs">
+                        {assignedUserRoleDetails?.newValue === 'Redressal'
+                          ? 'Complaint Handler'
+                          : assignedUserRoleDetails?.newValue}
+                      </div>
+                    </div>
                   </div>
                   {index < trajectory.length - 1 && <span className="text-3xl font-bold text-gray-400 px-3">→</span>}
                 </div>
