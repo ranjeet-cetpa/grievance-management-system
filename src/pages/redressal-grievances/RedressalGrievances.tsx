@@ -147,7 +147,7 @@ const MyGrievances = () => {
         {
           id: 'createdBy',
           accessorKey: 'createdBy',
-          header: 'Created By',
+          header: 'Initiated By',
           cell: ({ row }) => (
             <div className="max-w-[300px] text-sm ">
               {' '}
