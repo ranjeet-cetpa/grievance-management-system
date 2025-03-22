@@ -395,8 +395,8 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
       <Dialog open={mapUserDialogOpen} onOpenChange={setMapUserDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Map User to Departments</DialogTitle>
-            <DialogDescription>{selectedUser && `Map ${selectedUser.userDetail} to departments`}</DialogDescription>
+            <DialogTitle>{selectedUser && `Map ${selectedUser.userDetail} to departments`}</DialogTitle>
+            {/* <DialogDescription>{selectedUser && `Map ${selectedUser.userDetail} to departments`}</DialogDescription> */}
           </DialogHeader>
           <div className="space-y-4">
             <ReactSelect
