@@ -156,7 +156,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
       </div>
       {/* Categories Section */}
       <div>
-        <h4 className="font-medium bg-blue-100 text-center mb-3 text-blue-600">Categories</h4>
+        <h4 className="font-medium bg-blue-100 text-center mb-3 text-blue-600">Sub Sections</h4>
         <CategoriesSection categories={categories} onEdit={onEdit} onAdd={onAdd} onFetchData={onFetchData} />
       </div>
       {/* Add Category Dialog */}
