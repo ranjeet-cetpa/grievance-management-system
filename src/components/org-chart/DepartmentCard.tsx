@@ -248,7 +248,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
               onClick={handleAddCategory}
               disabled={!newCategoryName || selectedUsers.length === 0 || isSubmitting}
             >
-              {isSubmitting ? 'Adding...' : 'Add Category'}
+              {isSubmitting ? 'Adding...' : 'Add Sub Section'}
             </Button>
           </DialogFooter>
         </DialogContent>

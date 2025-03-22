@@ -214,68 +214,49 @@ const MyGrievances = () => {
           {loading ? (
             <Loader />
           ) : (
-            <Tabs
-              className="w-full"
-              defaultValue={FILTER_OPTIONS.OPEN}
-              value={selectedTab} // Bind the selectedTab state to the Tabs component
-              onValueChange={setSelectedTab} // Update selectedTab when tab changes
-            >
-              <TabsList className="w-[400px]">
-                <TabsTrigger
-                  className="w-full transition data-[state=active]:bg-primary/90 data-[state=active]:text-white"
-                  value={FILTER_OPTIONS.OPEN}
-                >
-                  Open
-                </TabsTrigger>
-                <TabsTrigger
-                  className="w-full transition data-[state=active]:bg-yellow-600 data-[state=active]:text-white"
-                  value={FILTER_OPTIONS.InProgress}
-                >
-                  In Progress
-                </TabsTrigger>
-                <TabsTrigger
-                  className="w-full transition data-[state=active]:bg-red-500 data-[state=active]:text-white"
-                  value={FILTER_OPTIONS.Closed}
-                >
-                  Closed
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value={FILTER_OPTIONS.OPEN}>
-                <TableList
-                  data={filteredGrievances[FILTER_OPTIONS.OPEN]}
-                  columns={columns}
-                  inputPlaceholder="Search by Title..."
-                  onRowClick={async (rowData) => {
-                    if (
-                      rowData?.assignedUserCode === user?.EmpCode?.toString() &&
-                      rowData?.statusId === 1 &&
-                      rowData?.createdBy?.toString() !== user?.EmpCode?.toString()
-                    ) {
-                      await updateGrievanceStatus(rowData, user);
-                    }
-                    navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
-                  }}
-                />
-              </TabsContent>
-              <TabsContent value={FILTER_OPTIONS.InProgress}>
-                <TableList
-                  data={filteredGrievances[FILTER_OPTIONS.InProgress]}
-                  columns={columns}
-                  inputPlaceholder="Search by Title..."
-                  onRowClick={(rowData) => navigate(`/redressal-grievances/${rowData.id.toString().trim()}`)}
-                />
-              </TabsContent>
-              <TabsContent value={FILTER_OPTIONS.Closed}>
-                <TableList
-                  data={filteredGrievances[FILTER_OPTIONS.Closed]}
-                  columns={columns}
-                  inputPlaceholder="Search by Title..."
-                  onRowClick={(rowData) => {
-                    navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
-                  }}
-                />
-              </TabsContent>
-            </Tabs>
+            <TableList
+              data={filteredGrievances[selectedTab]}
+              columns={columns}
+              inputPlaceholder="Search by Title..."
+              onRowClick={async (rowData) => {
+                if (
+                  selectedTab === FILTER_OPTIONS.OPEN &&
+                  rowData?.assignedUserCode === user?.EmpCode?.toString() &&
+                  rowData?.statusId === 1 &&
+                  rowData?.createdBy?.toString() !== user?.EmpCode?.toString()
+                ) {
+                  await updateGrievanceStatus(rowData, user);
+                }
+                navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
+              }}
+              rightElements={
+                <Tabs>
+                  <TabsList className="grid w-[400px] grid-cols-3">
+                    <TabsTrigger
+                      value={FILTER_OPTIONS.OPEN}
+                      onClick={() => setSelectedTab(FILTER_OPTIONS.OPEN)}
+                      className={`${selectedTab === FILTER_OPTIONS.OPEN ? 'bg-primary text-white' : ''}`}
+                    >
+                      Open
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value={FILTER_OPTIONS.InProgress}
+                      onClick={() => setSelectedTab(FILTER_OPTIONS.InProgress)}
+                      className={`${selectedTab === FILTER_OPTIONS.InProgress ? 'bg-yellow-600 text-white' : ''}`}
+                    >
+                      In Progress
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value={FILTER_OPTIONS.Closed}
+                      onClick={() => setSelectedTab(FILTER_OPTIONS.Closed)}
+                      className={`${selectedTab === FILTER_OPTIONS.Closed ? 'bg-red-500 text-white' : ''}`}
+                    >
+                      Closed
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              }
+            />
           )}
         </div>
       </Card>

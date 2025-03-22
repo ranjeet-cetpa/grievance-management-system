@@ -506,8 +506,8 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       <Dialog open={showMappedUsersDialog} onOpenChange={setShowMappedUsersDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Mapped Users</DialogTitle>
-            <DialogDescription>Users mapped to {selectedNode?.groupName}</DialogDescription>
+            <DialogTitle>Users mapped to {selectedNode?.groupName}</DialogTitle>
+            {/* <DialogDescription>Users mapped to {selectedNode?.groupName}</DialogDescription> */}
           </DialogHeader>
           <div className="grid gap-4 py-4">
             {selectedNode?.mappedUser && selectedNode.mappedUser.length > 0 ? (

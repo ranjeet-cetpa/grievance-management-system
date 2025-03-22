@@ -112,7 +112,7 @@ const MyGrievances = () => {
       accessorKey: 'createdDate',
       header: ({ column }) => (
         <div className="flex justify-start pl-8">
-          <SortingButton headerText="Submission Date" column={column} />
+          <SortingButton headerText="Initiated On" column={column} />
         </div>
       ),
       cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
@@ -154,38 +154,34 @@ const MyGrievances = () => {
           {loading ? (
             <Loader />
           ) : (
-            <div>
-              <Tabs defaultValue="open">
-                <TabsList className="grid w-[300px] grid-cols-2">
-                  <TabsTrigger value="open" onClick={() => setActiveTab('open')}>
-                    Open
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="closed"
-                    className="w-full transition data-[state=active]:bg-red-500 data-[state=active]:text-white"
-                    onClick={() => setActiveTab('closed')}
-                  >
-                    Closed
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="open" className="mt-6">
-                  <TableList
-                    data={openGrievances}
-                    columns={columns}
-                    inputPlaceholder="Search by Title..."
-                    onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
-                  />
-                </TabsContent>
-                <TabsContent value="closed" className="mt-6">
-                  <TableList
-                    data={closedGrievances}
-                    columns={columns}
-                    inputPlaceholder="Search by Title..."
-                    onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
-                  />
-                </TabsContent>
-              </Tabs>
-            </div>
+            <TableList
+              data={activeTab === 'open' ? openGrievances : closedGrievances}
+              columns={columns}
+              inputPlaceholder="Search by Title..."
+              onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
+              rightElements={
+                <Tabs>
+                  <TabsList className="grid w-[300px] grid-cols-2">
+                    <TabsTrigger
+                      value="open"
+                      onClick={() => setActiveTab('open')}
+                      className={`${activeTab === 'open' ? 'bg-primary text-white' : ''}`}
+                    >
+                      Open
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="closed"
+                      onClick={() => setActiveTab('closed')}
+                      className={`w-full transition-all duration-200 ${
+                        activeTab === 'closed' ? 'bg-destructive hover:bg-destructive/90 text-white' : ''
+                      }`}
+                    >
+                      Closed
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              }
+            />
           )}
         </div>
       </Card>

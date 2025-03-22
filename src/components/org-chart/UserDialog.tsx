@@ -43,12 +43,12 @@ const UserDialog: React.FC<UserDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEditMode ? 'Edit User' : 'Add New User'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle>{isEditMode ? 'Update' : 'Add New Employee'}</DialogTitle>
+          {/* <DialogDescription>
             {isEditMode
-              ? `Edit user for ${selectedNode?.groupName || selectedNode?.description}`
+              ? `Update user for ${selectedNode?.groupName || selectedNode?.description}`
               : `Add a new user for ${selectedNode?.groupName || selectedNode?.description}`}
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <UserSelect
@@ -64,7 +64,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
               );
             }}
             isMulti={shouldAllowMultiSelect(selectedNode)}
-            label="Select User"
+            label="Select Employee"
           />
         </div>
         <DialogFooter>
