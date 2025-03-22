@@ -73,7 +73,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
         url: '/admin-org',
         icon: Users,
       },
-      ...(isSuperAdmin || isAdmin
+      ...(isSuperAdmin
         ? [
             {
               title: 'Manage Admin',

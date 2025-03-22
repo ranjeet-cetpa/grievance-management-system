@@ -4,7 +4,7 @@ import OrgChart2 from './OrgChart2';
 import NonCorporateOfficeChart from './NonCorporateOfficeChart';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,13 +20,31 @@ import TableViewCorporateOffice from '@/components/TableViewCorporateOffice';
 import TableViewNonCorporateOffice from '@/components/TableViewNonCorporateOffice';
 import { extractUniqueUnits } from '@/lib/helperFunction';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import useUserRoles from '@/hooks/useUserRoles';
+import useAdminUnits from '@/hooks/useAdminUnits';
 
 const OrganizationChart = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-
+  const user = useSelector((state: RootState) => state.user);
+  const userCode = user?.EmpCode;
   const [selectedUnit, setSelectedUnit] = useState('396');
   const [isTableView, setIsTableView] = useState(true);
+  const { isAdmin, isSuperAdmin } = useUserRoles();
+  const { adminUnits, isLoading } = useAdminUnits(userCode);
+
   const unitsDD = extractUniqueUnits(employeeList);
+  const filteredUnits = isSuperAdmin ? unitsDD : unitsDD.filter((unit) => adminUnits.includes(unit.unitId));
+
+  useEffect(() => {
+    // Set default unit based on user role and permissions
+    if (isAdmin && !isSuperAdmin && adminUnits.length > 0) {
+      setSelectedUnit(adminUnits[0]);
+    }
+  }, [isAdmin, isSuperAdmin, adminUnits]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="p-2">
@@ -61,7 +79,7 @@ const OrganizationChart = () => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Units</SelectLabel>
-                    {unitsDD.map((unit) => (
+                    {filteredUnits.map((unit) => (
                       <SelectItem key={unit.unitId} value={unit.unitId}>
                         {unit.unitName}
                       </SelectItem>
