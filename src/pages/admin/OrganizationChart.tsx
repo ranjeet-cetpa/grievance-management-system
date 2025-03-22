@@ -19,53 +19,8 @@ import {
 import TableViewCorporateOffice from '@/components/TableViewCorporateOffice';
 import TableViewNonCorporateOffice from '@/components/TableViewNonCorporateOffice';
 import { extractUniqueUnits } from '@/lib/helperFunction';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-// const unitsDD = [
-//   {
-//     unitId: '396',
-//     unitName: 'Corporate office',
-//   },
-//   {
-//     unitId: '395',
-//     unitName: 'Ahmedabad',
-//   },
-//   {
-//     unitId: '397',
-//     unitName: 'Ambala',
-//   },
-//   {
-//     unitId: '390',
-//     unitName: 'Tundla',
-//   },
-//   {
-//     unitId: '402',
-//     unitName: 'Prayagraj(W)',
-//   },
-//   {
-//     unitId: '391',
-//     unitName: 'Jaipur',
-//   },
-//   {
-//     unitId: '401',
-//     unitName: 'Ajmer',
-//   },
-//   {
-//     unitId: '399',
-//     unitName: 'Noida',
-//   },
-//   {
-//     unitId: '392',
-//     unitName: 'Prayagraj(E)',
-//   },
-//   {
-//     unitId: '398',
-//     unitName: 'Meerut',
-//   },
-//   {
-//     unitId: '400',
-//     unitName: 'Kolkatta',
-//   },
-// ];
 const OrganizationChart = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
 
@@ -80,10 +35,21 @@ const OrganizationChart = () => {
           <div className="flex justify-between items-center">
             <Heading type={4}>Grievance Organization</Heading>
             <div className="flex items-center gap-6">
-              <div className="flex items-center space-x-2">
-                <Switch id="view-mode" checked={isTableView} onCheckedChange={setIsTableView} />
-                <Label htmlFor="view-mode">{isTableView ? 'Table View' : 'Chart View'}</Label>
-              </div>
+              <ToggleGroup
+                type="single"
+                className={`${
+                  isTableView ? 'border border-gray-100  shadow-sm' : ''
+                }  bg-white flex items-center gap-0  transition-colors duration-200 ease-in-out hover:bg-gray-100`}
+                value={isTableView ? 'table' : 'chart'}
+                onValueChange={(value) => setIsTableView(value === 'table')}
+              >
+                <ToggleGroupItem value="chart" aria-label="Chart View" className="px-4">
+                  Chart
+                </ToggleGroupItem>
+                <ToggleGroupItem value="table" aria-label="Table View" className="px-4">
+                  Table
+                </ToggleGroupItem>
+              </ToggleGroup>
               <Select value={selectedUnit} onValueChange={setSelectedUnit}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select Unit">

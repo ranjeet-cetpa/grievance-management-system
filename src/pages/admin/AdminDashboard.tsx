@@ -165,7 +165,7 @@ const AdminDashboard = () => {
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700">Pending</p>
+              <p className="text-sm font-medium text-gray-700">Pending Action</p>
               <div className="flex items-baseline">
                 <p className="text-2xl font-bold text-yellow-800">{dashboardData?.pending || 0}</p>
               </div>

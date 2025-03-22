@@ -8,11 +8,13 @@ import { RootState } from '@/app/store';
 import toast from 'react-hot-toast';
 import axiosInstance from '@/services/axiosInstance';
 import Loader from '@/components/ui/loader';
+import { useNavigate } from 'react-router';
 
 const Dashboard = () => {
   const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const navigate = useNavigate();
 
   const fetchDashboardData = async () => {
     try {
@@ -25,6 +27,15 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+  const formatDate = (date: string) => {
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   useEffect(() => {
@@ -133,41 +144,42 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="space-y-4">
-              {[
-                {
-                  title: 'Work Schedule Adjustment Request',
-                  date: '2024-03-15',
-                  status: 'Under Review',
-                  statusColor: 'bg-yellow-600',
-                  lastUpdate: 'HR reviewing your request',
-                },
-                {
-                  title: 'Training Opportunity Request',
-                  date: '2024-03-10',
-                  status: 'In Progress',
-                  statusColor: 'bg-blue-600',
-                  lastUpdate: 'Meeting scheduled with department head',
-                },
-                {
-                  title: 'Equipment Request',
-                  date: '2024-03-05',
-                  status: 'Resolved',
-                  statusColor: 'bg-green-600',
-                  lastUpdate: 'New laptop approved',
-                },
-              ].map((grievance, i) => (
-                <div key={i} className="flex items-center gap-4 border-b pb-4 last:border-0">
-                  <div className={`w-2 h-2 rounded-full ${grievance.statusColor}`} />
+              {dashboardData?.recentGrievances?.map((grievance, i) => (
+                <div
+                  key={grievance.id || i}
+                  onClick={() => navigate(`/grievances/${grievance.id}`)}
+                  className="flex items-center gap-4 border-b pb-4 last:border-0 cursor-pointer hover:bg-gray-100"
+                >
+                  <div className="w-2 h-2 rounded-full bg-blue-600" />
                   <div className="flex-1">
                     <p className="text-sm font-medium">{grievance.title}</p>
-                    <p className="text-xs text-muted-foreground">Submitted: {grievance.date}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Status: <span className="font-medium">{grievance.status}</span>
+                    <p className="text-xs text-muted-foreground">Submitted: {formatDate(grievance.createdDate)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Status:{' '}
+                      <span
+                        className={
+                          grievance.statusId === 1
+                            ? 'text-green-600'
+                            : grievance.statusId === 2
+                            ? 'text-yellow-600'
+                            : grievance.statusId === 3
+                            ? 'text-red-600'
+                            : 'text-muted-foreground'
+                        }
+                      >
+                        {grievance.statusId === 1
+                          ? 'Open'
+                          : grievance.statusId === 2
+                          ? 'In Progress'
+                          : grievance.statusId === 3
+                          ? 'Closed'
+                          : 'Unknown'}
+                      </span>
                     </p>
-                    <p className="text-xs text-muted-foreground mt-1">{grievance.lastUpdate}</p>
                   </div>
+                  {/* Removed the separate View button */}
                 </div>
-              ))}
+              )) || <p className="text-sm text-muted-foreground">No recent grievances</p>}
             </div>
           </CardContent>
         </Card>

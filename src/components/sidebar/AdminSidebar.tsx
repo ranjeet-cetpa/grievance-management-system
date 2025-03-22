@@ -69,7 +69,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
       //   icon: Users,
       // },
       {
-        title: 'Organization Charts',
+        title: 'Grievance Organization',
         url: '/admin-org',
         icon: Users,
       },
