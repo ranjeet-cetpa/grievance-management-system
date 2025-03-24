@@ -60,7 +60,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       icon: BadgeAlert,
     },
     canViewRedressalGrievances && {
-      title: 'Redressal Grievances',
+      title: 'Redress Grievances',
       url: '/redressal-grievances',
       icon: UserRoundPen,
     },

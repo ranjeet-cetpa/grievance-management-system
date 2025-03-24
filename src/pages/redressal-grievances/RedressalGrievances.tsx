@@ -18,6 +18,7 @@ const FILTER_OPTIONS = {
   OPEN: 'open',
   InProgress: 'inprogress',
   Closed: 'closed',
+  Withdrawn: 'withdrawn', // new tab for withdrawn grievances
 };
 
 const STATUS_IDS = {
@@ -131,20 +132,6 @@ const MyGrievances = () => {
           cell: ({ row }) => <span>{format(new Date(row.original.createdDate), 'dd MMM, yyyy')}</span>,
         },
         {
-          id: 'title',
-          accessorKey: 'title',
-          header: 'Subject',
-          cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
-        },
-
-        {
-          id: 'unitName',
-          accessorKey: 'unitName',
-          header: 'Unit',
-          cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
-        },
-
-        {
           id: 'createdBy',
           accessorKey: 'createdBy',
           header: 'Initiated By',
@@ -155,6 +142,13 @@ const MyGrievances = () => {
             </div>
           ),
         },
+        {
+          id: 'title',
+          accessorKey: 'title',
+          header: 'Subject',
+          cell: ({ row }) => <div className="max-w-52 text-sm">{row.original.title}</div>,
+        },
+
         // Conditionally show "Currently With" column
         selectedTab !== FILTER_OPTIONS.OPEN &&
           selectedTab !== FILTER_OPTIONS.Closed && {
@@ -173,6 +167,12 @@ const MyGrievances = () => {
               {findEmployeeDetails(employeeList, row.original?.modifiedBy?.toString())?.employee?.empName}
             </div>
           ),
+        },
+        {
+          id: 'unitName',
+          accessorKey: 'unitName',
+          header: 'Unit',
+          cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
         },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes
@@ -196,7 +196,12 @@ const MyGrievances = () => {
         }
         return false;
       }),
-      [FILTER_OPTIONS.Closed]: grievances?.filter((g) => g.statusId === STATUS_IDS.CLOSED),
+      [FILTER_OPTIONS.Closed]: grievances?.filter(
+        (g) => g.statusId === STATUS_IDS.CLOSED && g.createdBy?.toString() !== g.modifiedBy?.toString()
+      ),
+      [FILTER_OPTIONS.Withdrawn]: grievances?.filter(
+        (g) => g.statusId === STATUS_IDS.CLOSED && g.createdBy?.toString() === g.modifiedBy?.toString() // new condition for withdrawn grievances
+      ),
     };
   }, [grievances]);
 
@@ -206,7 +211,7 @@ const MyGrievances = () => {
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl font-bold text-gray-800">Redressal Grievances</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-800">Redress Grievances</CardTitle>
             </div>
           </div>
         </CardHeader>
@@ -231,7 +236,9 @@ const MyGrievances = () => {
               }}
               rightElements={
                 <Tabs>
-                  <TabsList className="grid w-[400px] grid-cols-3">
+                  <TabsList className="grid w-[400px] grid-cols-4">
+                    {' '}
+                    {/* updated grid columns for 4 tabs */}
                     <TabsTrigger
                       value={FILTER_OPTIONS.OPEN}
                       onClick={() => setSelectedTab(FILTER_OPTIONS.OPEN)}
@@ -252,6 +259,13 @@ const MyGrievances = () => {
                       className={`${selectedTab === FILTER_OPTIONS.Closed ? 'bg-red-500 text-white' : ''}`}
                     >
                       Closed
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value={FILTER_OPTIONS.Withdrawn}
+                      onClick={() => setSelectedTab(FILTER_OPTIONS.Withdrawn)}
+                      className={`${selectedTab === FILTER_OPTIONS.Withdrawn ? 'bg-green-600 text-white' : ''}`}
+                    >
+                      Withdrawn
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>

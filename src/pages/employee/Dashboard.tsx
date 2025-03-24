@@ -9,11 +9,13 @@ import toast from 'react-hot-toast';
 import axiosInstance from '@/services/axiosInstance';
 import Loader from '@/components/ui/loader';
 import { useNavigate } from 'react-router';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const Dashboard = () => {
   const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
+  const [dashboardTypePending, setDashboardTypePending] = useState<boolean>(true);
   const navigate = useNavigate();
 
   const fetchDashboardData = async () => {
@@ -62,12 +64,29 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex flex-row items-center justify-between">
-        <div className="space-y-1">
-          <Heading type={4}>My Grievances Dashboard</Heading>
-          <p className="text-gray-500">Overview of your grievance submissions</p>
+      <div className="flex  justify-between">
+        <div>
+          <Heading type={4}>Dashboard</Heading>
+        </div>
+        <div>
+          <ToggleGroup
+            type="single"
+            className={`${
+              dashboardTypePending ? 'border border-gray-100  shadow-sm' : ''
+            }  bg-white flex items-center gap-0  transition-colors duration-200 ease-in-out hover:bg-gray-100`}
+            value={dashboardTypePending ? 'pending' : 'personal'}
+            onValueChange={(value) => setDashboardTypePending(value === 'pending')}
+          >
+            <ToggleGroupItem value="pending" aria-label="Chart View" className="px-4">
+              Pending
+            </ToggleGroupItem>
+            <ToggleGroupItem value="personal" aria-label="Table View" className="px-4">
+              My Grievances
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
+
       {loading && <Loader />}
 
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">

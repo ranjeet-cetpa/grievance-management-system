@@ -121,7 +121,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
       setSelectedUnits(['396']);
 
       // Then show success message
-      toast.success('Category added successfully');
+      toast.success('Sub Section added successfully');
 
       // Finally refresh the data
       await onFetchData();

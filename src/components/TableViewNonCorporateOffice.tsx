@@ -64,6 +64,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
   const [flattenedData, setFlattenedData] = React.useState<OrgNode[]>([]);
   const [nominateFromOtherUnits, setNominateFromOtherUnits] = React.useState(false);
   const [selectedNominationUnit, setSelectedNominationUnit] = React.useState<number | null>(396);
+  const [selectedDepartment, setSelectedDepartment] = React.useState<string | null>(null);
 
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);
@@ -105,17 +106,14 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
     if (!selectedNode) return;
 
     try {
-      console.log('selectedNode', selectedNode);
       setIsSubmitting(true);
       const requestBody = {
         groupMasterId: selectedNode.id,
         unitId: unitId?.toString(),
-
         unitName: unitsDD.find((unit) => unit.unitId === Number(unitId))?.unitName,
         userCodes: selectedUsers.map((user) => ({
           userCode: user.userCode,
           userDetails: user.userDetail,
-          departments: [],
         })),
       };
 
@@ -123,6 +121,9 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
       toast.success('User mapping updated successfully');
       dataFetcher();
       setAddUserDialogOpen(false);
+      setSelectedDepartment(null); // Clear department selection after submission
+      setNominateFromOtherUnits(false);
+      setSelectedNominationUnit(null);
       resetForm();
     } catch (error) {
       console.error('Error updating user group mapping:', error);
@@ -138,6 +139,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
     setSelectedUsers([]);
     setSelectedNode(null);
     setIsEditMode(false);
+    setSelectedDepartment(null); // Reset department selection
   };
 
   const getDepartmentDataForName = (deptName: string) => {
@@ -175,6 +177,14 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
       setSelectedUsers([]);
     }
   }, [nominateFromOtherUnits]);
+
+  // Add useEffect to handle IT department special case
+  useEffect(() => {
+    if (selectedDepartment === 'IT') {
+      setNominateFromOtherUnits(true);
+      setSelectedNominationUnit(396);
+    }
+  }, [selectedDepartment]);
 
   if (loading) return <Loader />;
   if (error) return <div>{error}</div>;
@@ -278,12 +288,14 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                         setSelectedNode(deptNode);
                         setIsEditMode(true);
                         setSelectedUsers(deptNode.mappedUser);
+                        setSelectedDepartment(dept); // Set department when editing
                         setAddUserDialogOpen(true);
                       }}
                       onAdd={() => {
                         setSelectedNode(deptNode);
                         setIsEditMode(false);
                         setSelectedUsers([]);
+                        setSelectedDepartment(dept); // Set department when adding
                         setAddUserDialogOpen(true);
                       }}
                     />
@@ -309,6 +321,12 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            {selectedDepartment === 'IT' && (
+              <div className="bg-blue-50 p-3 rounded-md text-sm text-blue-800">
+                IT department grievances will be addressed by Corporate Office only
+              </div>
+            )}
+
             <div className="flex items-center space-x-2">
               <Checkbox
                 id="nominate"
@@ -316,6 +334,7 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                 onCheckedChange={(checked) => {
                   setNominateFromOtherUnits(checked as boolean);
                 }}
+                disabled={selectedDepartment === 'IT'}
               />
               <label
                 htmlFor="nominate"
@@ -326,15 +345,18 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
             </div>
 
             {nominateFromOtherUnits && (
-              <div className="flex flex-col  gap-2">
+              <div className="flex flex-col gap-2">
                 <Label>Select Unit</Label>
                 <select
-                  className="flex h-10 w-full rounded-md border border-input bg-blue-50 text-black px-3  py-2 text-sm ring-offset-background"
+                  className="flex h-10 w-full rounded-md border border-input bg-blue-50 text-black px-3 py-2 text-sm ring-offset-background disabled:opacity-50"
                   value={selectedNominationUnit || ''}
                   onChange={(e) => setSelectedNominationUnit(Number(e.target.value))}
+                  disabled={selectedDepartment === 'IT'}
                 >
                   {unitsDD
-                    ?.filter((unit) => unit.unitId !== Number(unitId))
+                    ?.filter((unit) =>
+                      selectedDepartment === 'IT' ? unit.unitId === 396 : unit.unitId !== Number(unitId)
+                    )
                     .map((unit) => (
                       <option key={unit.unitId} value={unit.unitId}>
                         {unit.unitName}

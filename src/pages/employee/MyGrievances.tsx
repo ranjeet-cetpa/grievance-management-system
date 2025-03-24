@@ -45,12 +45,24 @@ interface GrievanceResponse {
   }>;
 }
 
+const FILTER_OPTIONS = {
+  OPEN: 'open',
+  CLOSED: 'closed',
+  WITHDRAWN: 'withdrawn',
+};
+
+const STATUS_IDS = {
+  OPEN: 1,
+  IN_PROGRESS: 2,
+  CLOSED: 3,
+} as const;
+
 const MyGrievances = () => {
   const user = useSelector((state: RootState) => state.user);
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [activeTab, setActiveTab] = useState('open');
+  const [activeTab, setActiveTab] = useState(FILTER_OPTIONS.OPEN);
   const navigate = useNavigate();
 
   // Function to Fetch Grievances from API
@@ -92,7 +104,13 @@ const MyGrievances = () => {
   // const openGrievances = grievances.filter((grievance) => grievance.statusId === 1 || 2 || 3 || 4);
   const openGrievances = grievances.filter((grievance) => [1, 2, 4].includes(grievance.statusId));
 
-  const closedGrievances = grievances.filter((grievance) => [3, 5].includes(grievance.statusId));
+  const closedGrievances = grievances.filter(
+    (g) => [3, 5].includes(g.statusId) && g.createdBy?.toString() !== g.modifiedBy?.toString()
+  );
+
+  const withdrawnGrievances = grievances.filter(
+    (g) => g.statusId === STATUS_IDS.CLOSED && g.createdBy?.toString() === g.modifiedBy?.toString()
+  );
 
   const employeeList = useSelector((state: RootState) => state.employee.employees);
 
@@ -155,28 +173,41 @@ const MyGrievances = () => {
             <Loader />
           ) : (
             <TableList
-              data={activeTab === 'open' ? openGrievances : closedGrievances}
+              data={
+                activeTab === FILTER_OPTIONS.OPEN
+                  ? openGrievances
+                  : activeTab === FILTER_OPTIONS.CLOSED
+                  ? closedGrievances
+                  : withdrawnGrievances
+              }
               columns={columns}
               inputPlaceholder="Search by Title..."
               onRowClick={(rowData) => navigate(`/grievances/${rowData.id.toString().trim()}`)}
               rightElements={
                 <Tabs>
-                  <TabsList className="grid w-[300px] grid-cols-2">
+                  <TabsList className="grid w-[400px] grid-cols-3">
                     <TabsTrigger
                       value="open"
-                      onClick={() => setActiveTab('open')}
-                      className={`${activeTab === 'open' ? 'bg-primary text-white' : ''}`}
+                      onClick={() => setActiveTab(FILTER_OPTIONS.OPEN)}
+                      className={`${activeTab === FILTER_OPTIONS.OPEN ? 'bg-primary text-white' : ''}`}
                     >
                       Open
                     </TabsTrigger>
                     <TabsTrigger
                       value="closed"
-                      onClick={() => setActiveTab('closed')}
-                      className={`w-full transition-all duration-200 ${
-                        activeTab === 'closed' ? 'bg-destructive hover:bg-destructive/90 text-white' : ''
+                      onClick={() => setActiveTab(FILTER_OPTIONS.CLOSED)}
+                      className={`${
+                        activeTab === FILTER_OPTIONS.CLOSED ? 'bg-destructive hover:bg-destructive/90 text-white' : ''
                       }`}
                     >
                       Closed
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="withdrawn"
+                      onClick={() => setActiveTab(FILTER_OPTIONS.WITHDRAWN)}
+                      className={`${activeTab === FILTER_OPTIONS.WITHDRAWN ? 'bg-green-600 text-white' : ''}`}
+                    >
+                      Withdrawn
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>

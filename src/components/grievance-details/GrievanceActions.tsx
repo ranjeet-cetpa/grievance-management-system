@@ -446,13 +446,7 @@ export const GrievanceActions = ({
                   grievance?.assignedUserCode.toString() === user?.EmpCode.toString() &&
                   grievance?.statusId !== 3 && (
                     <Button
-                      onClick={() => {
-                        if (isCommentValid) {
-                          onTransferToCGM(commentText, attachments);
-                          setCommentText('');
-                          setAttachments([]);
-                        }
-                      }}
+                      onClick={handleTransferToCGM}
                       className="bg-blue-600 hover:bg-blue-700 text-white h-9"
                       disabled={!isCommentValid}
                     >
@@ -501,11 +495,13 @@ export const GrievanceActions = ({
                   )}
                 {grievance?.statusId !== 3 && (
                   <Button
-                    onClick={() => onStatusChange?.(3, commentText)}
+                    onClick={handleCloseGrievance}
                     className="bg-red-600 hover:bg-red-700 text-white h-9"
                     disabled={!isCommentValid}
                   >
-                    Close Grievance
+                    {grievance?.createdBy.toString() === user?.EmpCode?.toString()
+                      ? 'Withdraw Grievance'
+                      : 'Close Grievance'}
                   </Button>
                 )}
               </div>
@@ -566,13 +562,13 @@ export const GrievanceActions = ({
           <Dialog open={isHodDialogOpen} onOpenChange={setIsHodDialogOpen}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Transfer to HOD Group</DialogTitle>
+                <DialogTitle>Transfer to Concerned HOD</DialogTitle>
                 <DialogDescription>Please select a HOD group to transfer the grievance</DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Select value={selectedHodGroup} onValueChange={setSelectedHodGroup}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select HOD Group" />
+                    <SelectValue placeholder="Select HOD " />
                   </SelectTrigger>
                   <SelectContent>
                     {hodGroups?.map((group) => (

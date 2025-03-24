@@ -198,7 +198,7 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
       };
 
       await axiosInstance.post('/Admin/AddUpdateGroupNew', requestBody);
-      toast.success('Category added successfully');
+      toast.success('Sub Section added successfully');
 
       const newData = JSON.parse(JSON.stringify(chartData));
       if (!newData) return;

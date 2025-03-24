@@ -27,6 +27,7 @@ const NonCorporateDepartmentCard: React.FC<NonCorporateDepartmentCardProps> = ({
     <div className="border rounded-lg p-4">
       <div className="flex gap-1 items-center justify-between mb-4">
         <h3 className="font-semibold text-lg">{departmentName}</h3>
+
         {mappedUsers.length > 0 ? (
           <Button variant="ghost" size="sm" className="p-1" onClick={onEdit}>
             <Pencil className="w-4 h-4" />
@@ -37,6 +38,9 @@ const NonCorporateDepartmentCard: React.FC<NonCorporateDepartmentCardProps> = ({
           </Button>
         )}
       </div>
+      {departmentName === 'IT' && (
+        <p className="mb-2">( IT related grievances will be handled by Corporate Office only )</p>
+      )}
       <div>
         <h4 className="font-medium bg-blue-100 text-center mb-3 text-blue-600">Complaint Handlers</h4>
         {mappedUsers.length > 0 ? (
