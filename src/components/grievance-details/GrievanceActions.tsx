@@ -24,6 +24,7 @@ import { environment } from '@/config';
 import { useParams } from 'react-router';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import Loader from '../ui/loader';
+import { ConfirmationDialog } from '@/components/ui/alert-dialog';
 
 interface GroupMaster {
   id: number;
@@ -93,6 +94,10 @@ export const GrievanceActions = ({
   const { isHOD, isUnitCGM, isCommittee } = useUserRoles();
   const { grievanceId } = useParams();
   const employeeList = useSelector((state: RootState) => state.employee.employees);
+  const [showNodalConfirm, setShowNodalConfirm] = useState(false);
+  const [showCGMConfirm, setShowCGMConfirm] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
   useEffect(() => {
     const fetchHodGroups = async () => {
       try {
@@ -177,11 +182,39 @@ export const GrievanceActions = ({
   };
 
   const handleTransfer = () => {
-    if (commentText.trim()) {
-      onTransfer(commentText, attachments);
-      setCommentText('');
-      setAttachments([]);
-    }
+    if (!isCommentValid) return;
+    setShowNodalConfirm(true);
+  };
+
+  const handleTransferToCGM = () => {
+    if (!isCommentValid) return;
+    setShowCGMConfirm(true);
+  };
+
+  const handleCloseGrievance = () => {
+    if (!isCommentValid) return;
+    setShowCloseConfirm(true);
+  };
+
+  const confirmNodalTransfer = () => {
+    onTransfer(commentText, attachments);
+    setCommentText('');
+    setAttachments([]);
+    setShowNodalConfirm(false);
+  };
+
+  const confirmCGMTransfer = () => {
+    onTransferToCGM?.(commentText, attachments);
+    setCommentText('');
+    setAttachments([]);
+    setShowCGMConfirm(false);
+  };
+
+  const confirmClose = () => {
+    onStatusChange?.(3, commentText);
+    setCommentText('');
+    setAttachments([]);
+    setShowCloseConfirm(false);
   };
 
   const isCommentValid = commentText.trim().length > 0;
@@ -685,6 +718,37 @@ export const GrievanceActions = ({
           {/* Other Dialogs */}
         </CardContent>
       </Card>
+      <ConfirmationDialog
+        isOpen={showNodalConfirm}
+        onClose={() => setShowNodalConfirm(false)}
+        onConfirm={confirmNodalTransfer}
+        title="Transfer to Nodal Officer"
+        description="Are you sure you want to transfer this grievance to the Nodal Officer?"
+        confirmText="Transfer"
+        confirmButtonClass="bg-purple-600 hover:bg-purple-700"
+      />
+
+      <ConfirmationDialog
+        isOpen={showCGMConfirm}
+        onClose={() => setShowCGMConfirm(false)}
+        onConfirm={confirmCGMTransfer}
+        title="Transfer to CGM"
+        description="Are you sure you want to transfer this grievance to the Unit CGM?"
+        confirmText="Transfer"
+        confirmButtonClass="bg-blue-600 hover:bg-blue-700"
+      />
+
+      <ConfirmationDialog
+        isOpen={showCloseConfirm}
+        onClose={() => setShowCloseConfirm(false)}
+        onConfirm={confirmClose}
+        title={grievance?.createdBy.toString() === user?.EmpCode?.toString() ? 'Withdraw Grievance' : 'Close Grievance'}
+        description={`Are you sure you want to ${
+          grievance?.createdBy.toString() === user?.EmpCode?.toString() ? 'withdraw' : 'close'
+        } this grievance?`}
+        confirmText={grievance?.createdBy.toString() === user?.EmpCode?.toString() ? 'Withdraw' : 'Close'}
+        confirmButtonClass="bg-red-600 hover:bg-red-700"
+      />
     </div>
   );
 };
