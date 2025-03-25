@@ -21,6 +21,18 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
       day: 'numeric',
     });
   };
+  const formatRoleName = (role: string) => {
+    switch (role.toLowerCase()) {
+      case 'redressal':
+        return 'Complaint Handler';
+      case 'nodalofficer':
+        return 'Nodal Officer';
+      case 'managingdirector':
+        return 'Managing Director';
+      default:
+        return role;
+    }
+  };
   const formatTime = (date: string) => {
     return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
@@ -97,7 +109,9 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   <div className="text-xs text-gray-600">
                     {trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue === 'Redressal'
                       ? 'Complaint Handler'
-                      : trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue}
+                      : formatRoleName(
+                          trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
+                        )}
                   </div>
                 </div>
               </div>
@@ -126,11 +140,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                     </div>
                     <div className="text-center">
                       <div>{assignedUserDetailsChange?.newValue}</div>
-                      <div className="text-xs text-gray-600">
-                        {assignedUserRoleDetails?.newValue === 'Redressal'
-                          ? 'Complaint Handler'
-                          : assignedUserRoleDetails?.newValue}
-                      </div>
+                      <div className="text-xs text-gray-600">{formatRoleName(assignedUserRoleDetails?.newValue)}</div>
                     </div>
                   </div>
                   {index < trajectory.length - 1 && <span className="text-3xl font-bold text-gray-400 px-3">→</span>}

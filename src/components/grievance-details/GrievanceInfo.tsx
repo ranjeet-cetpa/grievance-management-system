@@ -116,7 +116,9 @@ export const GrievanceInfo = ({
                 {/* <div className="text-xs">
                   {unit ? `(${unitsDD.find((u) => u.unitId === parseInt(unit)).unitName})` : ''}
                 </div> */}
-                <div className="text-xs">{groupName && roleName === 'Complaint Handler' ? `(${groupName})` : ''}</div>
+                <div className="text-xs capitalize">
+                  {groupName && roleName === 'Complaint Handler' ? `(${groupName})` : ''}
+                </div>
               </div>
             </div>
           </>

@@ -18,6 +18,7 @@ import { environment } from '@/config';
 import toast from 'react-hot-toast';
 
 const GrievanceResolutionDialog = ({
+  fetchGrievanceDetails,
   isOpen,
   onClose,
   grievanceId,
@@ -49,15 +50,12 @@ const GrievanceResolutionDialog = ({
           type: 'success',
           message: 'Resolution verified and accepted successfully!',
         });
+        await fetchGrievanceDetails();
         onResolutionSubmitted(true);
-        setTimeout(() => onClose(), 1500);
+        onClose();
       } else {
         throw new Error('Verification failed');
       }
-
-      console.log(resolutionData?.acceptLink);
-      console.log(grievanceId);
-      console.log(isAccepted);
     } catch (error) {
       toast.error('Failed to submit response. Please try again.');
       setSubmitStatus({
@@ -71,10 +69,10 @@ const GrievanceResolutionDialog = ({
 
   const handleReject = async () => {
     if (!rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection.');
+      toast.error('Please provide a reason for your appeal.');
       setSubmitStatus({
         type: 'error',
-        message: 'Please provide a reason for rejection.',
+        message: 'Please provide a reason for your appeal.',
       });
       return;
     }
@@ -89,13 +87,14 @@ const GrievanceResolutionDialog = ({
       );
 
       if (verificationResponse.data.statusCode === 200) {
-        toast.success('Resolution rejected successfully!');
+        toast.success('Appeal Submitted Successfully!');
         setSubmitStatus({
           type: 'success',
-          message: 'Resolution rejected successfully!',
+          message: 'Appeal submitted successfully!',
         });
+        await fetchGrievanceDetails();
         onResolutionSubmitted(false, rejectionReason);
-        setTimeout(() => onClose(), 1500);
+        onClose();
       } else {
         throw new Error('Verification failed');
       }
@@ -127,11 +126,11 @@ const GrievanceResolutionDialog = ({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent className="max-w-md">
         <AlertDialogHeader>
-          <AlertDialogTitle>{isAccepted ? 'Accept Resolution' : 'Reject Resolution'}</AlertDialogTitle>
+          <AlertDialogTitle>{isAccepted ? 'Accept Resolution' : 'Appeal'}</AlertDialogTitle>
           <AlertDialogDescription>
             {isAccepted
               ? 'Are you sure you want to accept this resolution?'
-              : 'Please provide a reason for rejecting this resolution.'}
+              : 'Please provide a reason for your appeal.'}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -145,7 +144,6 @@ const GrievanceResolutionDialog = ({
         {!isAccepted && (
           <div className="space-y-2">
             <Textarea
-              placeholder="Please provide the reason for rejection"
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
               className={`h-32 ${!rejectionReason.trim() && submitStatus.type === 'error' ? 'border-red-500' : ''}`}
@@ -167,7 +165,7 @@ const GrievanceResolutionDialog = ({
               onClick={handleReject}
               disabled={isSubmitting || submitStatus.type === 'success'}
             >
-              {isSubmitting ? 'Processing...' : 'Submit Rejection'}
+              {isSubmitting ? 'Processing...' : 'Submit Appeal'}
             </Button>
           )}
         </AlertDialogFooter>

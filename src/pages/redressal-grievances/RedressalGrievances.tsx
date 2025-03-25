@@ -13,6 +13,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { useNavigate } from 'react-router';
 import toast from 'react-hot-toast';
 import { findEmployeeDetails } from '@/lib/helperFunction';
+import { Badge } from '@/components/ui/badge';
 
 const FILTER_OPTIONS = {
   OPEN: 'open',
@@ -179,7 +180,28 @@ const MyGrievances = () => {
           id: 'type',
           accessorKey: 'round',
           header: 'Type',
-          cell: ({ row }) => <div className="text-sm">{row.original.round > 1 ? 'Appeal' : 'Transferred'}</div>,
+          cell: ({ row }) => (
+            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+              Transferred
+            </Badge>
+          ),
+        },
+        {
+          id: 'round',
+          accessorKey: 'round',
+          header: 'Round',
+          cell: ({ row }) => (
+            <Badge
+              variant="outline"
+              className={
+                row.original.round > 1
+                  ? 'bg-purple-50 text-purple-700 hover:bg-purple-50'
+                  : 'bg-green-50 text-green-700 hover:bg-green-50'
+              }
+            >
+              {row.original.round > 1 ? `Appeal (${row.original.round - 1})` : 'Round 1'}
+            </Badge>
+          ),
         },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes

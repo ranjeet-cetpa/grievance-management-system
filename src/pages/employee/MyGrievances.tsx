@@ -16,6 +16,7 @@ import SortingButton from '@/components/ui/SortingButton';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router';
 import { findEmployeeDetails } from '@/lib/helperFunction';
+import { Badge } from '@/components/ui/badge';
 
 interface GrievanceResponse {
   totalRecords: number;
@@ -155,6 +156,33 @@ const MyGrievances = () => {
         <div className="max-w-[300px] text-sm ">
           {findEmployeeDetails(employeeList, row.original?.modifiedBy?.toString())?.employee?.empName}
         </div>
+      ),
+    },
+    {
+      id: 'type',
+      accessorKey: 'round',
+      header: 'Type',
+      cell: ({ row }) => (
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+          Transferred
+        </Badge>
+      ),
+    },
+    {
+      id: 'round',
+      accessorKey: 'round',
+      header: 'Round',
+      cell: ({ row }) => (
+        <Badge
+          variant="outline"
+          className={
+            row.original.round > 1
+              ? 'bg-purple-50 text-purple-700 hover:bg-purple-50'
+              : 'bg-green-50 text-green-700 hover:bg-green-50'
+          }
+        >
+          {row.original.round > 1 ? `Appeal (${row.original.round - 1})` : 'Round 1'}
+        </Badge>
       ),
     },
   ].filter(Boolean);

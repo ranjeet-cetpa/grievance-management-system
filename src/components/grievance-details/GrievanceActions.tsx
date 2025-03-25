@@ -493,10 +493,10 @@ export const GrievanceActions = ({
                   grievance?.statusId !== 3 && (
                     <Button
                       onClick={() => setIsHodDialogOpen(true)}
-                      className="bg-orange-600 hover:bg-orange-700 text-white h-9"
+                      className="bg-orange-600 text-xs hover:bg-orange-700 text-white h-9"
                       disabled={!isCommentValid}
                     >
-                      Transfer to HOD Group
+                      Transfer to Concerned HOD
                     </Button>
                   )}
                 {isHOD &&
