@@ -17,13 +17,15 @@ const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [dashboardTypePending, setDashboardTypePending] = useState<boolean>(true);
   const navigate = useNavigate();
-
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await axiosInstance.get(`/Grievance/GetMyDashboardData?userCode=${user?.EmpCode}`);
+      const endpoint = dashboardTypePending
+        ? `/Grievance/GetAssignedDashboardData?userCode=${user?.EmpCode}`
+        : `/Grievance/GetMyDashboardData?userCode=${user?.EmpCode}`;
+
+      const response = await axiosInstance.get(endpoint);
       setDashboardData(response?.data?.data);
-      console.log(response?.data?.data);
     } catch (error) {
       toast.error('Something went wrong!');
     } finally {
@@ -42,7 +44,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dashboardTypePending]);
 
   const grievanceChartData = useMemo(() => {
     const currentYear = new Date().getFullYear().toString();
@@ -89,11 +91,19 @@ const Dashboard = () => {
 
       {loading && <Loader />}
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        className={`grid gap-6 ${
+          dashboardTypePending
+            ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
+            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+        }`}
+      >
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-100 to-blue-200 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700">Total Submitted</p>
+              <p className="text-sm font-medium text-gray-700">
+                {dashboardTypePending ? 'Total Actionable Grievances' : 'Total Submitted'}
+              </p>
               <div className="flex items-baseline">
                 <p className="text-2xl font-bold text-blue-800">{dashboardData?.totalGrievance || 0}</p>
               </div>
@@ -103,6 +113,23 @@ const Dashboard = () => {
             </div>
           </CardHeader>
         </Card>
+
+        {dashboardTypePending && (
+          <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-gray-700">Open</p>
+                <div className="flex items-baseline">
+                  <p className="text-2xl font-bold text-yellow-800">{dashboardData?.pending || 0}</p>
+                  <span className="ml-2 text-xs text-yellow-700">New</span>
+                </div>
+              </div>
+              <div className="p-2 bg-yellow-200 rounded-full">
+                <TimerReset className="h-6 w-6 text-yellow-800" />
+              </div>
+            </CardHeader>
+          </Card>
+        )}
 
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-100 to-orange-200 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -140,7 +167,9 @@ const Dashboard = () => {
           <CardHeader className="bg-gradient-to-r from-blue-100 to-blue-200">
             <div className="space-y-1">
               <Heading type={5}>My Grievances History</Heading>
-              <p className="text-sm text-gray-600">Monthly submission overview</p>
+              <p className="text-sm text-gray-600">
+                {dashboardTypePending ? 'Monthly Actionable Grievances Overview' : 'Monthly submission overview'}
+              </p>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -158,7 +187,11 @@ const Dashboard = () => {
           <CardHeader className="bg-gradient-to-r from-violet-100 to-purple-200">
             <div className="space-y-1">
               <Heading type={5}>My Recent Grievances</Heading>
-              <p className="text-sm text-gray-600">Latest updates on your submissions</p>
+              <p className="text-sm text-gray-600">
+                {dashboardTypePending
+                  ? 'Latest updates on your Actionable Grievances'
+                  : 'Latest updates on your submissions'}
+              </p>
             </div>
           </CardHeader>
           <CardContent className="pt-6">
@@ -166,7 +199,10 @@ const Dashboard = () => {
               {dashboardData?.recentGrievances?.map((grievance, i) => (
                 <div
                   key={grievance.id || i}
-                  onClick={() => navigate(`/grievances/${grievance.id}`)}
+                  onClick={() => {
+                    if (dashboardTypePending) navigate(`/redressal-grievances/${grievance.id}`);
+                    else navigate(`/grievances/${grievance.id}`);
+                  }}
                   className="flex items-center gap-4 border-b pb-4 last:border-0 cursor-pointer hover:bg-gray-100"
                 >
                   <div className="w-2 h-2 rounded-full bg-blue-600" />

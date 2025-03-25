@@ -19,6 +19,7 @@ const FILTER_OPTIONS = {
   InProgress: 'inprogress',
   Closed: 'closed',
   Withdrawn: 'withdrawn', // new tab for withdrawn grievances
+  Appeal: 'appeal',
 };
 
 const STATUS_IDS = {
@@ -174,6 +175,12 @@ const MyGrievances = () => {
           header: 'Unit',
           cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
         },
+        {
+          id: 'type',
+          accessorKey: 'round',
+          header: 'Type',
+          cell: ({ row }) => <div className="text-sm">{row.original.round > 1 ? 'Appeal' : 'Transferred'}</div>,
+        },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes
   );
@@ -236,9 +243,8 @@ const MyGrievances = () => {
               }}
               rightElements={
                 <Tabs>
-                  <TabsList className="grid w-[400px] grid-cols-4">
+                  <TabsList className="grid w-[500px] grid-cols-4">
                     {' '}
-                    {/* updated grid columns for 4 tabs */}
                     <TabsTrigger
                       value={FILTER_OPTIONS.OPEN}
                       onClick={() => setSelectedTab(FILTER_OPTIONS.OPEN)}
@@ -267,6 +273,13 @@ const MyGrievances = () => {
                     >
                       Withdrawn
                     </TabsTrigger>
+                    {/* <TabsTrigger
+                      value={FILTER_OPTIONS.Appeal}
+                      onClick={() => setSelectedTab(FILTER_OPTIONS.Appeal)}
+                      className={`${selectedTab === FILTER_OPTIONS.Appeal ? 'bg-purple-600 text-white' : ''}`}
+                    >
+                      Appealed
+                    </TabsTrigger> */}
                   </TabsList>
                 </Tabs>
               }

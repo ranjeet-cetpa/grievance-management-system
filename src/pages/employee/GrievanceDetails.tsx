@@ -644,6 +644,7 @@ const GrievanceDetails = () => {
           <>
             <div className="flex w-full flex-col">
               <GrievanceHeader
+                round={grievance?.round}
                 assignedUserCode={grievance?.assignedUserCode || ''}
                 title={grievance?.title || ''}
                 statusId={Number(grievance?.statusId) || 0}

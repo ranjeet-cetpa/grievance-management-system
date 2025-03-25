@@ -25,6 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import useUserRoles from '@/hooks/useUserRoles';
+import useAdminUnits from '@/hooks/useAdminUnits';
 
 const AdminDashboard = () => {
   const dispatch = useDispatch();
@@ -36,6 +38,8 @@ const AdminDashboard = () => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const selectedUnit = useSelector((state: RootState) => state.workspace.selectedWorkspace);
   const units = useSelector((state: RootState) => state.units.units);
+  const { isAdmin, isSuperAdmin } = useUserRoles();
+  const { adminUnits, isLoading } = useAdminUnits(user?.EmpCode);
 
   const departmentsList = useMemo(() => {
     const uniqueDepts = new Set(employeeList?.map((emp) => emp.department?.trim()).filter(Boolean));
@@ -49,9 +53,23 @@ const AdminDashboard = () => {
   const handleWorkspaceChange = (workspaceName: string, workspaceId: number) => {
     dispatch(setSelectedWorkspace({ unitName: workspaceName, unitId: workspaceId }));
   };
-  React.useEffect(() => {
-    dispatch(setSelectedWorkspace({ unitName: user.Unit, unitId: Number(user.unitId) }));
-  }, []);
+
+  const filteredUnits = useMemo(() => {
+    return isSuperAdmin ? units : units.filter((unit) => adminUnits.includes(unit.unitId));
+  }, [units, isSuperAdmin, adminUnits]);
+
+  useEffect(() => {
+    // Set default unit based on user role and permissions
+    if (isAdmin && !isSuperAdmin && adminUnits.length > 0) {
+      const defaultUnit = units.find((unit) => unit.unitId === Number(adminUnits[0]));
+      if (defaultUnit) {
+        dispatch(setSelectedWorkspace({ unitName: defaultUnit.unitName, unitId: defaultUnit.unitId }));
+      }
+    } else {
+      dispatch(setSelectedWorkspace({ unitName: user.Unit, unitId: Number(user.unitId) }));
+    }
+  }, [isAdmin, isSuperAdmin, adminUnits]);
+
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
@@ -119,7 +137,7 @@ const AdminDashboard = () => {
               <Building2 className="h-4 w-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              {units.map((unit) => (
+              {filteredUnits.map((unit) => (
                 <DropdownMenuItem
                   key={unit.unitId}
                   className="px-4 py-2 text-sm text-gray-700  cursor-pointer"
@@ -165,7 +183,7 @@ const AdminDashboard = () => {
         <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700">Pending Action</p>
+              <p className="text-sm font-medium text-gray-700">Open</p>
               <div className="flex items-baseline">
                 <p className="text-2xl font-bold text-yellow-800">{dashboardData?.pending || 0}</p>
               </div>

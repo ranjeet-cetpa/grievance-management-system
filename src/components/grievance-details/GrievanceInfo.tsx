@@ -5,7 +5,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/services/axiosInstance';
-import { findEmployeeDetails } from '@/lib/helperFunction';
+import { extractUniqueDepartments, extractUniqueUnits, findEmployeeDetails } from '@/lib/helperFunction';
 
 interface GrievanceInfoProps {
   currentgroup: string;
@@ -28,15 +28,24 @@ export const GrievanceInfo = ({
 }: GrievanceInfoProps) => {
   console.log(currentgroup, 'this is current group');
   const user = useSelector((state: RootState) => state.user);
-  console.log('assignedUserDetails', assignedUserDetails);
-  const [roleName, setRoleName] = useState<string | null>(null);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
+  const unitsDD = extractUniqueUnits(employeeList);
+  const [roleName, setRoleName] = useState<string | null>(null);
+  const [description, setDescription] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState<string | null>();
+  const [unit, setUnit] = useState<string | null>();
   useEffect(() => {
     const fetchGroupDetails = async () => {
       try {
         const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${currentgroup}`);
 
         const roleId = response.data?.data?.group?.roleId;
+        const description = response.data?.data?.group?.description;
+        const unit = response.data?.data?.group?.unitId;
+        const groupName = response.data?.data?.group?.groupName;
+        setDescription(description);
+        setUnit(unit);
+        setGroupName(groupName);
         const roles = [
           { id: 1, roleName: 'Admin' },
           { id: 2, roleName: 'Managing Director' },
@@ -52,10 +61,7 @@ export const GrievanceInfo = ({
         console.error('Error fetching group details:', error);
       }
     };
-
-    if (currentgroup) {
-      fetchGroupDetails();
-    }
+    fetchGroupDetails();
   }, [currentgroup]);
 
   const InfoCard = ({ label, value, icon: Icon }: { label: string; value: string; icon: any }) => (
@@ -102,9 +108,16 @@ export const GrievanceInfo = ({
         label="Currently With"
         value={
           <>
-            <div className="flex gap-1 items-center">
+            <div className="flex  flex-col gap-1 ">
               <div>{assignedUserDetails || 'Not Assigned'}</div>
-              <div className="text-xs">{roleName ? `(${roleName})` : ''}</div>
+              <div className="flex gap-2">
+                <div className="text-xs">{roleName ? `${roleName}` : ''}</div>
+                {/* <div className="text-xs">{description ? `(${description})` : ''}</div> */}
+                {/* <div className="text-xs">
+                  {unit ? `(${unitsDD.find((u) => u.unitId === parseInt(unit)).unitName})` : ''}
+                </div> */}
+                <div className="text-xs">{groupName && roleName === 'Complaint Handler' ? `(${groupName})` : ''}</div>
+              </div>
             </div>
           </>
         }

@@ -94,7 +94,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   <div>
                     {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue}
                   </div>
-                  <div className="text-xs">
+                  <div className="text-xs text-gray-600">
                     {trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue === 'Redressal'
                       ? 'Complaint Handler'
                       : trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue}
@@ -126,7 +126,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                     </div>
                     <div className="text-center">
                       <div>{assignedUserDetailsChange?.newValue}</div>
-                      <div className="text-xs">
+                      <div className="text-xs text-gray-600">
                         {assignedUserRoleDetails?.newValue === 'Redressal'
                           ? 'Complaint Handler'
                           : assignedUserRoleDetails?.newValue}
