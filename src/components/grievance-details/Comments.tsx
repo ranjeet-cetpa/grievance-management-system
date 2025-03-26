@@ -38,7 +38,9 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const [comments, setComments] = useState<CommentDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [changeListArray, setChangeListArray] = useState([]);
   const [selectedAttachments, setSelectedAttachments] = useState<string[] | null>(null);
+  const [appealComments, setAppealComments] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -49,7 +51,21 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
 
         if (response.data.statusCode === 200) {
           const allComments = response.data.data.map((item: GrievanceHistory) => item.commentDetails[0]);
-          console.log(allComments, 'allComments');
+          setChangeListArray(response.data.data.map((item) => item.changeList));
+
+          // Identify appeal comments
+          const appealCommentIndexes = new Set<number>();
+          response.data.data.forEach((item, index) => {
+            if (index < response.data.data.length - 1) {
+              const nextItem = response.data.data[index + 1];
+              const hasRoundChange = nextItem.changeList?.some((change) => change.column === 'Round');
+              if (hasRoundChange && item.commentDetails[0]) {
+                appealCommentIndexes.add(index);
+              }
+            }
+          });
+          setAppealComments(appealCommentIndexes);
+
           if (allComments[0] === undefined) {
             setComments([]);
           } else {
@@ -129,7 +145,11 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                   return (
                     <div
                       key={index}
-                      className="group animate-fadeIn hover:bg-blue-100/100 p-3 rounded-xl transition-all duration-50 border border-gray-100 bg-blue-50/50"
+                      className={`group animate-fadeIn p-3 rounded-xl transition-all duration-50 border border-gray-100 ${
+                        appealComments.has(index)
+                          ? 'bg-red-200 hover:bg-red-100'
+                          : 'bg-blue-50/50 hover:bg-blue-100/100'
+                      }`}
                     >
                       <div className="flex items-start gap-3">
                         <Avatar
@@ -145,13 +165,22 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                              <span className="font-semibold text-gray-900 text-xs">{comment?.commentedByName}</span>
-                              <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {formatTimestamp(comment?.commentedDate)}
-                              </span>
+                          <div className="w-full flex items-center justify-between">
+                            <div className="flex w-full items-center flex-row   justify-between">
+                              <div className="flex gap-2">
+                                <span className="font-semibold text-gray-900 text-xs">{comment?.commentedByName}</span>
+                                <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {formatTimestamp(comment?.commentedDate)}
+                                </span>
+                              </div>
+                              <div>
+                                {appealComments.has(index) && (
+                                  <span className="text-10px] font-medium text-amber-600 bg-amber-200 px-2 py-0.5 rounded-full">
+                                    Appeal
+                                  </span>
+                                )}
+                              </div>
                             </div>
                             {comment?.attachment && comment?.attachment.length > 0 && (
                               <Button
