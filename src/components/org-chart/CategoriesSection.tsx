@@ -468,8 +468,8 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
       <Dialog open={editCategoryDialogOpen} onOpenChange={setEditCategoryDialogOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
-            <DialogDescription>Edit the category details</DialogDescription>
+            <DialogTitle>Edit Sub Section</DialogTitle>
+            {/* <DialogDescription>Edit Sub Section details</DialogDescription> */}
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
@@ -478,7 +478,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
                 id="description"
                 value={editCategoryDescription}
                 onChange={(e) => setEditCategoryDescription(e.target.value)}
-                placeholder="Enter category description"
+                placeholder="Enter new description"
               />
               <div className="flex items-center mt-2 space-x-2">
                 <Checkbox

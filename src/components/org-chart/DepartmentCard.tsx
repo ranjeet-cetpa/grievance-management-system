@@ -163,17 +163,17 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
       <Dialog open={addCategoryDialogOpen} onOpenChange={setAddCategoryDialogOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Add New Sub Section</DialogTitle>
-            <DialogDescription>Add a new sub section for {departmentName}</DialogDescription>
+            {/* <DialogTitle>Add New Sub Section</DialogTitle> */}
+            <DialogTitle>Add a new sub section for {departmentName}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="categoryName">Category Name</Label>
+              <Label htmlFor="categoryName">Sub Section Name</Label>
               <Input
                 id="categoryName"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="Enter category name"
+                placeholder="Enter sub section name"
                 disabled={isSubmitting}
               />
             </div>
