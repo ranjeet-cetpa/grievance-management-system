@@ -86,11 +86,7 @@ const RequestPage = () => {
       );
 
       if (verificationResponse.data.statusCode === 200) {
-        toast.success('Resolution rejected successfully!');
-        setSubmitStatus({
-          type: 'success',
-          message: 'Resolution rejected successfully!',
-        });
+        return null;
       } else {
         throw new Error('Verification failed');
       }
