@@ -103,8 +103,8 @@ export const GrievanceInfo = ({
         label="Currently With"
         value={
           <>
-            <div className="flex  flex-col gap-1 ">
-              <div>
+            <div className="flex text-sm  flex-col gap-1 ">
+              <div className="text-xs font-semibold">
                 {assignedUserDetails || 'Not Assigned'}
                 {findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation
                   ? ` ( ${findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation} )`

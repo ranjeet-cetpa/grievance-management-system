@@ -120,7 +120,7 @@ const Dashboard = () => {
 
         {dashboardTypePending && (
           <Card
-            className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none cursor-pointer"
+            className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-none cursor-pointer"
             onClick={() => {
               if (dashboardTypePending) navigate('redress-grievances');
               else navigate('/grievances');
@@ -130,12 +130,12 @@ const Dashboard = () => {
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Open</p>
                 <div className="flex items-baseline">
-                  <p className="text-2xl font-bold text-yellow-800">{dashboardData?.pending || 0}</p>
-                  <span className="ml-2 text-xs text-yellow-700">New</span>
+                  <p className="text-2xl font-bold text-green-800">{dashboardData?.pending || 0}</p>
+                  <span className="ml-2 text-xs text-green-700">New</span>
                 </div>
               </div>
-              <div className="p-2 bg-yellow-200 rounded-full">
-                <TimerReset className="h-6 w-6 text-yellow-800" />
+              <div className="p-2 bg-green-200 rounded-full">
+                <TimerReset className="h-6 w-6 text-green-800" />
               </div>
             </CardHeader>
           </Card>
@@ -163,7 +163,7 @@ const Dashboard = () => {
         </Card>
 
         <Card
-          className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-none cursor-pointer"
+          className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-red-100 to-red-200 border-none cursor-pointer"
           onClick={() => {
             if (dashboardTypePending) {
               navigate('/redress-grievances?mode=closed');
@@ -172,13 +172,13 @@ const Dashboard = () => {
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700">Resolved</p>
+              <p className="text-sm font-medium text-gray-700">Closed</p>
               <div className="flex items-baseline">
-                <p className="text-2xl font-bold text-green-800">{dashboardData?.resolved || 0}</p>
+                <p className="text-2xl font-bold text-red-800">{dashboardData?.resolved || 0}</p>
                 <span className="ml-2 text-xs text-green-700">Complete</span>
               </div>
             </div>
-            <div className="p-2 bg-green-200 rounded-full">
+            <div className="p-2 bg-red-200 rounded-full">
               <CheckCircle2 className="h-6 w-6 text-green-800" />
             </div>
           </CardHeader>
@@ -236,19 +236,15 @@ const Dashboard = () => {
                       Status:{' '}
                       <span
                         className={
-                          grievance.statusId === 1
+                          grievance.statusId === 1 || grievance.statusId === 2
                             ? 'text-green-600'
-                            : grievance.statusId === 2
-                            ? 'text-yellow-600'
                             : grievance.statusId === 3
                             ? 'text-red-600'
                             : 'text-muted-foreground'
                         }
                       >
-                        {grievance.statusId === 1
+                        {grievance.statusId === 1 || grievance.statusId === 2
                           ? 'Open'
-                          : grievance.statusId === 2
-                          ? 'In Progress'
                           : grievance.statusId === 3
                           ? 'Closed'
                           : 'Unknown'}
