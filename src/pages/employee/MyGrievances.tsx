@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import TableList from '@/components/ui/data-table';
 import SortingButton from '@/components/ui/SortingButton';
 import { format } from 'date-fns';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { Badge } from '@/components/ui/badge';
 
@@ -63,7 +63,11 @@ const MyGrievances = () => {
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(false);
-  const [activeTab, setActiveTab] = useState(FILTER_OPTIONS.OPEN);
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode');
+  const [activeTab, setActiveTab] = useState(
+    mode !== null ? (mode === 'closed' ? FILTER_OPTIONS.CLOSED : FILTER_OPTIONS.OPEN) : FILTER_OPTIONS.OPEN
+  );
   const navigate = useNavigate();
 
   // Function to Fetch Grievances from API
@@ -158,16 +162,16 @@ const MyGrievances = () => {
         </div>
       ),
     },
-    {
-      id: 'type',
-      accessorKey: 'round',
-      header: 'Type',
-      cell: ({ row }) => (
-        <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-          Transferred
-        </Badge>
-      ),
-    },
+    // {
+    //   id: 'type',
+    //   accessorKey: 'round',
+    //   header: 'Type',
+    //   cell: ({ row }) => (
+    //     <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+    //       Transferred
+    //     </Badge>
+    //   ),
+    // },
     {
       id: 'round',
       accessorKey: 'round',

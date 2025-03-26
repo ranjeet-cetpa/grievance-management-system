@@ -180,16 +180,16 @@ const MyGrievances = () => {
           header: 'Unit',
           cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
         },
-        {
-          id: 'type',
-          accessorKey: 'round',
-          header: 'Type',
-          cell: ({ row }) => (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-              Transferred
-            </Badge>
-          ),
-        },
+        // {
+        //   id: 'type',
+        //   accessorKey: 'round',
+        //   header: 'Type',
+        //   cell: ({ row }) => (
+        //     <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+        //       Transferred
+        //     </Badge>
+        //   ),
+        // },
         {
           id: 'round',
           accessorKey: 'round',

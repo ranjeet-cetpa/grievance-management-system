@@ -121,7 +121,10 @@ const Dashboard = () => {
         {dashboardTypePending && (
           <Card
             className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none cursor-pointer"
-            onClick={() => navigate('/redress-grievances')}
+            onClick={() => {
+              if (dashboardTypePending) navigate('redress-grievances');
+              else navigate('/grievances');
+            }}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
@@ -141,7 +144,8 @@ const Dashboard = () => {
         <Card
           className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-100 to-orange-200 border-none cursor-pointer"
           onClick={() => {
-            navigate('/redress-grievances?mode=inprogress');
+            if (dashboardTypePending) navigate('/redress-grievances?mode=inprogress');
+            else navigate('/grievances');
           }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -163,7 +167,7 @@ const Dashboard = () => {
           onClick={() => {
             if (dashboardTypePending) {
               navigate('/redress-grievances?mode=closed');
-            } else navigate('/grievances');
+            } else navigate('/grievances?mode=closed');
           }}
         >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
