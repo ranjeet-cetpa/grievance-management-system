@@ -83,7 +83,7 @@ export const GrievanceActions = ({
   const [hodGroups, setHodGroups] = useState<GroupMaster[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedHodGroup, setSelectedHodGroup] = useState<string>('');
-
+  const [allHODNames, setAllHODNames] = useState<string[]>([]);
   const [selectedMember, setSelectedMember] = useState<any>(null);
   const [isGroupChangeDialogOpen, setIsGroupChangeDialogOpen] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<string>('');
@@ -127,6 +127,26 @@ export const GrievanceActions = ({
     getFilteredGroupsForCGM();
     // Call the function to fetch members
   }, [grievance?.tGroupId]);
+
+  const findHODNames = async (hodGroups) => {
+    console.log('inside findHODNAMes', hodGroups);
+    var toPush = [];
+    hodGroups.map(async (hodGroup) => {
+      const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${hodGroup.id}`);
+
+      if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
+        console.log('this is response hod group ', response.data.data);
+        const firstUser = await response.data.data.groupMapping[0][0];
+        toPush.push(firstUser);
+        // Create form data for transfer
+      }
+
+      setAllHODNames(toPush);
+    });
+  };
+  useEffect(() => {
+    findHODNames(hodGroups);
+  }, [hodGroups]);
 
   const fetchHodGroupMembers = async () => {
     try {
@@ -606,7 +626,10 @@ export const GrievanceActions = ({
                   <SelectContent>
                     {hodGroups?.map((group) => (
                       <SelectItem key={group.id} value={group.id.toString()}>
-                        {group.description?.replace('HOD', '')}
+                        {group.description?.replace('HOD', '') +
+                          '   ( ' +
+                          allHODNames.find((h) => h?.groupId === group?.id)?.userDetails +
+                          ' )'}
                       </SelectItem>
                     ))}
                   </SelectContent>
