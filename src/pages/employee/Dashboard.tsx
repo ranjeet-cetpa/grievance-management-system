@@ -10,6 +10,7 @@ import axiosInstance from '@/services/axiosInstance';
 import Loader from '@/components/ui/loader';
 import { useNavigate } from 'react-router';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { format } from 'date-fns';
 
 const Dashboard = () => {
   const user = useSelector((state: RootState) => state.user);
@@ -33,13 +34,7 @@ const Dashboard = () => {
     }
   };
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return format(new Date(date), 'dd MMM, yyyy, hh:mm a');
   };
 
   useEffect(() => {
@@ -98,11 +93,20 @@ const Dashboard = () => {
             : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
         }`}
       >
-        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-100 to-blue-200 border-none">
+        <Card
+          className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-blue-100 to-blue-200 border-none cursor-pointer"
+          onClick={() => {
+            if (dashboardTypePending) {
+              navigate('/redress-grievances');
+            } else {
+              navigate('/grievances');
+            }
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">
-                {dashboardTypePending ? 'Total Actionable Grievances' : 'Total Submitted'}
+                {dashboardTypePending ? 'Total Grievances' : 'Total Submitted'}
               </p>
               <div className="flex items-baseline">
                 <p className="text-2xl font-bold text-blue-800">{dashboardData?.totalGrievance || 0}</p>
@@ -115,7 +119,10 @@ const Dashboard = () => {
         </Card>
 
         {dashboardTypePending && (
-          <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none">
+          <Card
+            className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-yellow-100 to-yellow-200 border-none cursor-pointer"
+            onClick={() => navigate('/redress-grievances')}
+          >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-gray-700">Open</p>
@@ -131,7 +138,12 @@ const Dashboard = () => {
           </Card>
         )}
 
-        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-100 to-orange-200 border-none">
+        <Card
+          className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-orange-100 to-orange-200 border-none cursor-pointer"
+          onClick={() => {
+            navigate('/redress-grievances?mode=inprogress');
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">In Progress</p>
@@ -146,7 +158,14 @@ const Dashboard = () => {
           </CardHeader>
         </Card>
 
-        <Card className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-none">
+        <Card
+          className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-none cursor-pointer"
+          onClick={() => {
+            if (dashboardTypePending) {
+              navigate('/redress-grievances?mode=closed');
+            } else navigate('/grievances');
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
               <p className="text-sm font-medium text-gray-700">Resolved</p>
@@ -200,7 +219,7 @@ const Dashboard = () => {
                 <div
                   key={grievance.id || i}
                   onClick={() => {
-                    if (dashboardTypePending) navigate(`/redressal-grievances/${grievance.id}`);
+                    if (dashboardTypePending) navigate(`/redress-grievances/${grievance.id}`);
                     else navigate(`/grievances/${grievance.id}`);
                   }}
                   className="flex items-center gap-4 border-b pb-4 last:border-0 cursor-pointer hover:bg-gray-100"

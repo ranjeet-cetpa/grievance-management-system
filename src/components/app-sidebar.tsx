@@ -61,7 +61,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     },
     canViewRedressalGrievances && {
       title: 'Redress Grievances',
-      url: '/redressal-grievances',
+      url: '/redress-grievances',
       icon: UserRoundPen,
     },
   ].filter(Boolean);

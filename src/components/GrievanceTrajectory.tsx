@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { Label } from './ui/label';
 import Heading from './ui/heading';
+import { format } from 'date-fns';
 
 const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
@@ -15,12 +16,9 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
     return `rgb(${r}, ${g}, ${b})`;
   };
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return format(new Date(date), 'dd MMM, yyyy');
   };
+
   const formatRoleName = (role: string) => {
     switch (role.toLowerCase()) {
       case 'redressal':

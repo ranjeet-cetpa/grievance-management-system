@@ -6,6 +6,7 @@ import { RootState } from '@/app/store';
 import { useEffect, useState } from 'react';
 import axiosInstance from '@/services/axiosInstance';
 import { extractUniqueDepartments, extractUniqueUnits, findEmployeeDetails } from '@/lib/helperFunction';
+import { format } from 'date-fns';
 
 interface GrievanceInfoProps {
   currentgroup: string;
@@ -85,13 +86,7 @@ export const GrievanceInfo = ({
   );
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    return format(new Date(date), 'dd MMM, yyyy, hh:mm a');
   };
 
   return (

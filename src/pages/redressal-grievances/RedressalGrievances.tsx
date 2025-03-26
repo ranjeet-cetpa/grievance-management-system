@@ -10,7 +10,7 @@ import TableList from '@/components/ui/data-table';
 import SortingButton from '@/components/ui/SortingButton';
 import { format } from 'date-fns';
 import StatusBadge from '@/components/common/StatusBadge';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import toast from 'react-hot-toast';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { Badge } from '@/components/ui/badge';
@@ -63,9 +63,13 @@ const MyGrievances = () => {
   const [grievances, setGrievances] = useState<GrievanceResponse['data']>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const [selectedTab, setSelectedTab] = useState(FILTER_OPTIONS.OPEN); // Track selected tab
+  const [searchParams] = useSearchParams();
+  const mode = searchParams.get('mode');
+  const [selectedTab, setSelectedTab] = useState(
+    mode !== null ? (mode === 'inprogress' ? FILTER_OPTIONS.InProgress : FILTER_OPTIONS.Closed) : FILTER_OPTIONS.OPEN
+  );
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-
+  console.log(mode, 'mode');
   const fetchGrievances = async () => {
     setLoading(true);
     const response = await axiosInstance.get(
@@ -261,7 +265,7 @@ const MyGrievances = () => {
                 ) {
                   await updateGrievanceStatus(rowData, user);
                 }
-                navigate(`/redressal-grievances/${rowData.id.toString().trim()}`);
+                navigate(`/redress-grievances/${rowData.id.toString().trim()}`);
               }}
               rightElements={
                 <Tabs>

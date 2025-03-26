@@ -38,9 +38,6 @@ const SiteHeader: React.FC = ({ showtoggle = true }: { showtoggle?: boolean }) =
             <span className="text-sm md:text-md text-gray-600">A Govt. of India (Ministry of Railways) Enterprise</span>
           </Link>
         </div>
-        <Heading type={5} className="text-primary">
-          Grievance Management System
-        </Heading>
 
         {/* Right Section (User Info + Logout Button) */}
         <div className="flex items-center space-x-6">
@@ -56,6 +53,11 @@ const SiteHeader: React.FC = ({ showtoggle = true }: { showtoggle?: boolean }) =
             <img src={HomeIconLogo} alt="Logout" className="w-6 h-6" />
           </button> */}
         </div>
+      </div>
+      <div className="flex items-center justify-center">
+        <p className="text-primary text-center rounded-md px-2 bg-white font-bold text-lg">
+          Grievance Management System
+        </p>
       </div>
     </header>
   );

@@ -28,8 +28,10 @@ const AppRoutes = () => {
         <Route path="/manage-services" element={<ManageUsers />} />
         <Route path="/manage-roles" element={<ManageRoles />} />
         <Route path="/grievances" element={<MyGrievances />} />
-        <Route path="/redressal-grievances" element={<RedressalGrievances />} />
-        <Route path="/redressal-grievances/:grievanceId" element={<GrievanceDetails />} />
+        <Route path="/redress-grievances" element={<RedressalGrievances />} />
+        <Route path="/redress-grievances/:grievanceId" element={<GrievanceDetails />} />
+        <Route path="/redress-grievances?:mode" element={<RedressalGrievances />} />
+
         <Route path="/grievances/:grievanceId" element={<GrievanceDetails />} />
       </Route>
       <Route element={<AdminPrivateRoute />}>
