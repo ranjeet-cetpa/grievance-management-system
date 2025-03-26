@@ -20,7 +20,8 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   };
 
   const formatRoleName = (role: string) => {
-    switch (role.toLowerCase()) {
+    console.log(role);
+    switch (role?.toLowerCase()) {
       case 'redressal':
         return 'Complaint Handler';
       case 'nodalofficer':

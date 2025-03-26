@@ -606,7 +606,7 @@ export const GrievanceActions = ({
                   <SelectContent>
                     {hodGroups?.map((group) => (
                       <SelectItem key={group.id} value={group.id.toString()}>
-                        {group.description}
+                        {group.description?.replace('HOD', '')}
                       </SelectItem>
                     ))}
                   </SelectContent>

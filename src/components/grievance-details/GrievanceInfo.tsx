@@ -106,7 +106,9 @@ export const GrievanceInfo = ({
             <div className="flex  flex-col gap-1 ">
               <div>
                 {assignedUserDetails || 'Not Assigned'}
-                {` (${findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation})`}
+                {findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation
+                  ? ` ( ${findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation} )`
+                  : ''}
               </div>
               <div className="flex gap-2">
                 <div className="text-xs">{roleName ? `${roleName}` : ''}</div>
