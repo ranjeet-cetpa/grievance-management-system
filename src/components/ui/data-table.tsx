@@ -24,6 +24,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from './pagination';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 interface TableListProps {
   data: any[];
@@ -78,6 +80,7 @@ export default function TableList({
   const totalPages = table.getPageCount();
   const currentRangeStart = pageIndex * pageSize + 1;
   const currentRangeEnd = Math.min((pageIndex + 1) * pageSize, totalRows);
+  const user = useSelector((state: RootState) => state.user);
 
   // Generate Pagination Buttons with Ellipses Logic
   const getPaginationButtons = () => {
@@ -155,7 +158,12 @@ export default function TableList({
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                   onClick={() => onRowClick && onRowClick(row.original)} // <-- Trigger onRowClick here
-                  className="cursor-pointer hover:bg-gray-300 "
+                  className={`cursor-pointer ${
+                    row.original?.isVisited === false &&
+                    row.original?.modifiedBy?.toString() === user?.EmpCode?.toString()
+                      ? 'bg-red-200'
+                      : ''
+                  } hover:bg-gray-300 `}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="p-3">

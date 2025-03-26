@@ -456,6 +456,7 @@ const GrievanceDetails = () => {
       formData.set('TUnitId', grievance?.tUnitId);
       formData.set('TDepartment', grievance?.tDepartment);
       formData.set('TGroupId', grievance?.tGroupId);
+      formData.set('isVisited', 'false');
 
       // Add comment if provided
       if (commentText) {
