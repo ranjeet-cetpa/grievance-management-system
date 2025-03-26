@@ -122,7 +122,7 @@ const Dashboard = () => {
           <Card
             className="transition-all duration-300 hover:scale-[1.03] hover:shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-none cursor-pointer"
             onClick={() => {
-              if (dashboardTypePending) navigate('redress-grievances');
+              if (dashboardTypePending) navigate('/redress-grievances');
               else navigate('/grievances');
             }}
           >
