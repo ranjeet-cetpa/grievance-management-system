@@ -236,18 +236,14 @@ const Dashboard = () => {
                       Status:{' '}
                       <span
                         className={
-                          grievance.statusId === 1 || grievance.statusId === 2
+                          grievance.status === 'Open'
                             ? 'text-green-600'
-                            : grievance.statusId === 3
-                            ? 'text-red-600'
+                            : grievance.status === 'InProgress'
+                            ? 'text-yellow-600'
                             : 'text-muted-foreground'
                         }
                       >
-                        {grievance.statusId === 1 || grievance.statusId === 2
-                          ? 'Open'
-                          : grievance.statusId === 3
-                          ? 'Closed'
-                          : 'Unknown'}
+                        {grievance.status}
                       </span>
                     </p>
                   </div>
