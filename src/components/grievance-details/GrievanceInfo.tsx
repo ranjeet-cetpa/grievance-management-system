@@ -86,6 +86,7 @@ export const GrievanceInfo = ({
   );
 
   const formatDate = (date: string) => {
+    if (!date) return '';
     return format(new Date(date), 'dd MMM, yyyy, hh:mm a');
   };
 

@@ -41,6 +41,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
   const [changeListArray, setChangeListArray] = useState([]);
   const [selectedAttachments, setSelectedAttachments] = useState<string[] | null>(null);
   const [appealComments, setAppealComments] = useState<Set<number>>(new Set());
+  const [appealLevels, setAppealLevels] = useState<Map<number, number>>(new Map());
 
   useEffect(() => {
     const fetchComments = async () => {
@@ -53,18 +54,24 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
           const allComments = response.data.data.map((item: GrievanceHistory) => item.commentDetails[0]);
           setChangeListArray(response.data.data.map((item) => item.changeList));
 
-          // Identify appeal comments
+          // Identify appeal comments and their levels
           const appealCommentIndexes = new Set<number>();
+          const appealLevelMap = new Map<number, number>();
+          let appealLevel = 2;
+
           response.data.data.forEach((item, index) => {
             if (index < response.data.data.length - 1) {
               const nextItem = response.data.data[index + 1];
               const hasRoundChange = nextItem.changeList?.some((change) => change.column === 'Round');
               if (hasRoundChange && item.commentDetails[0]) {
                 appealCommentIndexes.add(index);
+                appealLevelMap.set(index, appealLevel);
+                appealLevel--;
               }
             }
           });
           setAppealComments(appealCommentIndexes);
+          setAppealLevels(appealLevelMap);
 
           if (allComments[0] === undefined) {
             setComments([]);
@@ -147,7 +154,7 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                       key={index}
                       className={`group animate-fadeIn p-3 rounded-xl transition-all duration-50 border border-gray-100 ${
                         appealComments.has(index)
-                          ? 'bg-red-200 hover:bg-red-100'
+                          ? 'bg-red-50/50 hover:bg-red-100/100'
                           : 'bg-blue-50/50 hover:bg-blue-100/100'
                       }`}
                     >
@@ -176,8 +183,8 @@ export const Comments = ({ grievanceId }: CommentsProps) => {
                               </div>
                               <div>
                                 {appealComments.has(index) && (
-                                  <span className="text-10px] font-medium text-amber-600 bg-amber-200 px-2 py-0.5 rounded-full">
-                                    Appeal
+                                  <span className="text-[13px] font-medium text-amber-600 bg-amber-200 px-2 py-0.5 rounded-full">
+                                    {appealComments.size > 1 ? 'Appeal - ' + appealLevels.get(index) : 'Appeal - 1 '}
                                   </span>
                                 )}
                               </div>

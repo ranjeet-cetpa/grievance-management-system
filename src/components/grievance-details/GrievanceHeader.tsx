@@ -42,7 +42,7 @@ export const GrievanceHeader = ({ title, statusId, round, assignedUserCode }: Gr
           <div className="flex gap-3 items-center">
             {(round === 2 || round === 3) && (
               <span className="px-3 py-1 text-sm font-medium text-gray-700 rounded-full animate-[pulse_4s_ease-in-out_infinite] bg-pink-200">
-                Appeal - Level {Number(round) - 1}
+                Appeal - {Number(round) - 1}
               </span>
             )}
             {getStatusBadge()}
