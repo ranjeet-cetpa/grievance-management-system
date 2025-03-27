@@ -111,21 +111,23 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
           console.log('Filtered Trajectory Data', filteredData);
           setOldTrajectory(filteredData);
 
-          let newFilteredData = [...filteredData]; // Create a shallow copy of filteredData
+          let newFilteredData = [...filteredData].sort((a, b) => {
+            // Find the CreatedDate object in each changeList
+            const dateAObj = a.changeList.find((item) => item.column === 'CreatedDate');
+            const dateBObj = b.changeList.find((item) => item.column === 'CreatedDate');
 
-          for (let i = 1; i < newFilteredData.length; i++) {
-            if (newFilteredData[i].roundchanger === true) {
-              // Swap the current object with the previous one
-              let temp = newFilteredData[i];
-              newFilteredData[i] = newFilteredData[i - 1];
-              newFilteredData[i - 1] = temp;
-            }
-          }
+            // Get the newValue or fallback to a default date if not found
+            const dateA = dateAObj ? new Date(dateAObj.newValue) : new Date(0);
+            const dateB = dateBObj ? new Date(dateBObj.newValue) : new Date(0);
+
+            // Sort in ascending order (earliest date first)
+            return dateA - dateB;
+          });
 
           setTrajectory(newFilteredData);
           // Generate random colors for each node
           const colors = {};
-          filteredData.forEach((process) => {
+          newFilteredData.forEach((process) => {
             // Use a specific color for seAppeal nodes
             if (process.grievanceProcessId.toString().includes('creator-')) {
               colors[process.grievanceProcessId] = '#FFE4B5'; // Light orange color for appeal nodes
