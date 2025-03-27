@@ -181,32 +181,26 @@ const MyGrievances = () => {
           header: 'Unit',
           cell: ({ row }) => <div className="text-sm">{row.original.unitName}</div>,
         },
-        {
-          id: 'type',
-          accessorKey: 'isTransferred',
-          header: 'Type',
-          cell: ({ row }) => (
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
-              {row.original.isTransferred ? 'Transferred' : 'Assigned'}
-            </Badge>
-          ),
-        },
+        // {
+        //   id: 'type',
+        //   accessorKey: 'isTransferred',
+        //   header: 'Type',
+        //   cell: ({ row }) => (
+        //     <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-50">
+        //       {row.original.isTransferred ? 'Transferred' : 'Assigned'}
+        //     </Badge>
+        //   ),
+        // },
         {
           id: 'round',
           accessorKey: 'round',
-          header: 'Round',
-          cell: ({ row }) => (
-            <Badge
-              variant="outline"
-              className={
-                row.original.round > 1
-                  ? 'bg-purple-50 text-purple-700 hover:bg-purple-50'
-                  : 'bg-green-50 text-green-700 hover:bg-green-50'
-              }
-            >
-              {row.original.round > 1 ? `Appeal (${row.original.round - 1})` : 'Round 1'}
-            </Badge>
-          ),
+          header: '',
+          cell: ({ row }) =>
+            row.original.round > 1 ? (
+              <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-50">
+                {`Appeal (${row.original.round - 1})`}
+              </Badge>
+            ) : null,
         },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes

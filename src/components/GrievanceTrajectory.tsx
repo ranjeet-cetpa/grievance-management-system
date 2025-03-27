@@ -11,6 +11,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
   const [oldTrajectory, setOldTrajectory] = useState([]);
   const [nodeColors, setNodeColors] = useState({});
+  const [creator, setCreator] = useState('');
   const containerRef = useRef(null); // Reference for the container
   const employeeList = useSelector((state: RootState) => state.employee.employees);
 
@@ -54,6 +55,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
             process.changeList.some((change) => change.column === 'Round')
           );
           const creator = findEmployeeDetails(employeeList, grievance?.createdBy)?.employee?.empName;
+          setCreator(creator);
 
           // For each round change, insert creator's info
           roundChanges.forEach((roundProcess, index) => {
@@ -69,8 +71,8 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                 changeList: [
                   {
                     column: 'AssignedUserCode',
-                    oldValue: creator,
-                    newValue: creator,
+                    oldValue: grievance.createdBy,
+                    newValue: grievance.createdBy,
                   },
                   {
                     column: 'AssignedUserDetails',
@@ -159,10 +161,29 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
             Grievance Flow History
           </Heading>
           <div
-            ref={containerRef} // Attach the ref to the container
+            ref={containerRef}
             className="flex items-center space-x-6 overflow-x-auto p-6 bg-gray-50 rounded-lg shadow-md"
           >
             <div className="flex items-center">
+              {/* Creator Node */}
+              <div
+                className="text-sm font-semibold min-w-[220px] h-[80px] px-3 py-2 rounded-lg shadow flex flex-col justify-between"
+                style={{
+                  backgroundColor: '#e6ffe6',
+                  border: '3px solid green ',
+                }}
+              >
+                <div className="flex justify-between text-xs text-gray-600">
+                  <span>{formatDate(grievance?.createdDate)}</span>
+                  <span>{formatTime(grievance?.createdDate)}</span>
+                </div>
+                <div className="text-center">
+                  <div>{creator}</div>
+                  <div className="text-xs text-gray-600">Creator</div>
+                </div>
+              </div>
+              <span className="text-3xl font-bold text-gray-400 px-3">→</span>
+              {/* Existing Static Node */}
               <div
                 className="text-sm font-semibold min-w-[220px] h-[80px] px-3 py-2 rounded-lg shadow flex flex-col justify-between"
                 style={{

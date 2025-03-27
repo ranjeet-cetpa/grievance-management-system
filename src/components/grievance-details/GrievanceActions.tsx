@@ -627,9 +627,8 @@ export const GrievanceActions = ({
                     {hodGroups?.map((group) => (
                       <SelectItem key={group.id} value={group.id.toString()}>
                         {group.description?.replace('HOD', '') +
-                          '   ( ' +
-                          allHODNames.find((h) => h?.groupId === group?.id)?.userDetails +
-                          ' )'}
+                          '  - ' +
+                          allHODNames.find((h) => h?.groupId === group?.id)?.userDetails}
                       </SelectItem>
                     ))}
                   </SelectContent>

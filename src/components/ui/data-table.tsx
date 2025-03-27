@@ -161,9 +161,15 @@ export default function TableList({
                   className={`cursor-pointer ${
                     row.original?.isVisited === false &&
                     row.original?.modifiedBy?.toString() === user?.EmpCode?.toString()
-                      ? 'bg-red-200'
+                      ? 'bg-red-200 hover:bg-red-400'
                       : ''
-                  } hover:bg-gray-300 `}
+                  } ${
+                    row.original?.isTransferred &&
+                    row.original?.statusId !== 3 &&
+                    row.original?.assignedUserCode?.toString() === user?.EmpCode.toString()
+                      ? 'bg-yellow-200 hover:bg-yellow-300'
+                      : ''
+                  }  `}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="p-3">
@@ -181,6 +187,18 @@ export default function TableList({
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Color Legend */}
+      <div className="flex gap-4 mt-2 mb-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-yellow-300 rounded"></div>
+          <span>Transferred Cases</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-red-300 rounded"></div>
+          <span>Closed Cases</span>
+        </div>
       </div>
 
       {/* Pagination */}

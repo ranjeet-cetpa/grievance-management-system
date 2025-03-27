@@ -108,7 +108,7 @@ export const GrievanceInfo = ({
               <div className="text-xs font-semibold">
                 {assignedUserDetails || 'Not Assigned'}
                 {findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation
-                  ? ` ( ${findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation} )`
+                  ? ` | ${findEmployeeDetails(employeeList, assignedUserCode.toString())?.employee?.designation} `
                   : ''}
               </div>
               <div className="flex gap-2">
@@ -118,7 +118,7 @@ export const GrievanceInfo = ({
                   {unit ? `(${unitsDD.find((u) => u.unitId === parseInt(unit)).unitName})` : ''}
                 </div> */}
                 <div className="text-xs capitalize">
-                  {groupName && roleName === 'Complaint Handler' ? `(${groupName})` : ''}
+                  {groupName && roleName === 'Complaint Handler' ? ` | ${groupName}` : ''}
                 </div>
               </div>
             </div>
