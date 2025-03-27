@@ -63,7 +63,7 @@ const Dashboard = () => {
     <div className="p-6 space-y-6">
       <div className="flex  justify-between">
         <div>
-          <Heading type={4}>Dashboard</Heading>
+          <Heading type={5}>Dashboard</Heading>
         </div>
         <div>
           <ToggleGroup

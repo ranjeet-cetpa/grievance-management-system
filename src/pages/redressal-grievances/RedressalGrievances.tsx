@@ -14,6 +14,7 @@ import { useNavigate, useSearchParams } from 'react-router';
 import toast from 'react-hot-toast';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { Badge } from '@/components/ui/badge';
+import Heading from '@/components/ui/heading';
 
 const FILTER_OPTIONS = {
   OPEN: 'open',
@@ -244,7 +245,7 @@ const MyGrievances = () => {
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-2xl font-bold text-gray-800">Redress Grievances</CardTitle>
+              <Heading type={5}>Redress Grievances</Heading>
             </div>
           </div>
         </CardHeader>

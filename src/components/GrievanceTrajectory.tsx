@@ -42,12 +42,9 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
         const response = await axiosInstance.get(`/Grievance/GrievanceHistory?grievanceId=${grievanceId}`);
         if (response.data.statusCode === 200) {
           console.log('response.data.data for trajectory', response.data.data);
-          let processedData = response.data.data.filter((process) => process.changeList.length > 0); // Filter out processes without changes
-
-          // Remove the first process
-
-          // Filter data to only include changes related to user assignments
+          let processedData = response.data.data.filter((process) => process.changeList.length > 0);
           const filteredData = processedData.filter((current, index, array) => {
+            //    console.log(array, current, index, 'hello  ');
             const currentAssignedUserCode = current.changeList.some((change) => change.column === 'AssignedUserCode');
             const nextAssignedUserCode = array[index + 1]?.changeList.find(
               (change) => change.column === 'AssignedUserCode'

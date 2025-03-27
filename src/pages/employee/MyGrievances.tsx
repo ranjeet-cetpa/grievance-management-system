@@ -17,6 +17,7 @@ import { format } from 'date-fns';
 import { useNavigate, useSearchParams } from 'react-router';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { Badge } from '@/components/ui/badge';
+import Heading from '@/components/ui/heading';
 
 interface GrievanceResponse {
   totalRecords: number;
@@ -196,7 +197,9 @@ const MyGrievances = () => {
       <Card className="rounded-md mt-2 mx-2">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-2xl font-bold text-gray-800">My Grievances</CardTitle>
+            <CardTitle>
+              <Heading type={5}>My Grievances</Heading>
+            </CardTitle>
             <CreateGrievance refreshGrievances={refreshGrievances} />
           </div>
         </CardHeader>

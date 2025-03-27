@@ -51,7 +51,7 @@ const OrganizationChart = () => {
       <Card className="rounded-md mt-2 mx-2">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-violet-50 rounded-t-lg">
           <div className="flex justify-between items-center">
-            <Heading type={4}>Grievance Organization</Heading>
+            <Heading type={5}>Grievance Organization</Heading>
             <div className="flex items-center gap-6">
               <ToggleGroup
                 type="single"

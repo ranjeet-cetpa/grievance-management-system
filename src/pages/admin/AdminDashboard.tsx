@@ -127,8 +127,7 @@ const AdminDashboard = () => {
       <div className="flex flex-row items-center justify-between">
         <div className="space-y-1">
           {loading && <Loader />}
-          <Heading type={4}>Dashboard</Heading>
-          <p className="text-gray-500">Overview of grievance management system</p>
+          <Heading type={5}>Dashboard</Heading>
         </div>{' '}
         <div className="flex gap-2">
           <DropdownMenu>
