@@ -3,11 +3,16 @@ import axiosInstance from '@/services/axiosInstance';
 import { Label } from './ui/label';
 import Heading from './ui/heading';
 import { format } from 'date-fns';
+import { findEmployeeDetails } from '@/lib/helperFunction';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
+  const [oldTrajectory, setOldTrajectory] = useState([]);
   const [nodeColors, setNodeColors] = useState({});
   const containerRef = useRef(null); // Reference for the container
+  const employeeList = useSelector((state: RootState) => state.employee.employees);
 
   const generateRandomColor = () => {
     const r = Math.floor(Math.random() * 156) + 200; // Ensure light colors (100-255)
@@ -43,8 +48,57 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
         if (response.data.statusCode === 200) {
           console.log('response.data.data for trajectory', response.data.data);
           let processedData = response.data.data.filter((process) => process.changeList.length > 0);
-          const filteredData = processedData.filter((current, index, array) => {
-            //    console.log(array, current, index, 'hello  ');
+
+          // Find processes with Round changes
+          const roundChanges = processedData.filter((process) =>
+            process.changeList.some((change) => change.column === 'Round')
+          );
+          const creator = findEmployeeDetails(employeeList, grievance?.createdBy)?.employee?.empName;
+
+          // For each round change, insert creator's info
+          roundChanges.forEach((roundProcess, index) => {
+            const roundChangeIndex = processedData.findIndex(
+              (p) => p.grievanceProcessId === roundProcess.grievanceProcessId
+            );
+
+            if (roundChangeIndex !== -1) {
+              const creatorNode = {
+                grievanceProcessId: `creator-${roundProcess.grievanceProcessId}`,
+                border: true,
+                roundchanger: true,
+                changeList: [
+                  {
+                    column: 'AssignedUserCode',
+                    oldValue: creator,
+                    newValue: creator,
+                  },
+                  {
+                    column: 'AssignedUserDetails',
+                    oldValue: creator,
+                    newValue: creator,
+                  },
+                  {
+                    column: 'RoleName',
+                    oldValue: `Appeal-${roundChanges.length - index}`,
+                    newValue: `Appeal-${roundChanges.length - index}`,
+                  },
+                  {
+                    column: 'CreatedDate',
+                    oldValue: roundProcess.changeList.find((c) => c.column === 'CreatedDate')?.oldValue,
+                    newValue: roundProcess.changeList.find((c) => c.column === 'CreatedDate')?.oldValue,
+                  },
+                ],
+              };
+              // const part1 = processedData.slice(0, roundChangeIndex);
+              // const part2 = processedData.slice(roundChangeIndex + 1);
+              // processedData = [...part1, creatorNode, ...part2];
+              processedData.splice(roundChangeIndex, 0, creatorNode);
+            }
+          });
+
+          console.log('Processed Data before swapping', processedData);
+
+          const filteredData = processedData.reverse().filter((current, index, array) => {
             const currentAssignedUserCode = current.changeList.some((change) => change.column === 'AssignedUserCode');
             const nextAssignedUserCode = array[index + 1]?.changeList.find(
               (change) => change.column === 'AssignedUserCode'
@@ -53,12 +107,31 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
           });
 
           console.log('filtered trajectory data ', filteredData);
-          setTrajectory(filteredData.reverse());
+          // setTrajectory(filteredData);
+          console.log('Filtered Trajectory Data', filteredData);
+          setOldTrajectory(filteredData);
 
+          let newFilteredData = [...filteredData]; // Create a shallow copy of filteredData
+
+          for (let i = 1; i < newFilteredData.length; i++) {
+            if (newFilteredData[i].roundchanger === true) {
+              // Swap the current object with the previous one
+              let temp = newFilteredData[i];
+              newFilteredData[i] = newFilteredData[i - 1];
+              newFilteredData[i - 1] = temp;
+            }
+          }
+
+          setTrajectory(newFilteredData);
           // Generate random colors for each node
           const colors = {};
           filteredData.forEach((process) => {
-            colors[process.grievanceProcessId] = generateRandomColor();
+            // Use a specific color for seAppeal nodes
+            if (process.grievanceProcessId.toString().includes('creator-')) {
+              colors[process.grievanceProcessId] = '#FFE4B5'; // Light orange color for appeal nodes
+            } else {
+              colors[process.grievanceProcessId] = generateRandomColor();
+            }
           });
           setNodeColors(colors);
         }
@@ -68,7 +141,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
     };
 
     fetchGrievanceHistory();
-  }, [grievanceId]);
+  }, [grievanceId, grievance]);
 
   useEffect(() => {
     if (containerRef.current) {
@@ -100,13 +173,14 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                 </div>
                 <div className="text-center">
                   <div>
-                    {trajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue}
+                    {oldTrajectory[0]?.changeList.find((change) => change.column === 'AssignedUserDetails')?.oldValue}
                   </div>
                   <div className="text-xs text-gray-600">
-                    {trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue === 'Redressal'
+                    {oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue ===
+                    'Redressal'
                       ? 'Complaint Handler'
                       : formatRoleName(
-                          trajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
+                          oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
                         )}
                   </div>
                 </div>
@@ -128,6 +202,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                     style={{
                       backgroundColor: nodeColors[process.grievanceProcessId] || '#E5E7EB',
                       color: '#000',
+                      border: process.border ? '3px solid red' : 'none',
                     }}
                   >
                     <div className="flex justify-between text-xs text-gray-600">
