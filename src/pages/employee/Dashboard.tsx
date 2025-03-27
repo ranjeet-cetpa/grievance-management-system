@@ -179,7 +179,7 @@ const Dashboard = () => {
               </div>
             </div>
             <div className="p-2 bg-red-200 rounded-full">
-              <CheckCircle2 className="h-6 w-6 text-green-800" />
+              <CheckCircle2 className="h-6 w-6 text-red-800" />
             </div>
           </CardHeader>
         </Card>

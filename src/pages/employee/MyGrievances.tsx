@@ -202,6 +202,7 @@ const MyGrievances = () => {
             <Loader />
           ) : (
             <TableList
+              showLegend = {false}
               data={
                 activeTab === FILTER_OPTIONS.OPEN
                   ? openGrievances

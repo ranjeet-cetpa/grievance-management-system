@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { findEmployeeDetails } from '@/lib/helperFunction';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
+import { Hand } from 'lucide-react';
 
 const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   const [trajectory, setTrajectory] = useState([]);
@@ -81,8 +82,8 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   },
                   {
                     column: 'RoleName',
-                    oldValue: `Appeal-${roundChanges.length - index}`,
-                    newValue: `Appeal-${roundChanges.length - index}`,
+                    oldValue: `${roundChanges.length - index}`,
+                    newValue: `${roundChanges.length - index}`,
                   },
                   {
                     column: 'CreatedDate',
@@ -179,7 +180,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                 </div>
                 <div className="text-center">
                   <div>{creator}</div>
-                  <div className="text-xs text-gray-600">Creator</div>
+                  <div className="text-xs text-gray-600">Requestor</div>
                 </div>
               </div>
               <span className="text-3xl font-bold text-gray-400 px-3">→</span>
@@ -200,11 +201,11 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   </div>
                   <div className="text-xs text-gray-600">
                     {oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue ===
-                    'Redressal'
+                      'Redressal'
                       ? 'Complaint Handler'
                       : formatRoleName(
-                          oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
-                        )}
+                        oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
+                      )}
                   </div>
                 </div>
               </div>
@@ -217,6 +218,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
               );
               const assignedUserRoleDetails = process.changeList.find((change) => change.column === 'RoleName');
               const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
+              const comment = process?.commentList?.comment || ""
 
               return (
                 <div key={process.grievanceProcessId} className="flex items-center">
@@ -230,11 +232,17 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   >
                     <div className="flex justify-between text-xs text-gray-600">
                       <span>{formatDate(createdDateChange?.newValue)}</span>
+                      <div className="flex gap-1 items-center">
+                        {process.border && <div className='mb-0.5'><Hand size={16} strokeWidth={1.5} /></div>}
+                        {process.border && '(' + assignedUserRoleDetails?.newValue + ')'}
+                      </div>
                       <span>{formatTime(createdDateChange?.newValue)}</span>
                     </div>
                     <div className="text-center">
                       <div>{assignedUserDetailsChange?.newValue}</div>
-                      <div className="text-xs text-gray-600">{formatRoleName(assignedUserRoleDetails?.newValue)}</div>
+                      {!process.border && <div className="text-xs text-gray-600">{formatRoleName(assignedUserRoleDetails?.newValue)}</div>
+                      }
+                      {process.border && <div className="text-xs text-gray-600">Requestor</div>}
                     </div>
                   </div>
                   {index < trajectory.length - 1 && <span className="text-3xl font-bold text-gray-400 px-3">→</span>}

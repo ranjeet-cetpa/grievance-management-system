@@ -28,6 +28,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '@/app/store';
 
 interface TableListProps {
+  showLegend : boolean;
   data: any[];
   columns: any[];
   isInputEnd?: boolean;
@@ -38,6 +39,7 @@ interface TableListProps {
 }
 
 export default function TableList({
+  showLegend= true, 
   data,
   columns,
   isInputEnd = false,
@@ -190,7 +192,7 @@ export default function TableList({
       </div>
 
       {/* Color Legend */}
-      <div className="flex gap-4 mt-2 mb-2 text-sm text-muted-foreground">
+   {showLegend &&   <div className="flex gap-4 mt-2 mb-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-yellow-300 rounded"></div>
           <span>Transferred Cases</span>
@@ -199,7 +201,7 @@ export default function TableList({
           <div className="w-4 h-4 bg-red-300 rounded"></div>
           <span>Closed Cases</span>
         </div>
-      </div>
+      </div>}
 
       {/* Pagination */}
       <div className="flex flex-row justify-between items-center py-4">
