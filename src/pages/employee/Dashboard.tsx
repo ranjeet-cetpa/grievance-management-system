@@ -175,7 +175,7 @@ const Dashboard = () => {
               <p className="text-sm font-medium text-gray-700">Closed</p>
               <div className="flex items-baseline">
                 <p className="text-2xl font-bold text-red-800">{dashboardData?.resolved || 0}</p>
-                <span className="ml-2 text-xs text-green-700">Complete</span>
+                <span className="ml-2 text-xs text-red-700">Complete</span>
               </div>
             </div>
             <div className="p-2 bg-red-200 rounded-full">
