@@ -625,11 +625,16 @@ export const GrievanceActions = ({
                   </SelectTrigger>
                   <SelectContent>
                     {hodGroups?.map((group) => (
-                      <SelectItem key={group.id} value={group.id.toString()}>
-                        {group.description?.replace('HOD', '') +
+                        <SelectItem key={group.id} value={group.id.toString()}>
+                        <p className="capitalize">
+                          {group.description?.replace('HOD', '').trim() +
                           '  - ' +
-                          allHODNames.find((h) => h?.groupId === group?.id)?.userDetails}
-                      </SelectItem>
+                          allHODNames
+                            .find((h) => h?.groupId === group?.id)
+                            ?.userDetails?.toLowerCase()
+                            .replace(/\b\w/g, (char) => char.toUpperCase())}
+                        </p>
+                        </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

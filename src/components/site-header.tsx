@@ -54,9 +54,11 @@ const SiteHeader: React.FC = ({ showtoggle = true }: { showtoggle?: boolean }) =
           </button> */}
         </div>
       </div>
-      <div className="flex items-center mt-1 gap-0 justify-center">
+      <div className="flex w-full justify-center">
+      <div className="flex items-center  bg-white rounded-xl  w-fit gap-0 justify-center">
         <p className="text-primary text-center rounded-md bg-white font-bold text-3xl mb-1">e-</p>
         <p className='text-primary text-center rounded-md bg-white font-bold text-3xl'>निवारण</p>
+      </div>
       </div>
     </header>
   );
