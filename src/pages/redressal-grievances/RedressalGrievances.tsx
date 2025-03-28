@@ -115,6 +115,51 @@ const MyGrievances = () => {
     }
   };
 
+  const MarkIsVisitedTrue = async (rowData: any, user) => {
+    try {
+      // const formData = new FormData();
+      // Object.entries(rowData).forEach(([key, value]) => {
+      //   if (
+      //     key !== 'modifiedBy' &&
+      //     key !== 'resolution' &&
+      //     key !== 'id' &&
+      //     key !== 'modifiedDate' &&
+      //     key !== 'createdDate' &&
+      //     key !== 'createdBy' &&
+      //     key !== 'tUnit' &&
+      //     key !== 'tDepartment' &&
+      //     key !== 'tGroupId' &&
+      //     key !== 'userDetails' &&
+      //     key !== 'unitId' &&
+      //     key !== 'unitName' &&
+      //     key !== 'department' &&
+      //     key !== 'rowStatus' &&
+      //     key !== 'isTransferred'
+      //   ) {
+      //     formData.append(key, value.toString());
+      //   }
+      // });
+
+      // // Set isVisited to true
+      // formData.set('isVisited', 'true');
+      // formData.set('grievanceMasterId', rowData.id.toString());
+      // formData.set('TUnitId', rowData.tUnit);
+      // formData.set('TDepartment', rowData.tDepartment);
+      // formData.set('TGroupId', rowData.tGroupId);
+
+      const response = await axiosInstance.get(
+        `/Grievance/UpdateIsVisited?grievanceId=${rowData.id.toString()}&isVisited=true`
+      );
+
+      if (response.data.statusCode === 200) {
+        console.log('Grievance marked as visited');
+      }
+    } catch (error) {
+      console.error('Error marking grievance as visited:', error);
+      toast.error('Failed to mark grievance as visited');
+    }
+  };
+
   const columns = useMemo(
     () =>
       [
@@ -195,12 +240,20 @@ const MyGrievances = () => {
           id: 'round',
           accessorKey: 'round',
           header: '',
-          cell: ({ row }) =>
-            row.original.round > 1 ? (
-              <Badge variant="outline" className="bg-purple-50 text-purple-700 hover:bg-purple-50">
-                {`Appeal (${row.original.round - 1})`}
-              </Badge>
-            ) : null,
+          cell: ({ row }) => (
+            <div className="flex flex-col gap-2">
+              {row.original.round > 1 ? (
+                <Badge variant="outline" className="bg-purple-50  w-fit text-purple-700 hover:bg-purple-50">
+                  {`Appeal (${row.original.round - 1})`}
+                </Badge>
+              ) : null}
+              {row.original?.resolution?.resolutionStatus === 'Pending' ? (
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">
+                  Awaiting Acceptance
+                </Badge>
+              ) : null}
+            </div>
+          ),
         },
       ].filter(Boolean), // Remove undefined columns
     [selectedTab] // Recalculate when selectedTab changes
@@ -227,6 +280,7 @@ const MyGrievances = () => {
       [FILTER_OPTIONS.Closed]: grievances?.filter(
         (g) => g.statusId === STATUS_IDS.CLOSED && g.createdBy?.toString() !== g.modifiedBy?.toString()
       ),
+
       [FILTER_OPTIONS.Withdrawn]: grievances?.filter(
         (g) => g.statusId === STATUS_IDS.CLOSED && g.createdBy?.toString() === g.modifiedBy?.toString() // new condition for withdrawn grievances
       ),
@@ -259,6 +313,12 @@ const MyGrievances = () => {
                   rowData?.createdBy?.toString() !== user?.EmpCode?.toString()
                 ) {
                   await updateGrievanceStatus(rowData, user);
+                } else if (
+                  rowData?.statusId === 3 &&
+                  rowData?.assignedUserCode === user?.EmpCode?.toString() &&
+                  rowData?.isVisited === false
+                ) {
+                  await MarkIsVisitedTrue(rowData, user);
                 }
                 navigate(`/redress-grievances/${rowData.id.toString().trim()}`);
               }}
@@ -285,7 +345,15 @@ const MyGrievances = () => {
                       onClick={() => setSelectedTab(FILTER_OPTIONS.Closed)}
                       className={`${selectedTab === FILTER_OPTIONS.Closed ? 'bg-red-500 text-white' : ''}`}
                     >
-                      Closed
+                      Closed{' '}
+                      {filteredGrievances[FILTER_OPTIONS.Closed]?.filter(
+                        (item) => item.isVisited === false && item?.modifiedBy?.toString() === user?.EmpCode?.toString()
+                      )?.length > 0
+                        ? `(${
+                            filteredGrievances[FILTER_OPTIONS.Closed]?.filter((item) => item.isVisited === false)
+                              ?.length
+                          })`
+                        : ''}
                     </TabsTrigger>
                     <TabsTrigger
                       value={FILTER_OPTIONS.Withdrawn}

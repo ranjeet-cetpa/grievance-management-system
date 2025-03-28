@@ -23,7 +23,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
     return `rgb(${r}, ${g}, ${b})`;
   };
   const formatDate = (date: string) => {
-    return format(new Date(date), 'dd MMM, yyyy');
+    return date && format(new Date(date), 'dd MMM, yyyy');
   };
 
   const formatRoleName = (role: string) => {
@@ -189,11 +189,11 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                   </div>
                   <div className="text-xs text-gray-600">
                     {oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue ===
-                      'Redressal'
+                    'Redressal'
                       ? 'Complaint Handler'
                       : formatRoleName(
-                        oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
-                      )}
+                          oldTrajectory[0]?.changeList.find((change) => change.column === 'RoleName')?.oldValue
+                        )}
                   </div>
                 </div>
               </div>
@@ -206,7 +206,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
               );
               const assignedUserRoleDetails = process.changeList.find((change) => change.column === 'RoleName');
               const createdDateChange = process.changeList.find((change) => change.column === 'CreatedDate');
-              const comment = process?.commentList?.comment || "";
+              const comment = process?.commentList?.comment || '';
 
               return (
                 <div key={process.grievanceProcessId} className="flex items-center">
@@ -250,9 +250,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
                     <div className="text-center">
                       <div>{assignedUserDetailsChange?.newValue}</div>
                       {!process.border && (
-                        <div className="text-xs text-gray-600">
-                          {formatRoleName(assignedUserRoleDetails?.newValue)}
-                        </div>
+                        <div className="text-xs text-gray-600">{formatRoleName(assignedUserRoleDetails?.newValue)}</div>
                       )}
                       {process.border && <div className="text-xs text-gray-600">Requestor</div>}
                     </div>
