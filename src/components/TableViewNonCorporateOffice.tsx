@@ -233,6 +233,8 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                       variant="outline"
                       size="sm"
                       onClick={() => {
+                        setSelectedDepartment(null);
+                        setNominateFromOtherUnits(false);
                         setSelectedNode(node);
                         setIsEditMode(true);
                         setSelectedUsers(node.mappedUser);
@@ -285,7 +287,6 @@ const TableViewNonCorporateOffice = ({ unitId }: { unitId: number }) => {
                       departmentName={dept}
                       mappedUsers={deptNode.mappedUser}
                       onEdit={() => {
-                        
                         setSelectedNode(deptNode);
                         setIsEditMode(true);
                         setSelectedUsers(deptNode.mappedUser);
