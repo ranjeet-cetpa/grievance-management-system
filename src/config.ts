@@ -16,7 +16,7 @@ const CETPA_UAT = {
 };
 
 const DFCCIL_UAT = {
-  apiUrl: 'https://uattaskmanageapi.dfccil.com/api',
+  apiUrl: 'https://uatgrievancesservices.dfccil.com/api',
   orgHierarchy: 'https://uatorganization.dfccil.com/api',
   logoutUrl: 'http://uat.dfccil.com/DfcHome',
 };
