@@ -248,7 +248,7 @@ const MyGrievances = () => {
                 </Badge>
               ) : null}
               {row.original?.resolution?.resolutionStatus === 'Pending' ? (
-                <Badge variant="outline" className="bg-yellow-50 text-yellow-700 hover:bg-yellow-50">
+                <Badge variant="outline" className="bg-yellow-50 w-fit text-yellow-700 hover:bg-yellow-50">
                   Awaiting Acceptance
                 </Badge>
               ) : null}

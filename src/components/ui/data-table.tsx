@@ -78,7 +78,7 @@ export default function TableList({
   const hasCheckboxColumn = columns.some((column) => column.id === 'select');
   const pageIndex = table.getState().pagination.pageIndex;
   const pageSize = table.getState().pagination.pageSize;
-  const totalRows = table.getFilteredRowModel().rows.length;
+  const totalRows = table.getFilteredRowModel()?.rows?.length ?? 0;
   const totalPages = table.getPageCount();
   const currentRangeStart = pageIndex * pageSize + 1;
   const currentRangeEnd = Math.min((pageIndex + 1) * pageSize, totalRows);

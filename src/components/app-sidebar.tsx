@@ -76,6 +76,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       }
       const data = await response.json();
       const result = data.data;
+      console.log(result, 'this is rrrrresult');
       dispatch(setEmployeesData(result));
 
       const units = result.map((employee: any) => ({

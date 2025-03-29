@@ -11,12 +11,28 @@ import Loader from '@/components/ui/loader';
 import { useNavigate } from 'react-router';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { format } from 'date-fns';
+import useUserRoles from '@/hooks/useUserRoles';
 
 const Dashboard = () => {
   const user = useSelector((state: RootState) => state.user);
   const [loading, setLoading] = useState(false);
   const [dashboardData, setDashboardData] = useState<any>(null);
-  const [dashboardTypePending, setDashboardTypePending] = useState<boolean>(true);
+  const [showToggle, setShowToggle] = useState(false);
+  const [dashboardTypePending, setDashboardTypePending] = useState<boolean>(false);
+  const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee, isLoading } =
+    useUserRoles();
+  console.log(isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee);
+
+  useEffect(() => {
+    if (!isNodalOfficer && !isAdmin && !isSuperAdmin && !isUnitCGM && !isHOD && !isAddressal && !isCommittee) {
+      console.log('conditino true');
+      setDashboardTypePending(false);
+    } else if (isNodalOfficer || isAdmin || isSuperAdmin || isUnitCGM || isHOD || isAddressal || isCommittee) {
+      console.log('condition false');
+      setDashboardTypePending(true);
+      setShowToggle(true);
+    }
+  }, [isLoading]);
   const navigate = useNavigate();
   const fetchDashboardData = async () => {
     try {
@@ -65,23 +81,25 @@ const Dashboard = () => {
         <div>
           <Heading type={5}>Dashboard</Heading>
         </div>
-        <div>
-          <ToggleGroup
-            type="single"
-            className={`${
-              dashboardTypePending ? 'border border-gray-100  shadow-sm' : ''
-            }  bg-white flex items-center gap-0  transition-colors duration-200 ease-in-out hover:bg-gray-100`}
-            value={dashboardTypePending ? 'pending' : 'personal'}
-            onValueChange={(value) => setDashboardTypePending(value === 'pending')}
-          >
-            <ToggleGroupItem value="pending" aria-label="Chart View" className="px-4">
-              Pending
-            </ToggleGroupItem>
-            <ToggleGroupItem value="personal" aria-label="Table View" className="px-4">
-              My Grievances
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
+        {showToggle && (
+          <div>
+            <ToggleGroup
+              type="single"
+              className={`${
+                dashboardTypePending ? 'border border-gray-100  shadow-sm' : ''
+              }  bg-white flex items-center gap-0  transition-colors duration-200 ease-in-out hover:bg-gray-100`}
+              value={dashboardTypePending ? 'pending' : 'personal'}
+              onValueChange={(value) => setDashboardTypePending(value === 'pending')}
+            >
+              <ToggleGroupItem value="pending" aria-label="Chart View" className="px-4">
+                Pending
+              </ToggleGroupItem>
+              <ToggleGroupItem value="personal" aria-label="Table View" className="px-4">
+                My Grievances
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        )}
       </div>
 
       {loading && <Loader />}
