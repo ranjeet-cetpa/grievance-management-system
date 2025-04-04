@@ -64,7 +64,6 @@ export const getShortMonth = (dateString) => {
 };
 
 export const findEmployeeDetails = (employees: any, empCode: string) => {
-  console.log(empCode, 'see the data');
   const employee = employees.find((emp) => emp?.empCode === empCode);
   if (employee) {
     return {

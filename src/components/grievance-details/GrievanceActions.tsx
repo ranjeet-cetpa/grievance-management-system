@@ -119,7 +119,7 @@ export const GrievanceActions = ({
     const getFilteredGroupsForCGM = async () => {
       // code completion ,
       const response = await axiosInstance.get(`/Admin/GetUnitRoleUsers?unitId=${user?.unitId}&roleId=7`);
-      console.log(response.data.mappedUser, 'this is response from unit role users');
+      //   console.log(response.data.mappedUser, 'this is response from unit role users');
       setFilteredGroupsForTransferByCGM(response.data.mappedUser);
     };
 
@@ -129,13 +129,13 @@ export const GrievanceActions = ({
   }, [grievance?.tGroupId]);
 
   const findHODNames = async (hodGroups) => {
-    console.log('inside findHODNAMes', hodGroups);
+    // console.log('inside findHODNAMes', hodGroups);
     var toPush = [];
     hodGroups.map(async (hodGroup) => {
       const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${hodGroup.id}`);
 
       if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
-        console.log('this is response hod group ', response.data.data);
+        //  console.log('this is response hod group ', response.data.data);
         const firstUser = await response.data.data.groupMapping[0][0];
         toPush.push(firstUser);
         // Create form data for transfer
@@ -156,7 +156,7 @@ export const GrievanceActions = ({
       console.log(hodChildrenGroups, 'this is hod children groups fourth');
       for (const group of hodChildrenGroups) {
         const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.id}`);
-        console.log(response.data.data, 'this is response from get group detail fifth');
+        //   console.log(response.data.data, 'this is response from get group detail fifth');
         if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
           const groupMembers = response.data.data.groupMapping.flat();
           const simplifiedMembers = groupMembers.map((member: any) => ({
@@ -246,7 +246,7 @@ export const GrievanceActions = ({
         const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${selectedHodGroup}`);
 
         if (response.data.statusCode === 200 && response.data.data.groupMapping.length > 0) {
-          console.log('this is response hod group ', response.data.data);
+          //    console.log('this is response hod group ', response.data.data);
           const firstUser = response.data.data.groupMapping[0][0];
 
           // Create form data for transfer
@@ -310,7 +310,7 @@ export const GrievanceActions = ({
           for (const group of response.data.data.groupMapping) {
             if (group[0].unitId.toString() === user?.unitId.toString()) {
               firstUser = group[0];
-              console.log(firstUser, 'this is first user of non corporate office');
+              //       console.log(firstUser, 'this is first user of non corporate office');
             }
           }
         }
@@ -595,7 +595,7 @@ export const GrievanceActions = ({
                   className="bg-indigo-600 hover:bg-indigo-700 text-white"
                   onClick={() => {
                     if (selectedMember && isCommentValid) {
-                      console.log('Selected Member:', selectedMember); // Log the selected member
+                      //      console.log('Selected Member:', selectedMember); // Log the selected member
                       handleHodAssignToMembers(selectedMember, commentText, attachments);
                       // setCommentText('');
                       setAttachments([]);
@@ -625,16 +625,16 @@ export const GrievanceActions = ({
                   </SelectTrigger>
                   <SelectContent>
                     {hodGroups?.map((group) => (
-                        <SelectItem key={group.id} value={group.id.toString()}>
+                      <SelectItem key={group.id} value={group.id.toString()}>
                         <p className="capitalize">
                           {group.description?.replace('HOD', '').trim() +
-                          '  - ' +
-                          allHODNames
-                            .find((h) => h?.groupId === group?.id)
-                            ?.userDetails?.toLowerCase()
-                            .replace(/\b\w/g, (char) => char.toUpperCase())}
+                            '  - ' +
+                            allHODNames
+                              .find((h) => h?.groupId === group?.id)
+                              ?.userDetails?.toLowerCase()
+                              .replace(/\b\w/g, (char) => char.toUpperCase())}
                         </p>
-                        </SelectItem>
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

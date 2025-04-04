@@ -70,9 +70,7 @@ const CategoriesSection: React.FC<CategoriesSectionProps> = ({ categories, onEdi
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const departmentsDD = extractUniqueDepartments(employeeList);
-  console.log('departmentsDD', departmentsDD);
   const unitsDD = extractUniqueUnits(employeeList);
-  console.log('unitsDD', unitsDD);
   // Filter employees based on selected units
   const filteredEmployees = React.useMemo(() => {
     if (!nominateFromOtherUnits) {

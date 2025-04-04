@@ -65,7 +65,7 @@ const NonOrgChart = () => {
       try {
         const response = await axiosInstance.get('/Admin/GetOrgGroupHierarchy?unitId=396');
         const result = await response.data;
-        console.log(result.data);
+        // console.log(result.data);
 
         setChartData(result.data);
       } catch (err) {
@@ -104,7 +104,7 @@ const NonOrgChart = () => {
             departments: [],
           });
         }
-        console.log(node.mappedUser);
+        //    console.log(node.mappedUser);
         return true;
       }
 

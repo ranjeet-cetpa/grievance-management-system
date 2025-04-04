@@ -112,7 +112,7 @@ const GrievanceDetails = () => {
       console.error('Error refreshing grievance details:', error);
     }
   };
-  console.log(isNodalOfficer);
+  // console.log(isNodalOfficer);
 
   useEffect(() => {
     const fetchResolutionData = async () => {
@@ -204,7 +204,7 @@ const GrievanceDetails = () => {
 
   const handleTransfer = async (commentText, attachments) => {
     try {
-      console.log(attachments, 'this is attachments');
+      //  console.log(attachments, 'this is attachments');
       // const addressalUnit = findEmployeeDetails(employeeList, user?.EmpCode.toString()).employee?.unitId;
 
       // if (!addressalUnit) {
@@ -257,9 +257,9 @@ const GrievanceDetails = () => {
       });
 
       // Log each key-value pair in FormData
-      for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1], 'testing 101');
-      }
+      //   for (const pair of formData.entries()) {
+      // //    console.log(pair[0], pair[1], 'testing 101');
+      //   }
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
@@ -404,9 +404,9 @@ const GrievanceDetails = () => {
         },
       });
       // Log all FormData fields
-      for (const pair of formData.entries()) {
-        console.log(`${pair[0]}: ${pair[1]}`);
-      }
+      // for (const pair of formData.entries()) {
+      //   console.log(`${pair[0]}: ${pair[1]}`);
+      // }
 
       if (response.data.statusCode === 200) {
         toast.success('Grievance transferred to HOD successfully');
@@ -556,7 +556,7 @@ const GrievanceDetails = () => {
       setLoading(false);
     }
   };
-  console.log(grievance, 'this is grievance from action component ');
+  // console.log(grievance, 'this is grievance from action component ');
 
   const handleCommentSubmit = async (comment: string, attachments: File[]) => {
     try {
@@ -600,9 +600,9 @@ const GrievanceDetails = () => {
       });
 
       // Log each key-value pair in FormData
-      for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
+      // for (const pair of formData.entries()) {
+      //   console.log(pair[0], pair[1]);
+      // }
 
       const response = await axiosInstance.post(`/Grievance/AddUpdateGrievance`, formData, {
         headers: {
@@ -630,9 +630,9 @@ const GrievanceDetails = () => {
     }
   };
 
-  const handleGroupChangeByCGM = (selectedUnit: string) => {
-    console.log('Selected Unit:', selectedUnit);
-  };
+  // const handleGroupChangeByCGM = (selectedUnit: string) => {
+  //   console.log('Selected Unit:', selectedUnit);
+  // };
 
   return (
     <div className="min-h-screen bg-gray-50 p-2 md:p-6">

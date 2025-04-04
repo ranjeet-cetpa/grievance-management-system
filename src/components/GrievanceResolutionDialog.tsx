@@ -33,9 +33,7 @@ const GrievanceResolutionDialog = ({
     type: null,
     message: '',
   });
-  useEffect(() => {
-    console.log(resolutionData, 'this is resolution data');
-  }, [resolutionData]);
+  useEffect(() => {}, [resolutionData]);
   const handleAccept = async () => {
     try {
       setIsSubmitting(true);
@@ -98,11 +96,6 @@ const GrievanceResolutionDialog = ({
       } else {
         throw new Error('Verification failed');
       }
-
-      console.log(resolutionData?.rejectLink);
-      console.log(grievanceId);
-      console.log(isAccepted);
-      console.log(rejectionReason);
     } catch (error) {
       toast.error('Failed to submit response. Please try again.');
       setSubmitStatus({

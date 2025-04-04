@@ -27,7 +27,6 @@ export const GrievanceInfo = ({
   modifiedDate,
   createdBy,
 }: GrievanceInfoProps) => {
-  console.log(currentgroup, 'this is current group');
   const user = useSelector((state: RootState) => state.user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   const unitsDD = extractUniqueUnits(employeeList);

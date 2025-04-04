@@ -70,7 +70,7 @@ const MyGrievances = () => {
     mode !== null ? (mode === 'inprogress' ? FILTER_OPTIONS.InProgress : FILTER_OPTIONS.Closed) : FILTER_OPTIONS.OPEN
   );
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-  console.log(mode, 'mode');
+  // console.log(mode, 'mode');
   const fetchGrievances = async () => {
     setLoading(true);
     const response = await axiosInstance.get(
@@ -92,7 +92,7 @@ const MyGrievances = () => {
           formData.append(key, value.toString());
         }
       });
-      console.log(rowData, 'this is row data .........in progress setter ');
+      //    console.log(rowData, 'this is row data .........in progress setter ');
       formData.set('TUnitId', rowData.tUnit);
       formData.set('TDepartment', rowData.tDepartment);
       formData.set('TGroupId', rowData.tGroupId);

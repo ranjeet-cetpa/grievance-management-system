@@ -27,7 +27,6 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   };
 
   const formatRoleName = (role: string) => {
-    console.log(role);
     switch (role?.toLowerCase()) {
       case 'redressal':
         return 'Complaint Handler';
@@ -48,7 +47,6 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
       try {
         const response = await axiosInstance.get(`/Grievance/GrievanceHistory?grievanceId=${grievanceId}`);
         if (response.data.statusCode === 200) {
-          console.log('response.data.data for trajectory', response.data.data);
           let processedData = response.data.data.filter((process) => process.changeList.length > 0);
 
           // Find processes with Round changes
@@ -96,8 +94,6 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
             }
           });
 
-          console.log('Processed Data before swapping', processedData);
-
           const filteredData = processedData.reverse().filter((current, index, array) => {
             const currentAssignedUserCode = current.changeList.some((change) => change.column === 'AssignedUserCode');
             const nextAssignedUserCode = array[index + 1]?.changeList.find(
@@ -106,7 +102,6 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
             return currentAssignedUserCode && currentAssignedUserCode !== nextAssignedUserCode;
           });
 
-          console.log('filtered trajectory data ', filteredData);
           setOldTrajectory(filteredData);
 
           let newFilteredData = [...filteredData].sort((a, b) => {

@@ -89,7 +89,6 @@ const GroupManagement = ({ createGroupOpen, setCreateGroupOpen }) => {
   const showMappedUsersHandler = async (group) => {
     const response = await axiosInstance.get(`/Admin/GetGroupDetail?groupId=${group.id}`);
     if (response?.data?.statusCode === 200) {
-      //console.log(response?.data?.data?.groupMapping);
       setMappedUsers(response?.data?.data?.groupMapping);
     }
     setSelectedGroupForMapping(group);

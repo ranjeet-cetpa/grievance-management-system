@@ -21,14 +21,14 @@ const Dashboard = () => {
   const [dashboardTypePending, setDashboardTypePending] = useState<boolean>(false);
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee, isLoading } =
     useUserRoles();
-  console.log(isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee);
+  //  console.log(isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM, isHOD, isAddressal, isCommittee);
 
   useEffect(() => {
     if (!isNodalOfficer && !isAdmin && !isSuperAdmin && !isUnitCGM && !isHOD && !isAddressal && !isCommittee) {
-      console.log('conditino true');
+      //   console.log('conditino true');
       setDashboardTypePending(false);
     } else if (isNodalOfficer || isAdmin || isSuperAdmin || isUnitCGM || isHOD || isAddressal || isCommittee) {
-      console.log('condition false');
+      //  console.log('condition false');
       setDashboardTypePending(true);
       setShowToggle(true);
     }

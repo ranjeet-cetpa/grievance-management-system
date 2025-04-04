@@ -24,7 +24,7 @@ const RequestPage = () => {
     message: string;
   }>({ type: null, message: '' });
   const token = useParams();
-  console.log(token.token[token.token.length - 1], 'this is token . .. ');
+  // console.log(token.token[token.token.length - 1], 'this is token . .. ');
 
   const isAcceptedLink = token.token[token.token.length - 1] === '$';
 

@@ -63,17 +63,17 @@ const NonCorporateOfficeChart: React.FC<NonCorporateOfficeChartProps> = ({ unitI
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [selectedUsers, setSelectedUsers] = React.useState<UserDetails[]>([]);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
-  console.log(employeeList);
+  // console.log(employeeList);
   const user = useSelector((state: RootState) => state.user);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  console.log(employeeList);
+  //console.log(employeeList);
 
   const dataFetcher = async () => {
     try {
       setLoading(true);
       const response = await axiosInstance.get(`/Admin/GetOrgGroupHierarchy?unitId=${unitId}`);
       const result = await response.data;
-      console.log(result.data);
+      //   console.log(result.data);
       setChartData(result.data);
     } catch (err) {
       console.error('Error fetching data:', err);

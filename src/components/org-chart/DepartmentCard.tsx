@@ -57,7 +57,6 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
     unitName: 'Corporate Office',
   });
   const unitsDD = extractUniqueUnits(employeeList);
-  console.log('unitsDD', unitsDD);
   // Filter employees based on selected units
   const filteredEmployees = React.useMemo(() => {
     if (!nominateFromOtherUnits) {

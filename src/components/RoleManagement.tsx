@@ -283,7 +283,6 @@ const RoleManagement = ({ createRoleOpen, setCreateRoleOpen }) => {
         setAddressalList(response.data.data);
         setHodGroup(response.data.data[0]?.mappedUserCode?.filter((user) => user.groupDetails.isHOD));
         setCommitteeGroup(response.data.data[0]?.mappedUserCode?.filter((user) => user.groupDetails.isCommitee));
-        console.log(response.data.data, 'checking . . .');
         setAddressalGroup(
           response.data.data[0]?.mappedUserCode?.filter(
             (user) => !(user.groupDetails.isHOD || user?.groupDetails.isCommitee)

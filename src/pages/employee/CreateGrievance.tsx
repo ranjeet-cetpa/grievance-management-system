@@ -53,7 +53,7 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   const [services, setServices] = useState<GroupMaster[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const user = useSelector((state: RootState) => state.user);
-  console.log('user ', user);
+  // console.log('user ', user);
   const employeeList = useSelector((state: RootState) => state.employee.employees);
   // Fetch services on component mount
   useEffect(() => {

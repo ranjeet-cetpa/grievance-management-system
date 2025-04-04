@@ -18,7 +18,6 @@ interface GrievanceTableProps {
 }
 
 const updateGrievanceStatus = async (rowData: any, user) => {
-  console.log('inside update status func');
   try {
     const formData = new FormData();
 
@@ -49,7 +48,6 @@ const updateGrievanceStatus = async (rowData: any, user) => {
     if (response.data.statusCode === 200) {
       return;
     }
-    console.log('this is updated grievance', Object.fromEntries(formData));
   } catch (error) {
     console.error('Error updating grievance status:', error);
     toast.error('Failed to update grievance status');
