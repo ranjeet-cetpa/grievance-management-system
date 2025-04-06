@@ -21,10 +21,14 @@ interface UserSelectProps {
 }
 
 const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isMulti = false, label }) => {
-  const options = employees?.map((emp) => ({
-    value: emp.empCode,
-    label: `${emp.empName || 'Unnamed'} (${emp.department})`,
-  }));
+
+  const options = employees
+    ?.filter(emp => emp.empName && emp.empName.trim() !== '')
+    .map((emp) => ({
+      value: emp.empCode,
+      label: `${emp.empCode || ''} - ${emp.empName} - ${emp.department}`,
+    }));
+
 
   const handleChange = (selectedOptions: any) => {
     if (isMulti) {
@@ -48,6 +52,7 @@ const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isM
     label: `${v.userDetail} (${employees?.find((e) => e.empCode === v.userCode)?.department || ''})`,
   }));
 
+
   return (
     <div className="grid gap-2">
       {label && <Label>{label}</Label>}
@@ -60,6 +65,15 @@ const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isM
         className="basic-multi-select"
         classNamePrefix="select"
         isClearable={!isMulti}
+        styles={{
+          control: (base) => ({
+            ...base,
+            padding: '0.25rem 0.5rem',
+            borderRadius: '0.5rem',
+            borderColor: '#d1d5db',
+            boxShadow: 'none',
+          }),
+        }}
       />
     </div>
   );

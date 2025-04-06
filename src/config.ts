@@ -14,21 +14,21 @@ const CETPA_UAT = {
   orgHierarchy: 'https://uat.dfccilorganization.services.cetpainfotech.com/api',
   loginUrl: 'https://uat.tourservices.cetpainfotech.com/api',
   logoutUrl: 'https://gms.cetpainfotech.com',
-  powerOffUrl: 'http://uat.dfccil.com/DfcHome',
+  powerOffUrl: 'http://uat.dfccil.com/Account/DfccilLogin',
 };
 
 const DFCCIL_UAT = {
   apiUrl: 'https://uatgrievancesservices.dfccil.com/api',
   orgHierarchy: 'https://uatorganization.dfccil.com/api',
   logoutUrl: 'http://uat.dfccil.com/DfcHome',
-  powerOffUrl: 'http://uat.dfccil.com/DfcHome',
+  powerOffUrl: 'http://uat.dfccil.com/Account/DfccilLogin',
 };
 
 const PROD_DFCCIL = {
-  apiUrl: 'https://grievanceservices.dfccil.com//api',
+  apiUrl: 'https://grievanceservices.dfccil.com/api',
   orgHierarchy: 'https://orgsvc.dfccil.com/api',
   logoutUrl: 'https://it.dfccil.com/Home/Home',
-  powerOffUrl: 'http://uat.dfccil.com/DfcHome',
+  powerOffUrl: 'https://it.dfccil.com/Account/DFCCILLogin',
 };
 
-export const environment = CETPA_UAT;
+export const environment = PROD_DFCCIL;
