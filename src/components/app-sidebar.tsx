@@ -11,6 +11,8 @@ import {
   Hotel,
   UserRoundCog,
   UserRoundPen,
+  ChevronsRight,
+  ChevronsLeft,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -22,27 +24,25 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarSeparator,
   SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { environment } from '@/config';
 import { setEmployeesData } from '@/features/employee/employeeSlice';
 import toast from 'react-hot-toast';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { getSessionItem, removeSessionItem } from '@/lib/helperFunction';
 import { setUnits } from '@/features/unit/unitSlice';
-import { logo } from '@/assets/image/images';
-import { Button } from './ui/button';
 import { resetUser } from '@/features/user/userSlice';
 import { Separator } from '@radix-ui/react-separator';
 import { useNavigate } from 'react-router';
-import { RootState } from '@/app/store';
 import useUserRoles from '@/hooks/useUserRoles';
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { isHOD, isAddressal, isCommittee } = useUserRoles();
   const navigate = useNavigate();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
   const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
   const canViewRedressalGrievances =
@@ -111,12 +111,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   };
   return (
     <Sidebar collapsible="icon" {...props} className="">
-      <SidebarHeader className="flex flex-row justify-between items-center py-4 px-4">
-        <img
-          src={logo}
-          className={`transition-all object-contain ${state === 'collapsed' ? 'w-14 h-10' : 'w-full h-12'}`}
-        />
-      </SidebarHeader>
+      <div className="flex justify-end md:pt-[90px] ">
+        {state === 'collapsed' ? (
+          <ChevronsRight onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
+        ) : (
+          <ChevronsLeft onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
+        )}
+      </div>
+      <SidebarSeparator />
       <SidebarContent className="flex justify-between">
         <NavMain items={navMainItems} />
       </SidebarContent>

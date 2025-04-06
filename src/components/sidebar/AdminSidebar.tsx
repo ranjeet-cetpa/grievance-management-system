@@ -10,6 +10,8 @@ import {
   LogOut,
   BadgeAlert,
   UserRoundCog,
+  ChevronsRight,
+  ChevronsLeft,
 } from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import {
@@ -48,7 +50,7 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const dispatch = useDispatch<AppDispatch>();
   const { unitName, unitId } = useSelector((state: RootState) => state.workspace.selectedWorkspace);
   const units = useSelector((state: RootState) => state.units.units);
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
   const data = {
@@ -75,19 +77,16 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
       },
       ...(isSuperAdmin
         ? [
-            {
-              title: 'Manage Admin',
-              url: '/admin-manage-role',
-              icon: UserRoundCog,
-            },
-          ]
+          {
+            title: 'Manage Admin',
+            url: '/admin-manage-role',
+            icon: UserRoundCog,
+          },
+        ]
         : []),
     ],
   };
 
-  const handleWorkspaceChange = (workspaceName: string, workspaceId: number) => {
-    dispatch(setSelectedWorkspace({ unitName: workspaceName, unitId: workspaceId }));
-  };
   React.useEffect(() => {
     dispatch(setSelectedWorkspace({ unitName: user.Unit, unitId: Number(user.unitId) }));
   }, []);
@@ -100,42 +99,15 @@ export function AdminSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" {...props} className="">
-      <SidebarHeader className="flex flex-row justify-between items-center py-4 px-4">
-        <img
-          src={logo}
-          className={`transition-all  object-contain ${state === 'collapsed' ? 'w-14 h-10' : 'w-full h-12'}`}
-        />
-      </SidebarHeader>
+      <div className="flex justify-end md:pt-[90px] ">
+        {state === 'collapsed' ? (
+          <ChevronsRight onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
+        ) : (
+          <ChevronsLeft onClick={toggleSidebar} className="w-8 h-8 cursor-pointer" />
+        )}
+      </div>
       <SidebarSeparator />
       <SidebarMenu>
-        {/* <SidebarMenuItem className="mt-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger disabled={!isSuperAdmin} asChild>
-              <SidebarMenuButton className="flex items-center justify-between border h-12 border-gray-300 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:border-primary capitalize">
-                {unitName?.toLowerCase()}
-                <ChevronDown className="ml-2 w-4 h-4 text-gray-500" />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="mt-1 w-56 border border-gray-300 shadow-lg rounded-md bg-white">
-              <DropdownMenuLabel>Unit Name</DropdownMenuLabel>
-              <DropdownMenuItem
-                className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                onClick={() => handleWorkspaceChange('All', 0)}
-              >
-                <span>All</span>
-              </DropdownMenuItem>
-              {units.map((unit) => (
-                <DropdownMenuItem
-                  key={unit.unitId}
-                  className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleWorkspaceChange(unit.unitName, unit.unitId)}
-                >
-                  <span className="capitalize">{unit.unitName.toLowerCase()}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </SidebarMenuItem> */}
       </SidebarMenu>
       <SidebarContent>
         <NavMain items={data.navMain} />

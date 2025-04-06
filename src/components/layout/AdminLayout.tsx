@@ -6,17 +6,20 @@ import { AdminSidebar } from "../sidebar/AdminSidebar";
 
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
-            <SidebarProvider className="flex flex-col flex-1">
-                <div className="flex flex-1 overflow-hidden">
-                    <AdminSidebar className="w-64 bg-gray-800 text-white flex-shrink-0" />
-                    <div className=" w-full bg-gray-100 overflow-auto">
-                        <SiteHeader />
-                        <div className="p-2">{children}</div>
+        <SidebarProvider className="flex flex-col w-full h-screen">
+            <SiteHeader />
+            <div className="w-full bg-gray-100 flex-1 overflow-hidden">
+                <div className="flex flex-row h-full">
+                    <AdminSidebar />
+                    <div className="w-full flex flex-col h-full">
+                        <div className="flex items-center mt-2 gap-0 justify-center text-primary text-center rounded-md font-bold text-3xl">
+                            e-निवारण
+                        </div>
+                        <div className="bg-white flex-1 overflow-auto">{children}</div>
                     </div>
                 </div>
-            </SidebarProvider>
-        </div>
+            </div>
+        </SidebarProvider>
     );
 };
 
