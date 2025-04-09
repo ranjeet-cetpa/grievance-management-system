@@ -701,7 +701,7 @@ const GrievanceDetails = () => {
                       onCommentSubmit={handleCommentSubmit}
                       handleHodAssignToMembers={handleHodAssignToMembers}
                       onStatusChange={handleStatusChange}
-                      handleGroupChangeByCGM={handleGroupChangeByCGM}
+                      //  handleGroupChangeByCGM={handleGroupChangeByCGM}
                     />
                   </div>
                 )}

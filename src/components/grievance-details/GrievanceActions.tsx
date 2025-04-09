@@ -49,7 +49,6 @@ interface GrievanceActionsProps {
   status: string;
   setStatus: (status: string) => void;
   handleHodAssignToMembers: (selectedMember: any, commentText: string, attachments: File[]) => void;
-  handleGroupChangeByCGM?: (selectedUnit: string) => void;
   setGrievance: any;
 }
 
@@ -69,7 +68,6 @@ export const GrievanceActions = ({
   onTransferToHOD,
   onCommentSubmit,
   onStatusChange,
-  handleGroupChangeByCGM,
 }: GrievanceActionsProps) => {
   const [commentText, setCommentText] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);

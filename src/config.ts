@@ -25,7 +25,7 @@ const DFCCIL_UAT = {
 };
 
 const PROD_DFCCIL = {
-  apiUrl: 'https://grievanceservices.dfccil.com//api',
+  apiUrl: 'https://grievanceservices.dfccil.com/api',
   orgHierarchy: 'https://orgsvc.dfccil.com/api',
   logoutUrl: 'https://it.dfccil.com/Home/Home',
   powerOffUrl: 'http://uat.dfccil.com/DfcHome',
