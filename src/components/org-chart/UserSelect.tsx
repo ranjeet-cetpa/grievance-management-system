@@ -23,7 +23,7 @@ interface UserSelectProps {
 const UserSelect: React.FC<UserSelectProps> = ({ employees, value, onChange, isMulti = false, label }) => {
   const options = employees?.map((emp) => ({
     value: emp.empCode,
-    label: `${emp.empName || 'Unnamed'} (${emp.department})`,
+    label: `${emp.empCode}- ${emp.empName || 'NA'} `,
   }));
 
   const handleChange = (selectedOptions: any) => {
