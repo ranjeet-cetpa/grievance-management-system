@@ -140,7 +140,7 @@ const GrievanceTrajectory = ({ grievanceId, grievance }) => {
   }, [trajectory]);
 
   return (
-    <div>
+    <div className="max-w-[1200px]">
       {trajectory[0] && (
         <div className="flex flex-col gap-2 my-2">
           <Heading type={6} className="px-4">

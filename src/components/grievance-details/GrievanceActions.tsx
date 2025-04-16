@@ -485,7 +485,7 @@ export const GrievanceActions = ({
                   grievance?.statusId !== 3 && (
                     <Button
                       onClick={handleTransfer}
-                      className="bg-purple-600 hover:bg-purple-700 text-white h-9"
+                      className="bg-purple-600 hover:bg-purple-700 p-4 text-xs font-bold text-white h-9"
                       disabled={!isCommentValid}
                     >
                       Transfer to Nodal Officer
@@ -498,7 +498,7 @@ export const GrievanceActions = ({
                   grievance?.statusId !== 3 && (
                     <Button
                       onClick={handleTransferToCGM}
-                      className="bg-blue-600 hover:bg-blue-700 text-white h-9"
+                      className="bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white h-9"
                       disabled={!isCommentValid}
                     >
                       Transfer to Unit CGM
@@ -511,7 +511,7 @@ export const GrievanceActions = ({
                   grievance?.statusId !== 3 && (
                     <Button
                       onClick={() => setIsHodDialogOpen(true)}
-                      className="bg-orange-600 text-xs hover:bg-orange-700 text-white h-9"
+                      className="bg-orange-600 text-xs hover:bg-orange-700 font-bold text-white h-9"
                       disabled={!isCommentValid}
                     >
                       Transfer to Concerned HOD

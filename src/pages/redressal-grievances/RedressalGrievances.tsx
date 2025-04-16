@@ -287,6 +287,8 @@ const MyGrievances = () => {
     };
   }, [grievances]);
 
+  console.log('these are closed ', filteredGrievances);
+
   return (
     <div className="p-2">
       <Card className="rounded-md mt-2 mx-2">
@@ -347,11 +349,18 @@ const MyGrievances = () => {
                     >
                       Closed{' '}
                       {filteredGrievances[FILTER_OPTIONS.Closed]?.filter(
-                        (item) => item.isVisited === false && item?.modifiedBy?.toString() === user?.EmpCode?.toString()
+                        (item) =>
+                          item.isVisited === false &&
+                          item.isVisited !== null &&
+                          item?.modifiedBy?.toString() === user?.EmpCode?.toString()
                       )?.length > 0
                         ? `(${
-                            filteredGrievances[FILTER_OPTIONS.Closed]?.filter((item) => item.isVisited === false)
-                              ?.length
+                            filteredGrievances[FILTER_OPTIONS.Closed]?.filter(
+                              (item) =>
+                                item.isVisited === false &&
+                                item.isVisited !== null &&
+                                item?.modifiedBy?.toString() === user?.EmpCode?.toString()
+                            )?.length
                           })`
                         : ''}
                     </TabsTrigger>

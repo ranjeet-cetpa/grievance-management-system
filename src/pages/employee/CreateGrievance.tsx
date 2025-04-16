@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { UploadIcon, Plus } from 'lucide-react';
+import { UploadIcon, Plus, FileIcon, X, FileText } from 'lucide-react';
 import ReactQuill from 'react-quill';
 import React, { useState, useEffect } from 'react';
 import 'react-quill/dist/quill.snow.css';
@@ -45,6 +45,16 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
+const isValidFile = (file: File) => {
+  if (file.size > MAX_FILE_SIZE) {
+    toast.error(`File ${file.name} is too large. Maximum size is 10MB`);
+    return false;
+  }
+  return true;
+};
 
 const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void }) => {
   const [open, setOpen] = useState(false);
@@ -118,8 +128,10 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const filesArray = Array.from(e.target.files);
+      const validFiles = filesArray.filter(isValidFile);
+
       setSelectedFiles((prevFiles) => {
-        const uniqueFiles = [...prevFiles, ...filesArray].reduce((acc, file) => {
+        const uniqueFiles = [...prevFiles, ...validFiles].reduce((acc, file) => {
           if (!acc.some((f) => f.name === file.name && f.size === file.size)) {
             acc.push(file);
           }
@@ -367,26 +379,10 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
                 />
 
                 {/* Display Selected Files */}
-                <div className="flex flex-wrap gap-1.5 mt-1">
-                  {selectedFiles.map((file, index) => {
-                    const fileUrl = URL.createObjectURL(file);
-                    return (
-                      <div key={index} className="relative group">
-                        <img
-                          src={fileUrl}
-                          alt={`preview-${index}`}
-                          className="w-12 h-12 object-cover rounded-md border border-gray-200"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => removeFile(file)}
-                          className="absolute -top-1 -right-1 text-white bg-red-500 rounded-full w-4 h-4 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          ×
-                        </button>
-                      </div>
-                    );
-                  })}
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {selectedFiles.map((file, index) => (
+                    <FilePreview key={index} file={file} onRemove={() => removeFile(file)} />
+                  ))}
                 </div>
               </div>
             </form>
@@ -403,6 +399,39 @@ const CreateGrievance = ({ refreshGrievances }: { refreshGrievances?: () => void
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+const FilePreview = ({ file, onRemove }: { file: File; onRemove: () => void }) => {
+  const isPDF = file.type === 'application/pdf';
+  const isImage = file.type.startsWith('image/');
+
+  return (
+    <div className="relative group border rounded-md  bg-gray-50 dark:bg-gray-800">
+      <div className="w-16 h-16 flex items-center justify-center">
+        {isImage ? (
+          <img
+            src={URL.createObjectURL(file)}
+            alt={`preview-${file.name}`}
+            className="w-full h-full object-cover rounded-md"
+          />
+        ) : isPDF ? (
+          <FileText className="w-8 h-8 text-red-500" />
+        ) : (
+          <FileIcon className="w-8 h-8 text-gray-500" />
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+      >
+        <X className="w-3 h-3" />
+      </button>
+      <div className="absolute bottom-0 left-0 right-0 text-[10px] truncate text-center bg-black/50 text-white rounded-b-md px-1">
+        {file.name}
+      </div>
     </div>
   );
 };
