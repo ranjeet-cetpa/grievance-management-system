@@ -439,7 +439,7 @@ export const GrievanceActions = ({
                     className="cursor-pointer text-white bg-gray-800 hover:bg-gray-700 p-2 rounded-md flex items-center gap-1"
                   >
                     <Paperclip className="w-4 h-4" />
-                    <span className="text-sm">Attach</span>
+                    <span className="text-sm">Attach ({attachments?.length})</span>
                   </label>
                 </div>
               </div>
@@ -451,7 +451,7 @@ export const GrievanceActions = ({
                     {attachments.map((file, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md min-w-[120px]"
+                        className="flex items-center justify-between bg-gray-50 p-1.5 rounded-md max-w-[200px]"
                       >
                         <span className="text-sm truncate">{file.name}</span>
                         <Button
