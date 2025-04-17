@@ -44,7 +44,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
   const { state, toggleSidebar } = useSidebar();
   const { isNodalOfficer, isSuperAdmin, isAdmin, isUnitCGM } = useUserRoles();
-  const hasAccess = isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM;
+  const hasAccess = isSuperAdmin || isAdmin;
   const canViewRedressalGrievances =
     isNodalOfficer || isSuperAdmin || isAdmin || isUnitCGM || isHOD || isAddressal || isCommittee;
 
